@@ -61,49 +61,49 @@
         }
         .stories-wrap::-webkit-scrollbar{display:none;}
         .story-item{
-            flex-shrink:0;width:88px;
-            display:flex;flex-direction:column;align-items:center;gap:6px;
-            cursor:pointer;
+            flex-shrink:0;width:100px;height:160px;
+            border-radius:18px;overflow:hidden;
+            position:relative;cursor:pointer;
+            border:3px solid var(--accent);
+            background:var(--surface3);
         }
-        .story-ring{
-            width:72px;height:72px;border-radius:20px;overflow:hidden;
-            position:relative;
-            border:3px solid transparent;
-            background:linear-gradient(var(--surface),var(--surface)) padding-box,
-                        linear-gradient(135deg,var(--accent),var(--accent2)) border-box;
+        .story-item .story-bg{
+            position:absolute;inset:0;
+            background-size:cover;background-position:center;
+            width:100%;height:100%;
         }
-        .story-ring.unseen{
-            background:linear-gradient(var(--surface),var(--surface)) padding-box,
-                        linear-gradient(135deg,#f5a623,#e91e8c) border-box;
+        .story-item .story-overlay{
+            position:absolute;inset:0;
+            background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,transparent 40%,rgba(0,0,0,0.55) 75%);
         }
-        .story-ring.own{
-            background:linear-gradient(var(--surface),var(--surface)) padding-box,
-                        linear-gradient(135deg,var(--accent),var(--accent2)) border-box;
+        .story-item .story-user-badge{
+            position:absolute;top:8px;left:8px;
+            width:32px;height:32px;border-radius:50%;overflow:hidden;
+            border:2px solid var(--accent);background:var(--surface3);
         }
-        .story-ring img{width:100%;height:100%;object-fit:cover;display:block;}
-        .story-add{
-            position:absolute;bottom:4px;right:4px;
-            width:22px;height:22px;border-radius:50%;
-            background:var(--accent);color:#fff;
-            display:flex;align-items:center;justify-content:center;
-            font-size:12px;border:2px solid var(--surface);
+        .story-item .story-user-badge img{width:100%;height:100%;object-fit:cover;}
+        .story-item .story-name{
+            position:absolute;bottom:8px;left:6px;right:6px;
+            font-size:11px;font-weight:700;color:#fff;
+            text-shadow:0 1px 4px rgba(0,0,0,0.8);
+            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
         }
-        .story-badge{
-            position:absolute;top:4px;left:4px;
-            width:20px;height:20px;border-radius:50%;overflow:hidden;
-            border:1.5px solid var(--surface);
-        }
-        .story-badge img{width:100%;height:100%;object-fit:cover;}
-        .story-label{font-size:11px;font-weight:600;color:var(--text);text-align:center;width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        /* VIEJO - ocultar */
         .story-add-box{
-            flex-shrink:0;width:72px;height:72px;border-radius:20px;
+            flex-shrink:0;width:100px;height:160px;border-radius:18px;
             border:2px dashed var(--border);
             display:flex;align-items:center;justify-content:center;
-            flex-direction:column;gap:4px;cursor:pointer;
-            transition:border-color 0.2s;
+            flex-direction:column;gap:8px;cursor:pointer;
+            transition:border-color 0.2s;background:var(--surface);
         }
-        .story-add-box i{font-size:20px;color:var(--accent);}
-        .story-add-box span{font-size:10px;font-weight:700;color:var(--text-muted);}
+        .story-add-circle{
+            width:44px;height:44px;border-radius:50%;
+            background:linear-gradient(135deg,var(--accent),var(--accent2));
+            display:flex;align-items:center;justify-content:center;
+            color:#fff;font-size:20px;
+        }
+        .story-add-box span{font-size:11px;font-weight:700;color:var(--text-muted);}
+        .story-label{display:none;}
 
         /* ── COMPOSE BOX ── */
         .compose-box{
@@ -282,11 +282,9 @@
 
 <!-- STORIES -->
 <div class="stories-wrap" id="stories-wrap">
-    <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;width:80px;cursor:pointer;" onclick="location.href='create-posts.html?type=historia'">
-        <div class="story-add-box">
-            <i class="fa-solid fa-plus"></i>
-        </div>
-        <span style="font-size:11px;font-weight:600;color:var(--text-muted);">Tu historia</span>
+    <div class="story-add-box" onclick="location.href='create-posts.html?type=historia'">
+        <div class="story-add-circle"><i class="fa-solid fa-plus"></i></div>
+        <span>Tu historia</span>
     </div>
     <!-- Stories se cargan dinámicamente -->
     <div id="stories-list" style="display:flex;gap:10px;"></div>
@@ -420,12 +418,14 @@ function buildStories(storiesData) {
         if (!isFollowing) return;
         const isVideo = !!s.videoUrl;
         const mediaUrl = s.imagenUrl || s.videoUrl || '';
-        const thumbStyle = mediaUrl ? `background:url('${mediaUrl}') center/cover;` : `background:var(--surface3);`;
+        const bgStyle = mediaUrl ? `background-image:url('${mediaUrl}')` : `background:var(--surface3)`;
+        const avatarSrc = s.avatar || 'default-avatar.png';
+        const nombre = isMe ? 'Tu historia' : (s.autor || 'Usuario');
         div.innerHTML = `
-            <div class="story-ring unseen" style="${thumbStyle}">
-                ${isMe ? '<div class="story-add"><i class="fa-solid fa-plus"></i></div>' : ''}
-            </div>
-            <span class="story-label">${isMe ? 'Tu historia' : (s.autor || 'Usuario')}</span>
+            <div class="story-bg" style="${bgStyle};background-size:cover;background-position:center;"></div>
+            <div class="story-overlay"></div>
+            <div class="story-user-badge"><img src="${avatarSrc}" onerror="this.src='default-avatar.png'"></div>
+            <span class="story-name">${nombre}</span>
         `;
         div.onclick = () => openStory(mediaUrl, s.autor || 'Usuario', s.avatar, isVideo);
         list.appendChild(div);
