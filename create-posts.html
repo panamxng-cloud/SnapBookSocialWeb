@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnapBook | Nueva publicación</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --surface: #fff;
+            --surface2: #f0f2f5;
+            --border: #dde1e7;
+            --accent: #6c63ff;
+            --accent2: #ff6584;
+            --text: #050505;
+            --text-muted: #65676b;
+        }
+        [data-theme="dark"] {
+            --bg: #0f0f13;
+            --surface: #1a1a24;
+            --surface2: #22222e;
+            --border: rgba(255,255,255,0.08);
+            --text: #f0f0f5;
+            --text-muted: #7a7a9a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: var(--bg);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 80px;
+        }
+
+        /* HEADER */
+        .header {
+            position: sticky; top: 0; z-index: 50;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .back-btn {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: var(--surface2); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text); font-size: 16px; cursor: pointer; flex-shrink: 0;
+        }
+        .header-title { font-size: 17px; font-weight: 800; flex: 1; }
+        #btn-publicar {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white; border: none;
+            padding: 10px 22px; border-radius: 24px;
+            font-size: 14px; font-weight: 700; font-family: inherit;
+            cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+            opacity: 0.4; pointer-events: none;
+        }
+        #btn-publicar.listo { opacity: 1; pointer-events: all; box-shadow: 0 4px 16px rgba(108,99,255,0.35); }
+        #btn-publicar:active { transform: scale(0.95); }
+
+        /* TABS */
+        .tabs {
+            display: flex; background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto; scrollbar-width: none; padding: 0 4px;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            flex-shrink: 0; padding: 12px 12px;
+            font-size: 13px; font-weight: 700; color: var(--text-muted);
+            cursor: pointer; font-family: inherit; white-space: nowrap;
+            background: none; border: none; border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn.activo { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-btn i { margin-right: 4px; }
+
+        /* USUARIO */
+        .user-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 16px 8px; background: var(--surface);
+        }
+        #avatar-img {
+            width: 46px; height: 46px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--accent); flex-shrink: 0;
+        }
+        #user-name { font-size: 15px; font-weight: 700; }
+        .publico-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 14px; padding: 3px 10px;
+            font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 3px;
+        }
+
+        /* PANELES */
+        .panel { display: none; margin: 0 16px 8px; }
+        .panel.visible { display: block; }
+        #panel-short {
+            background: linear-gradient(135deg,rgba(255,101,132,0.1),rgba(108,99,255,0.1));
+            border: 1px solid rgba(255,101,132,0.25); border-radius: 14px;
+            padding: 12px 16px; font-size: 13px; color: var(--text-muted); line-height: 1.5;
+        }
+        #panel-anonimo {
+            background: rgba(108,99,255,0.08); border: 1px dashed rgba(108,99,255,0.4);
+            border-radius: 14px; padding: 10px 14px; font-size: 13px;
+            color: var(--text-muted); display: flex; align-items: center; gap: 8px;
+        }
+        #panel-anonimo i { color: var(--accent); }
+        #panel-momento { margin: 0 16px 8px; display: none; }
+        #panel-momento.visible { display: block; }
+        .momento-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+        .momento-chips::-webkit-scrollbar { display: none; }
+        .momento-chip {
+            flex-shrink: 0; padding: 7px 14px; border-radius: 20px;
+            font-size: 13px; font-weight: 600; border: 1.5px solid var(--border);
+            background: var(--surface2); cursor: pointer; white-space: nowrap; transition: all 0.2s;
+        }
+        .momento-chip.sel { background: var(--accent); color: white; border-color: var(--accent); }
+        #panel-futuro {
+            background: linear-gradient(135deg,rgba(255,101,132,0.06),rgba(108,99,255,0.06));
+            border: 1px solid rgba(108,99,255,0.2); border-radius: 16px; padding: 14px 16px;
+        }
+        .futuro-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+        .futuro-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+        .futuro-chip {
+            padding: 8px 14px; border-radius: 12px; border: 1.5px solid var(--border);
+            background: var(--surface2); font-size: 12px; font-weight: 700;
+            color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.2s;
+        }
+        .futuro-chip.sel { background: var(--accent2); color: white; border-color: var(--accent2); }
+        #futuro-info { display: none; margin-top: 10px; font-size: 12px; color: var(--text-muted); }
+        #futuro-info.visible { display: block; }
+
+        /* VOZ */
+        #panel-voz {
+            text-align: center; background: var(--surface2);
+            border-radius: 20px; padding: 24px 20px;
+        }
+        .voz-waves { display: flex; align-items: center; justify-content: center; gap: 4px; height: 48px; margin: 12px 0; }
+        .voz-bar { width: 4px; border-radius: 3px; background: var(--accent); opacity: 0.3; height: 8px; }
+        #panel-voz.grabando .voz-bar { opacity: 1; animation: vp 0.6s ease-in-out infinite alternate; }
+        .voz-bar:nth-child(1){animation-delay:0s}.voz-bar:nth-child(2){animation-delay:.1s}
+        .voz-bar:nth-child(3){animation-delay:.2s}.voz-bar:nth-child(4){animation-delay:.3s}
+        .voz-bar:nth-child(5){animation-delay:.15s}.voz-bar:nth-child(6){animation-delay:.05s}
+        .voz-bar:nth-child(7){animation-delay:.25s}
+        @keyframes vp { from{height:6px} to{height:36px} }
+        #voz-timer { font-size: 28px; font-weight: 800; letter-spacing: 2px; }
+        #voz-status { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-weight: 600; }
+        .voz-btns { display: flex; gap: 12px; justify-content: center; margin-top: 18px; align-items: center; }
+        #voz-mic {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none; color: white; font-size: 26px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 6px 24px rgba(108,99,255,0.4); transition: transform 0.2s;
+        }
+        #voz-mic.grabando { background: linear-gradient(135deg,#ff4757,#ff6584); animation: vg 1s ease-in-out infinite alternate; }
+        @keyframes vg { from{box-shadow:0 6px 24px rgba(255,71,87,.3)} to{box-shadow:0 6px 36px rgba(255,71,87,.7)} }
+        #voz-cancelar {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--surface); border: 1.5px solid var(--border);
+            color: var(--text-muted); font-size: 16px; cursor: pointer;
+            display: none; align-items: center; justify-content: center;
+        }
+        #voz-cancelar.visible { display: flex; }
+        #voz-preview { display: none; margin-top: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+        #voz-preview.visible { display: block; }
+        #voz-audio { width: 100%; }
+        #voz-retry { font-size: 12px; color: var(--text-muted); cursor: pointer; margin-top: 10px; font-weight: 600; }
+
+        /* ENCUESTA */
+        #panel-encuesta { display: none; margin: 0 16px 8px; }
+        #panel-encuesta.visible { display: block; }
+        .enc-pregunta {
+            width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+            border-radius: 14px; padding: 12px 14px; color: var(--text);
+            font-size: 15px; font-family: inherit; outline: none; resize: none; margin-bottom: 12px;
+        }
+        .enc-pregunta:focus { border-color: var(--accent); }
+        .enc-pregunta::placeholder { color: var(--text-muted); }
+        .opcion-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .opcion-input {
+            flex: 1; background: var(--surface2); border: 1.5px solid var(--border);
+            border-radius: 12px; padding: 10px 14px; color: var(--text);
+            font-size: 14px; font-family: inherit; outline: none;
+        }
+        .opcion-input:focus { border-color: var(--accent); }
+        .opcion-input::placeholder { color: var(--text-muted); }
+        .opcion-del {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--surface2); border: 1.5px solid var(--border);
+            color: var(--text-muted); font-size: 14px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .add-opcion {
+            width: 100%; padding: 10px; border-radius: 12px;
+            border: 1.5px dashed var(--border); background: none;
+            color: var(--accent); font-family: inherit; font-size: 14px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-bottom: 10px;
+        }
+        .enc-dur {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 10px 14px;
+        }
+        .enc-dur label { font-size: 13px; font-weight: 600; color: var(--text-muted); flex: 1; }
+        .enc-dur select {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 5px 8px; color: var(--text);
+            font-family: inherit; font-size: 13px; font-weight: 700; outline: none;
+        }
+
+        /* COMPOSE */
+        #compose-area { background: var(--surface); padding: 4px 16px 8px; flex: 1; }
+        #texto-post {
+            width: 100%; background: none; border: none; outline: none;
+            color: var(--text); font-size: 18px; font-family: inherit;
+            resize: none; min-height: 120px; line-height: 1.6; caret-color: var(--accent);
+        }
+        #texto-post::placeholder { color: var(--text-muted); }
+        #char-count { text-align: right; font-size: 12px; color: var(--text-muted); padding: 0 16px 8px; background: var(--surface); }
+
+        /* MOOD */
+        #mood-row {
+            display: none; flex-wrap: wrap; gap: 8px;
+            padding: 10px 16px 12px; background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+        #mood-row.visible { display: flex; }
+        .mood-chip {
+            padding: 7px 14px; border-radius: 20px; font-size: 14px;
+            border: 1.5px solid var(--border); background: var(--surface2); cursor: pointer;
+        }
+        .mood-chip.sel { background: var(--accent); color: white; border-color: var(--accent); }
+        #mood-badge {
+            display: none; align-items: center; gap: 8px;
+            padding: 6px 16px 10px; background: var(--surface); font-size: 14px; font-weight: 600;
+        }
+        #mood-badge.visible { display: flex; }
+        #mood-clear { margin-left: auto; color: var(--text-muted); cursor: pointer; }
+
+        /* PREVIEW MEDIA */
+        #media-preview {
+            display: none; position: relative;
+            margin: 0 16px 10px; border-radius: 16px; overflow: hidden; background: var(--surface2);
+        }
+        #media-preview.visible { display: block; }
+        #preview-img { width: 100%; max-height: 280px; object-fit: cover; display: none; }
+        #preview-video { width: 100%; max-height: 280px; display: none; background: #000; }
+        .remove-media-btn {
+            position: absolute; top: 8px; right: 8px;
+            width: 30px; height: 30px; border-radius: 50%;
+            background: rgba(0,0,0,0.6); color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; cursor: pointer;
+        }
+
+        /* BARRA INFERIOR */
+        #media-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--surface); border-top: 1px solid var(--border);
+            display: flex; gap: 8px; padding: 10px 16px 20px;
+            overflow-x: auto; scrollbar-width: none; z-index: 40;
+        }
+        #media-bar::-webkit-scrollbar { display: none; }
+        .media-chip {
+            display: flex; align-items: center; gap: 6px;
+            padding: 9px 16px; border-radius: 22px;
+            background: var(--surface2); border: 1px solid var(--border);
+            font-size: 13px; font-weight: 600; color: var(--text-muted);
+            cursor: pointer; white-space: nowrap; flex-shrink: 0; font-family: inherit;
+        }
+        .media-chip:active { transform: scale(0.95); }
+        .ic-f { color: #43e97b; }
+        .ic-v { color: var(--accent2); }
+        .ic-e { color: #f7b731; }
+
+        /* OVERLAY */
+        #overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75); z-index: 9999;
+            flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+            backdrop-filter: blur(8px);
+        }
+        #overlay.visible { display: flex; }
+        .spinner { width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #ov-label { color: white; font-size: 17px; font-weight: 700; }
+        .barra-prog { width: 200px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; }
+        #ov-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); width: 0; transition: width 0.3s; }
+
+        /* TOAST */
+        #toast {
+            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: #1a1a24; color: #fff; border-radius: 30px; padding: 12px 24px;
+            font-size: 14px; font-weight: 700; z-index: 9999;
+            opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+<script>
+    (function(){
+        var t = localStorage.getItem('snapbook-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+        var COLORS={Morado:{light:"#6c63ff",dark:"#6c63ff"},Azul:{light:"#1877f2",dark:"#4da3ff"},Rosa:{light:"#e91e8c",dark:"#ff6eb4"},Verde:{light:"#2ecc71",dark:"#43ef7b"},Naranja:{light:"#f39c12",dark:"#ffb347"},Rojo:{light:"#e74c3c",dark:"#ff6b6b"},Cyan:{light:"#00bcd4",dark:"#26d9f0"},Dorado:{light:"#d4a017",dark:"#ffd700"}};
+        var saved=localStorage.getItem("snapbook-accent")||"Morado";
+        var color=COLORS[saved]||COLORS["Morado"];
+        var isDark=t==="dark";
+        document.documentElement.style.setProperty("--accent",isDark?color.dark:color.light);
+    })();
+</script>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></div>
+    <div class="header-title" id="header-title">Nueva publicación</div>
+    <button id="btn-publicar">Publicar</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+    <button class="tab-btn activo" data-tab="publicacion"><i class="fa-solid fa-newspaper"></i>Publicación</button>
+    <button class="tab-btn" data-tab="short"><i class="fa-solid fa-bolt"></i>Short</button>
+    <button class="tab-btn" data-tab="anonimo"><i class="fa-solid fa-mask"></i>Anónimo</button>
+    <button class="tab-btn" data-tab="momento"><i class="fa-solid fa-sun"></i>Momento</button>
+    <button class="tab-btn" data-tab="futuro"><i class="fa-solid fa-envelope-open-text"></i>Al Futuro</button>
+    <button class="tab-btn" data-tab="voz"><i class="fa-solid fa-microphone"></i>Voz</button>
+    <button class="tab-btn" data-tab="encuesta"><i class="fa-solid fa-list-check"></i>Encuesta</button>
+</div>
+
+<!-- USUARIO -->
+<div class="user-row">
+    <img id="avatar-img" src="https://ui-avatars.com/api/?name=SB&background=6c63ff&color=fff&size=96" alt="avatar">
+    <div>
+        <div id="user-name">Cargando...</div>
+        <div class="publico-pill"><i class="fa-solid fa-earth-americas"></i> Público <i class="fa-solid fa-chevron-down"></i></div>
+    </div>
+</div>
+
+<!-- PANEL SHORT -->
+<div class="panel" id="panel-short">
+    <strong style="color:var(--accent2)">⚡ Modo Short</strong><br>
+    Sube un video vertical corto. Se publicará en la sección <strong>Shorts</strong>.
+</div>
+
+<!-- PANEL ANÓNIMO -->
+<div class="panel" id="panel-anonimo">
+    <i class="fa-solid fa-mask"></i>
+    Tu identidad estará oculta. Nadie sabrá que eres tú <strong style="color:var(--accent)">🎭</strong>
+</div>
+
+<!-- PANEL MOMENTO -->
+<div id="panel-momento" class="panel">
+    <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Tipo de momento</div>
+    <div class="momento-chips">
+        <div class="momento-chip" data-m="☀️ Buenos días">☀️ Buenos días</div>
+        <div class="momento-chip" data-m="🌙 Buenas noches">🌙 Buenas noches</div>
+        <div class="momento-chip" data-m="💪 Gym">💪 Gym</div>
+        <div class="momento-chip" data-m="🍕 Comida">🍕 Comida</div>
+        <div class="momento-chip" data-m="🎵 Música">🎵 Música</div>
+        <div class="momento-chip" data-m="📚 Estudiando">📚 Estudiando</div>
+        <div class="momento-chip" data-m="✈️ Viajando">✈️ Viajando</div>
+    </div>
+</div>
+
+<!-- PANEL FUTURO -->
+<div class="panel" id="panel-futuro">
+    <div class="futuro-title"><i class="fa-solid fa-clock"></i> ¿Cuándo se desbloqueará?</div>
+    <div class="futuro-chips">
+        <button class="futuro-chip" data-d="7">1 semana</button>
+        <button class="futuro-chip" data-d="30">1 mes</button>
+        <button class="futuro-chip" data-d="90">3 meses</button>
+        <button class="futuro-chip" data-d="180">6 meses</button>
+        <button class="futuro-chip" data-d="365">1 año</button>
+    </div>
+    <div id="futuro-info"></div>
+</div>
+
+<!-- PANEL VOZ -->
+<div class="panel" id="panel-voz">
+    <div class="voz-waves">
+        <div class="voz-bar"></div><div class="voz-bar"></div><div class="voz-bar"></div>
+        <div class="voz-bar"></div><div class="voz-bar"></div><div class="voz-bar"></div>
+        <div class="voz-bar"></div>
+    </div>
+    <div id="voz-timer">0:00</div>
+    <div id="voz-status">Toca el micrófono para grabar</div>
+    <div class="voz-btns">
+        <div id="voz-cancelar"><i class="fa-solid fa-xmark"></i></div>
+        <button id="voz-mic"><i class="fa-solid fa-microphone"></i></button>
+    </div>
+    <div id="voz-preview">
+        <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;"><i class="fa-solid fa-check-circle"></i> Nota lista</div>
+        <audio id="voz-audio" controls style="width:100%"></audio>
+        <div id="voz-retry" style="font-size:12px;color:var(--text-muted);cursor:pointer;margin-top:10px;font-weight:600;text-align:center;">
+            <i class="fa-solid fa-rotate-left"></i> Grabar de nuevo
+        </div>
+    </div>
+</div>
+
+<!-- PANEL ENCUESTA -->
+<div id="panel-encuesta" class="panel">
+    <textarea class="enc-pregunta" id="enc-pregunta" placeholder="¿Cuál es tu pregunta?" rows="2"></textarea>
+    <div id="enc-opciones">
+        <div class="opcion-row">
+            <input class="opcion-input" placeholder="Opción 1">
+            <div class="opcion-del" style="display:none"><i class="fa-solid fa-xmark"></i></div>
+        </div>
+        <div class="opcion-row">
+            <input class="opcion-input" placeholder="Opción 2">
+            <div class="opcion-del" style="display:none"><i class="fa-solid fa-xmark"></i></div>
+        </div>
+    </div>
+    <button class="add-opcion" id="add-opcion"><i class="fa-solid fa-plus"></i> Agregar opción</button>
+    <div class="enc-dur">
+        <label><i class="fa-solid fa-clock"></i> Duración</label>
+        <select id="enc-dur">
+            <option value="1">1 día</option>
+            <option value="3">3 días</option>
+            <option value="7" selected>7 días</option>
+            <option value="14">14 días</option>
+        </select>
+    </div>
+</div>
+
+<!-- COMPOSE -->
+<div id="compose-area">
+    <textarea id="texto-post" placeholder="¿Qué estás pensando?"></textarea>
+</div>
+<div id="char-count">0 / 1000</div>
+
+<!-- MOOD BADGE -->
+<div id="mood-badge">
+    <span id="mood-texto"></span>
+    <span id="mood-clear"><i class="fa-solid fa-xmark"></i></span>
+</div>
+
+<!-- PREVIEW MEDIA -->
+<div id="media-preview">
+    <img id="preview-img" alt="">
+    <video id="preview-video" controls playsinline></video>
+    <div class="remove-media-btn" id="remove-media"><i class="fa-solid fa-xmark"></i></div>
+</div>
+
+<!-- MOOD ROW -->
+<div id="mood-row">
+    <div class="mood-chip" data-mood="😊 Feliz">😊 Feliz</div>
+    <div class="mood-chip" data-mood="😎 Cool">😎 Cool</div>
+    <div class="mood-chip" data-mood="🥳 Celebrando">🥳 Celebrando</div>
+    <div class="mood-chip" data-mood="😴 Cansado">😴 Cansado</div>
+    <div class="mood-chip" data-mood="💪 Motivado">💪 Motivado</div>
+    <div class="mood-chip" data-mood="🥰 Enamorado">🥰 Enamorado</div>
+    <div class="mood-chip" data-mood="😤 Frustrado">😤 Frustrado</div>
+    <div class="mood-chip" data-mood="🤔 Pensativo">🤔 Pensativo</div>
+</div>
+
+<!-- FILE INPUTS -->
+<input type="file" id="i-foto"  accept="image/*"  style="display:none">
+<input type="file" id="i-video" accept="video/*"  style="display:none">
+<input type="file" id="i-short" accept="video/*"  style="display:none">
+
+<!-- BARRA INFERIOR -->
+<div id="media-bar">
+    <label class="media-chip" for="i-foto"  id="chip-foto" ><i class="fa-solid fa-image ic-f"></i> Foto</label>
+    <label class="media-chip" for="i-video" id="chip-video"><i class="fa-solid fa-video ic-v"></i> Video</label>
+    <div  class="media-chip" id="chip-estado"><i class="fa-solid fa-face-smile ic-e"></i> Estado</div>
+    <label class="media-chip" for="i-short" id="chip-short" style="display:none"><i class="fa-solid fa-bolt ic-v"></i> Elegir video</label>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay">
+    <div class="spinner"></div>
+    <div id="ov-label">Publicando...</div>
+    <div style="color:rgba(255,255,255,.65);font-size:13px" id="ov-sub">Esto puede tardar un momento</div>
+    <div class="barra-prog"><div id="ov-fill"></div></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════════════════
+     SCRIPT PRINCIPAL
+════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp }                                    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged }                      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getDatabase, ref, push, get }                      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+/* ── CONFIG FIREBASE ── */
+const app  = initializeApp({
+    apiKey:            "AIzaSyDN89D9cljm0e8OzrPtloYOUcOY7XSXBqg",
+    authDomain:        "socialtest-3d114.firebaseapp.com",
+    databaseURL:       "https://socialtest-3d114-default-rtdb.firebaseio.com",
+    projectId:         "socialtest-3d114",
+    storageBucket:     "socialtest-3d114.firebasestorage.app",
+    messagingSenderId: "779140232754",
+    appId:             "1:779140232754:web:8b1d492ce1970d98e26e2b"
+});
+const auth    = getAuth(app);
+const db      = getDatabase(app);
+const storage = getStorage(app);
+
+/* ── ESTADO ── */
+let usuario    = null;
+let tabActiva  = 'publicacion';
+let archivo    = null;
+let tipoArch   = null;   // 'imagen' | 'video' | 'short'
+let mood       = null;
+let momento    = null;
+let futuroDias = null;
+let vozBlob    = null;
+let vozChunks  = [];
+let vozSeg     = 0;
+let vozInt     = null;
+let mediaRec   = null;
+let grabando   = false;
+
+/* ── DOM ── */
+const btnPub    = document.getElementById('btn-publicar');
+const textarea  = document.getElementById('texto-post');
+const charCount = document.getElementById('char-count');
+const overlay   = document.getElementById('overlay');
+const ovLabel   = document.getElementById('ov-label');
+const ovFill    = document.getElementById('ov-fill');
+const moodRow   = document.getElementById('mood-row');
+
+/* ── TOAST ── */
+function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+/* ── VALIDAR — el corazón del botón Publicar ── */
+function validar() {
+    const txt = textarea.value.trim();
+    let ok = false;
+    if (tabActiva === 'publicacion') ok = txt.length > 0 || archivo || mood;
+    if (tabActiva === 'short')       ok = archivo !== null;
+    if (tabActiva === 'anonimo')     ok = txt.length > 0 || archivo;
+    if (tabActiva === 'momento')     ok = txt.length > 0 || archivo || momento;
+    if (tabActiva === 'futuro')      ok = txt.length > 0 && futuroDias !== null;
+    if (tabActiva === 'voz')         ok = vozBlob !== null;
+    if (tabActiva === 'encuesta') {
+        const preg = document.getElementById('enc-pregunta').value.trim();
+        const opts = [...document.querySelectorAll('.opcion-input')].filter(i => i.value.trim());
+        ok = preg.length > 0 && opts.length >= 2;
+    }
+    btnPub.classList.toggle('listo', ok);
+}
+
+/* ── TEXTAREA ── */
+textarea.addEventListener('input', () => {
+    const n = textarea.value.length;
+    charCount.textContent = `${n} / 1000`;
+    charCount.style.color = n > 900 ? 'var(--accent2)' : n > 700 ? '#f7b731' : 'var(--text-muted)';
+    validar();
+});
+
+/* ── TABS ── */
+const TITULOS = { publicacion:'Nueva publicación', short:'Nuevo Short', anonimo:'Post anónimo', momento:'Comparte un momento', futuro:'Carta al futuro', voz:'Post de voz', encuesta:'Nueva encuesta' };
+const PLACEHOLDERS = { publicacion:'¿Qué estás pensando?', short:'Describe tu Short...', anonimo:'Escribe lo que sientes... 🎭', momento:'Cuéntanos tu momento ☀️', futuro:'Escribe para tu yo del futuro 💌', voz:'Texto opcional...', encuesta:'' };
+const BTN_TEXTO = { publicacion:'Publicar', short:'⚡ Short', anonimo:'🎭 Anónimo', momento:'🌟 Momento', futuro:'📬 Sellar', voz:'🎙️ Publicar', encuesta:'📊 Encuesta' };
+const PANELES = ['short','anonimo','momento','futuro','voz','encuesta'];
+
+function cambiarTab(tab) {
+    tabActiva = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('activo', b.dataset.tab === tab));
+    document.getElementById('header-title').textContent = TITULOS[tab];
+    textarea.placeholder = PLACEHOLDERS[tab];
+    btnPub.textContent = BTN_TEXTO[tab];
+
+    PANELES.forEach(p => document.getElementById('panel-'+p).classList.toggle('visible', p === tab));
+
+    const esEnc   = tab === 'encuesta';
+    const esShort = tab === 'short';
+    const esVoz   = tab === 'voz';
+
+    document.getElementById('compose-area').style.display = esEnc ? 'none' : '';
+    charCount.style.display = esEnc ? 'none' : '';
+    document.getElementById('media-bar').style.display = (esEnc || esVoz) ? 'none' : '';
+
+    document.getElementById('chip-foto').style.display  = esShort ? 'none' : '';
+    document.getElementById('chip-video').style.display = esShort ? 'none' : '';
+    document.getElementById('chip-estado').style.display = esShort ? 'none' : '';
+    document.getElementById('chip-short').style.display = esShort ? '' : 'none';
+
+    // Reset
+    archivo = null; tipoArch = null; mood = null; momento = null; futuroDias = null;
+    document.getElementById('preview-img').style.display = 'none';
+    document.getElementById('preview-video').style.display = 'none';
+    document.getElementById('media-preview').classList.remove('visible');
+    document.getElementById('i-foto').value = '';
+    document.getElementById('i-video').value = '';
+    document.getElementById('i-short').value = '';
+    document.getElementById('mood-badge').classList.remove('visible');
+    moodRow.classList.remove('visible');
+    document.querySelectorAll('.mood-chip, .momento-chip, .futuro-chip').forEach(c => c.classList.remove('sel'));
+    document.getElementById('futuro-info').classList.remove('visible');
+    if (tab !== 'voz') resetVoz();
+
+    validar();
+}
+
+document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => cambiarTab(b.dataset.tab)));
+
+/* ── FOTO ── */
+document.getElementById('i-foto').addEventListener('change', async e => {
+    let f = e.target.files[0]; if (!f) return;
+    tipoArch = 'imagen';
+    f = await comprimir(f);
+    archivo = f;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        const img = document.getElementById('preview-img');
+        img.src = ev.target.result; img.style.display = 'block';
+        document.getElementById('preview-video').style.display = 'none';
+        document.getElementById('media-preview').classList.add('visible');
+        validar();
+    };
+    reader.readAsDataURL(f);
+});
+
+/* ── VIDEO ── */
+document.getElementById('i-video').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    tipoArch = 'video'; archivo = f;
+    const vid = document.getElementById('preview-video');
+    vid.src = URL.createObjectURL(f); vid.style.display = 'block';
+    document.getElementById('preview-img').style.display = 'none';
+    document.getElementById('media-preview').classList.add('visible');
+    validar();
+});
+
+/* ── SHORT ── */
+document.getElementById('i-short').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    tipoArch = 'short'; archivo = f;
+    const vid = document.getElementById('preview-video');
+    vid.src = URL.createObjectURL(f); vid.style.display = 'block';
+    document.getElementById('preview-img').style.display = 'none';
+    document.getElementById('media-preview').classList.add('visible');
+    validar();
+});
+
+/* ── QUITAR MEDIA ── */
+document.getElementById('remove-media').addEventListener('click', () => {
+    archivo = null; tipoArch = null;
+    document.getElementById('preview-img').style.display = 'none';
+    document.getElementById('preview-video').style.display = 'none';
+    document.getElementById('media-preview').classList.remove('visible');
+    document.getElementById('i-foto').value = '';
+    document.getElementById('i-video').value = '';
+    document.getElementById('i-short').value = '';
+    validar();
+});
+
+/* ── COMPRIMIR IMAGEN ── */
+function comprimir(file, maxW=1280, q=0.82) {
+    return new Promise(res => {
+        if (file.size < 300*1024) { res(file); return; }
+        const img = new Image(), url = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            let {width:w, height:h} = img;
+            if (w > maxW) { h = Math.round(h*maxW/w); w = maxW; }
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            c.getContext('2d').drawImage(img, 0, 0, w, h);
+            c.toBlob(blob => {
+                if (!blob || blob.size >= file.size) { res(file); return; }
+                res(new File([blob], file.name, {type:'image/jpeg', lastModified:Date.now()}));
+            }, 'image/jpeg', q);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); res(file); };
+        img.src = url;
+    });
+}
+
+/* ── MOOD ── */
+document.getElementById('chip-estado').addEventListener('click', () => moodRow.classList.toggle('visible'));
+document.querySelectorAll('.mood-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('sel'));
+        chip.classList.add('sel');
+        mood = chip.dataset.mood;
+        moodRow.classList.remove('visible');
+        document.getElementById('mood-texto').textContent = 'Se siente: ' + mood;
+        document.getElementById('mood-badge').classList.add('visible');
+        validar();
+    });
+});
+document.getElementById('mood-clear').addEventListener('click', () => {
+    mood = null;
+    document.getElementById('mood-badge').classList.remove('visible');
+    document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('sel'));
+    validar();
+});
+
+/* ── MOMENTOS ── */
+document.querySelectorAll('.momento-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('.momento-chip').forEach(c => c.classList.remove('sel'));
+        chip.classList.add('sel');
+        momento = chip.dataset.m;
+        validar();
+    });
+});
+
+/* ── FUTURO ── */
+document.querySelectorAll('.futuro-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.futuro-chip').forEach(b => b.classList.remove('sel'));
+        btn.classList.add('sel');
+        futuroDias = parseInt(btn.dataset.d);
+        const fecha = new Date(Date.now() + futuroDias*86400000);
+        const fi = document.getElementById('futuro-info');
+        fi.textContent = '📅 Se desbloqueará el ' + fecha.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+        fi.classList.add('visible');
+        validar();
+    });
+});
+
+/* ── ENCUESTA ── */
+document.getElementById('enc-pregunta').addEventListener('input', validar);
+function sincOpciones() {
+    const rows = document.querySelectorAll('#enc-opciones .opcion-row');
+    rows.forEach((r,i) => {
+        r.querySelector('.opcion-del').style.display = rows.length > 2 ? 'flex' : 'none';
+        r.querySelector('.opcion-input').placeholder = `Opción ${i+1}`;
+    });
+}
+document.querySelectorAll('.opcion-input').forEach(i => i.addEventListener('input', validar));
+document.querySelectorAll('.opcion-del').forEach(b => b.addEventListener('click', () => { b.closest('.opcion-row').remove(); sincOpciones(); validar(); }));
+document.getElementById('add-opcion').addEventListener('click', () => {
+    const wrap = document.getElementById('enc-opciones');
+    if (wrap.querySelectorAll('.opcion-row').length >= 6) return;
+    const row = document.createElement('div'); row.className = 'opcion-row';
+    row.innerHTML = `<input class="opcion-input" placeholder="Opción"><div class="opcion-del"><i class="fa-solid fa-xmark"></i></div>`;
+    row.querySelector('.opcion-input').addEventListener('input', validar);
+    row.querySelector('.opcion-del').addEventListener('click', () => { row.remove(); sincOpciones(); validar(); });
+    wrap.appendChild(row); sincOpciones(); row.querySelector('input').focus();
+});
+
+/* ── VOZ ── */
+function fmtT(s) { return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+
+function resetVoz() {
+    if (mediaRec && grabando) { try { mediaRec.stop(); } catch(e){} }
+    if (mediaRec?.stream) mediaRec.stream.getTracks().forEach(t => t.stop());
+    clearInterval(vozInt);
+    grabando = false; vozBlob = null; vozChunks = []; vozSeg = 0;
+    document.getElementById('voz-timer').textContent = '0:00';
+    document.getElementById('voz-status').textContent = 'Toca el micrófono para grabar';
+    const mic = document.getElementById('voz-mic');
+    mic.classList.remove('grabando');
+    mic.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+    document.getElementById('panel-voz').classList.remove('grabando');
+    document.getElementById('voz-cancelar').classList.remove('visible');
+    document.getElementById('voz-preview').style.display = 'none';
+    document.getElementById('voz-audio').src = '';
+    validar();
+}
+document.getElementById('voz-retry').addEventListener('click', resetVoz);
+document.getElementById('voz-cancelar').addEventListener('click', resetVoz);
+
+document.getElementById('voz-mic').addEventListener('click', async () => {
+    if (vozBlob) return;
+    if (!grabando) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+            vozChunks = []; vozSeg = 0;
+            mediaRec = new MediaRecorder(stream);
+            mediaRec.ondataavailable = e => { if (e.data.size > 0) vozChunks.push(e.data); };
+            mediaRec.onstop = () => {
+                vozBlob = new Blob(vozChunks, {type:'audio/webm'});
+                document.getElementById('voz-audio').src = URL.createObjectURL(vozBlob);
+                document.getElementById('voz-preview').style.display = 'block';
+                document.getElementById('voz-status').textContent = `✅ Lista · ${fmtT(vozSeg)}`;
+                const mic = document.getElementById('voz-mic');
+                mic.innerHTML = '<i class="fa-solid fa-check"></i>';
+                mic.classList.remove('grabando');
+                document.getElementById('panel-voz').classList.remove('grabando');
+                stream.getTracks().forEach(t => t.stop());
+                validar();
+            };
+            mediaRec.start();
+            grabando = true;
+            document.getElementById('panel-voz').classList.add('grabando');
+            const mic = document.getElementById('voz-mic');
+            mic.classList.add('grabando');
+            mic.innerHTML = '<i class="fa-solid fa-stop"></i>';
+            document.getElementById('voz-cancelar').classList.add('visible');
+            document.getElementById('voz-status').textContent = 'Grabando... toca para detener';
+            vozInt = setInterval(() => {
+                vozSeg++;
+                document.getElementById('voz-timer').textContent = fmtT(vozSeg);
+                if (vozSeg >= 180) document.getElementById('voz-mic').click();
+            }, 1000);
+        } catch(e) {
+            document.getElementById('voz-status').textContent = '⚠️ Sin acceso al micrófono';
+        }
+    } else {
+        clearInterval(vozInt);
+        grabando = false;
+        mediaRec.stop();
+    }
+});
+
+/* ── URL PARAMS ── */
+const params = new URLSearchParams(location.search);
+const autoTab = params.get('type');
+if (autoTab === 'short')   cambiarTab('short');
+if (autoTab === 'anonimo') cambiarTab('anonimo');
+if (autoTab === 'futuro')  cambiarTab('futuro');
+
+/* ── AUTH — cargar usuario ── */
+onAuthStateChanged(auth, async user => {
+    if (!user) { location.href = 'index.html'; return; }
+    usuario = user;
+
+    // Leer datos de /usuarios/{uid}
+    try {
+        const snap = await get(ref(db, `usuarios/${user.uid}`));
+        if (snap.exists()) {
+            const d = snap.val();
+            document.getElementById('user-name').textContent = d.nombre || user.displayName || 'Usuario';
+            const foto = d.photoURL || d.avatar || user.photoURL;
+            if (foto) document.getElementById('avatar-img').src = foto;
+        } else {
+            document.getElementById('user-name').textContent = user.displayName || 'Usuario';
+            if (user.photoURL) document.getElementById('avatar-img').src = user.photoURL;
+        }
+    } catch(e) {
+        document.getElementById('user-name').textContent = user.displayName || 'Usuario';
+        if (user.photoURL) document.getElementById('avatar-img').src = user.photoURL;
+    }
+
+    validar();
+});
+
+/* ── PUBLICAR ── */
+btnPub.addEventListener('click', async () => {
+    if (!usuario)                          { toast('❌ No iniciaste sesión'); return; }
+    if (!btnPub.classList.contains('listo')) return;
+
+    overlay.classList.add('visible');
+    btnPub.classList.remove('listo');
+    ovFill.style.width = '0%';
+
+    try {
+        /* — Subir archivo — */
+        let mediaUrl = '';
+        if (archivo) {
+            const carpeta = tipoArch === 'imagen' ? 'post_images' : tipoArch === 'short' ? 'shorts' : 'post_videos';
+            ovLabel.textContent = tipoArch === 'imagen' ? 'Subiendo imagen...' : 'Subiendo video...';
+            const storRef = sRef(storage, `${carpeta}/${Date.now()}_${usuario.uid}`);
+            const task    = uploadBytesResumable(storRef, archivo);
+            await new Promise((res, rej) => {
+                task.on('state_changed',
+                    s => { ovFill.style.width = (s.bytesTransferred/s.totalBytes*100)+'%'; },
+                    rej, res);
+            });
+            mediaUrl = await getDownloadURL(task.snapshot.ref);
+        }
+
+        ovLabel.textContent = 'Guardando...';
+        ovFill.style.width = '85%';
+
+        const base = {
+            autor: usuario.displayName || 'Usuario',
+            avatar: usuario.photoURL || '',
+            uid: usuario.uid,
+            timestamp: Date.now(),
+            likes: {}
+        };
+
+        if (tabActiva === 'short') {
+            await push(ref(db, 'shorts'), {...base, videoUrl:mediaUrl, descripcion:textarea.value.trim()});
+
+        } else if (tabActiva === 'anonimo') {
+            const d = {autor:'🎭 Anónimo', avatar:'', uid:'anon_'+Date.now(), timestamp:Date.now(), likes:{}, esAnonimo:true, contenido:textarea.value.trim()};
+            if (mediaUrl && tipoArch==='imagen') d.imagenPost = mediaUrl;
+            if (mediaUrl && tipoArch==='video')  d.videoUrl   = mediaUrl;
+            await push(ref(db, 'publicaciones'), d);
+
+        } else if (tabActiva === 'momento') {
+            const d = {...base, contenido:textarea.value.trim(), esMomento:true};
+            if (momento) d.tipoMomento = momento;
+            if (mediaUrl && tipoArch==='imagen') d.imagenPost = mediaUrl;
+            if (mediaUrl && tipoArch==='video')  d.videoUrl   = mediaUrl;
+            await push(ref(db, 'publicaciones'), d);
+
+        } else if (tabActiva === 'futuro') {
+            await push(ref(db, `cartasFuturo/${usuario.uid}`), {
+                contenido:textarea.value.trim(), uid:usuario.uid,
+                createdAt:Date.now(), unlockAt:Date.now()+futuroDias*86400000,
+                dias:futuroDias, leida:false
+            });
+
+        } else if (tabActiva === 'voz') {
+            ovLabel.textContent = 'Subiendo nota de voz...';
+            const vRef  = sRef(storage, `post_audio/${Date.now()}_${usuario.uid}.webm`);
+            const vTask = uploadBytesResumable(vRef, vozBlob);
+            await new Promise((res,rej) => {
+                vTask.on('state_changed', s => { ovFill.style.width=(s.bytesTransferred/s.totalBytes*100)+'%'; }, rej, res);
+            });
+            const vUrl = await getDownloadURL(vTask.snapshot.ref);
+            await push(ref(db,'publicaciones'), {...base, contenido:textarea.value.trim(), audioUrl:vUrl, duracionAudio:vozSeg, esVoz:true});
+
+        } else if (tabActiva === 'encuesta') {
+            const preg = document.getElementById('enc-pregunta').value.trim();
+            const dur  = parseInt(document.getElementById('enc-dur').value);
+            const opts = [...document.querySelectorAll('.opcion-input')].map(i=>i.value.trim()).filter(v=>v).map(texto=>({texto,votos:{}}));
+            await push(ref(db,'publicaciones'), {...base, esEncuesta:true, pregunta:preg, opciones:opts, expiraEn:Date.now()+dur*86400000});
+
+        } else {
+            /* publicación normal */
+            const d = {...base, contenido:textarea.value.trim()};
+            if (mood)                             d.humor      = mood;
+            if (mediaUrl && tipoArch==='imagen')  d.imagenPost = mediaUrl;
+            if (mediaUrl && tipoArch==='video')   d.videoUrl   = mediaUrl;
+            await push(ref(db,'publicaciones'), d);
+            if (mediaUrl && tipoArch==='video') {
+                await push(ref(db,'videos'), {...base, videoUrl:mediaUrl, descripcion:textarea.value.trim()});
+            }
+        }
+
+        ovFill.style.width = '100%';
+        overlay.classList.remove('visible');
+        toast('✅ ¡Publicado!');
+        setTimeout(() => { location.href = 'Home.html'; }, 1200);
+
+    } catch(err) {
+        overlay.classList.remove('visible');
+        btnPub.classList.add('listo');
+        toast('❌ Error: ' + (err.message || 'Intenta de nuevo'));
+        console.error(err);
+    }
+});
+</script>
+</body>
+</html>

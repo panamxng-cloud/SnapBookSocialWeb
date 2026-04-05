@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnapBook | Perfil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#f0f2f5;--surface:#ffffff;--surface2:#f0f2f5;--border:#dde1e7;
+            --accent:#1877f2;--accent2:#ff6584;--text:#050505;--text-muted:#65676b;
+            --card-shadow:0 2px 12px rgba(0,0,0,0.08);--header-bg:rgba(255,255,255,0.95);--nav-bg:rgba(255,255,255,0.97);
+        }
+        [data-theme="dark"] {
+            --bg:#0f0f13;--surface:#1a1a24;--surface2:#22222e;--border:rgba(255,255,255,0.07);
+            --accent:#6c63ff;--accent2:#ff6584;--text:#f0f0f5;--text-muted:#7a7a9a;
+            --card-shadow:0 4px 24px rgba(0,0,0,0.4);--header-bg:rgba(15,15,19,0.92);--nav-bg:rgba(26,26,36,0.97);
+        }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);padding-bottom:100px;min-height:100vh;}
+        .sb-header{background:var(--header-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:1000;border-bottom:1px solid var(--border);}
+        .logo{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+        .icon-btn{width:38px;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:16px;cursor:pointer;transition:all 0.2s;}
+        .icon-btn:active{transform:scale(0.92);background:var(--accent);color:white;}
+        .profile-cover{margin-top:66px;height:160px;background:linear-gradient(135deg,var(--accent),var(--accent2));position:relative;overflow:hidden;}
+        .profile-cover img.cover-img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+        .cover-edit-btn{position:absolute;bottom:10px;right:14px;background:rgba(0,0,0,0.5);border:none;border-radius:20px;color:white;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;}
+        .profile-surface{background:var(--surface);}
+        .avatar-wrap{position:relative;width:90px;height:90px;margin:-45px 0 0 18px;}
+        .profile-avatar{width:90px;height:90px;border-radius:50%;border:4px solid var(--surface);object-fit:cover;background:var(--surface2);}
+        .avatar-edit{position:absolute;bottom:2px;right:2px;width:26px;height:26px;background:var(--accent);border-radius:50%;border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;cursor:pointer;}
+        .profile-info{padding:12px 18px 18px;}
+        .profile-name{font-size:20px;font-weight:800;margin-top:10px;margin-bottom:3px;}
+        .profile-username{font-size:13px;color:var(--text-muted);margin-bottom:8px;}
+        .profile-bio{font-size:14px;line-height:1.5;margin-bottom:14px;}
+        .profile-stats{display:flex;gap:24px;margin-bottom:14px;}
+        .stat-item{text-align:center;cursor:pointer;}
+        .stat-num{font-size:18px;font-weight:800;display:block;}
+        .stat-label{font-size:12px;color:var(--text-muted);}
+        .profile-actions{display:flex;gap:10px;}
+        .btn-action{flex:1;padding:9px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;}
+        .btn-action:active{transform:scale(0.96);}
+        .btn-action.primary{background:var(--accent);color:white;border-color:var(--accent);}
+        .profile-tabs{background:var(--surface);display:flex;border-bottom:1px solid var(--border);position:sticky;top:66px;z-index:100;}
+        .ptab{flex:1;text-align:center;padding:14px 0;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;}
+        .ptab.active{color:var(--accent);border-bottom-color:var(--accent);}
+        .posts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
+        .grid-item{aspect-ratio:1;overflow:hidden;position:relative;background:var(--surface2);cursor:pointer;}
+        .grid-item img,.grid-item video{width:100%;height:100%;object-fit:cover;display:block;}
+        .video-badge{position:absolute;top:6px;right:6px;color:white;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,0.7);}
+        .grid-empty{grid-column:span 3;text-align:center;padding:60px 20px;color:var(--text-muted);}
+        .grid-empty i{font-size:48px;opacity:0.3;display:block;margin-bottom:14px;}
+        .grid-empty p{font-size:14px;}
+
+        /* ── WRAPPED MENSUAL ── */
+        .wrapped-banner{margin:12px 14px 0;border-radius:20px;background:linear-gradient(135deg,#6c63ff,#ff6584,#f7b731);padding:2px;cursor:pointer;box-shadow:0 6px 20px rgba(108,99,255,0.3);}
+        .wrapped-inner{background:var(--surface);border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;}
+        .wrapped-inner::before{content:'✨';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:32px;opacity:0.15;}
+        .wrapped-emoji{font-size:28px;flex-shrink:0;}
+        .wrapped-info{flex:1;}
+        .wrapped-title{font-size:14px;font-weight:800;background:linear-gradient(135deg,#6c63ff,#ff6584);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+        .wrapped-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+        .wrapped-cta{font-size:12px;font-weight:700;color:white;background:linear-gradient(135deg,#6c63ff,#ff6584);padding:6px 14px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+
+        /* ── WRAPPED MODAL ── */
+        .wrapped-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.85);backdrop-filter:blur(16px);}
+        .wrapped-modal.open{display:flex;align-items:center;justify-content:center;}
+        .wrapped-card{width:calc(100% - 40px);max-width:380px;border-radius:28px;overflow:hidden;position:relative;}
+        .wrapped-slide{display:none;padding:32px 28px 36px;text-align:center;min-height:440px;flex-direction:column;align-items:center;justify-content:center;position:relative;}
+        .wrapped-slide.active{display:flex;}
+        .wrapped-slide-0{background:linear-gradient(160deg,#0f0f1a,#1a0a2e,#0d0d1a);}
+        .wrapped-slide-1{background:linear-gradient(160deg,#0a1628,#0d2040,#0a1028);}
+        .wrapped-slide-2{background:linear-gradient(160deg,#1a0a1a,#2d0820,#1a0510);}
+        .wrapped-slide-3{background:linear-gradient(160deg,#0a1a0a,#0d2810,#0a1505);}
+        .wrapped-close{position:absolute;top:14px;right:14px;color:rgba(255,255,255,0.5);font-size:20px;cursor:pointer;z-index:1;background:rgba(255,255,255,0.1);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+        .wrapped-month-label{font-size:12px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px;}
+        .wrapped-big-emoji{font-size:64px;margin:16px 0;}
+        .wrapped-stat-big{font-size:52px;font-weight:900;color:white;line-height:1;}
+        .wrapped-stat-label{font-size:15px;color:rgba(255,255,255,0.65);margin-top:8px;font-weight:500;}
+        .wrapped-stat-sub{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px;}
+        .wrapped-highlight{font-size:18px;font-weight:800;color:white;line-height:1.4;margin:12px 0;}
+        .wrapped-dots{display:flex;gap:6px;justify-content:center;margin-top:24px;}
+        .wrapped-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.25);transition:all 0.3s;}
+        .wrapped-dot.active{background:white;width:18px;border-radius:3px;}
+        .wrapped-next{margin-top:20px;padding:12px 32px;border-radius:30px;border:none;background:rgba(255,255,255,0.12);color:white;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;backdrop-filter:blur(8px);}
+        .wrapped-share{background:linear-gradient(135deg,#6c63ff,#ff6584);padding:12px 32px;border-radius:30px;border:none;color:white;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:16px;}
+        .wrapped-bar-row{width:100%;margin:8px 0;}
+        .wrapped-bar-label{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:4px;}
+        .wrapped-bar-track{width:100%;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;}
+        .wrapped-bar-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+
+        .nav-float{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--nav-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);padding:11px 30px;border-radius:44px;display:flex;gap:30px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);z-index:1000;}
+        .tab{color:var(--text-muted);font-size:19px;cursor:pointer;padding:4px 2px;position:relative;transition:color 0.2s,transform 0.15s;-webkit-tap-highlight-color:transparent;}
+        .tab.active{color:var(--accent);}
+        .tab.active::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:4px;height:4px;background:var(--accent);border-radius:50%;}
+    </style>
+</head>
+<body>
+    <script>(function(){var t=localStorage.getItem('snapbook-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+    <script>(function(){var COLORS={Morado:{light:"#6c63ff",dark:"#6c63ff"},Azul:{light:"#1877f2",dark:"#4da3ff"},Rosa:{light:"#e91e8c",dark:"#ff6eb4"},Verde:{light:"#2ecc71",dark:"#43ef7b"},Naranja:{light:"#f39c12",dark:"#ffb347"},Rojo:{light:"#e74c3c",dark:"#ff6b6b"},Cyan:{light:"#00bcd4",dark:"#26d9f0"},Dorado:{light:"#d4a017",dark:"#ffd700"}};var saved=localStorage.getItem("snapbook-accent")||"Morado";var color=COLORS[saved]||COLORS["Morado"];var isDark=document.documentElement.getAttribute("data-theme")==="dark";document.documentElement.style.setProperty("--accent",isDark?color.dark:color.light);})();</script>
+
+    <header class="sb-header">
+        <div class="logo">SnapBook</div>
+        <div class="icon-btn" onclick="window.location.href='settings.html'"><i class="fa-solid fa-gear"></i></div>
+    </header>
+
+    <div class="profile-cover" id="cover-wrap">
+        <button class="cover-edit-btn" id="cover-edit-btn"><i class="fa-solid fa-camera"></i> Portada</button>
+        <input type="file" id="cover-input" accept="image/*" style="display:none">
+    </div>
+
+    <div class="profile-surface">
+        <div class="avatar-wrap">
+            <img class="profile-avatar" id="profile-avatar" src="default-avatar.png" onerror="this.src='default-avatar.png'">
+            <div class="avatar-edit" id="avatar-edit-btn"><i class="fa-solid fa-camera"></i></div>
+            <input type="file" id="avatar-input" accept="image/*" style="display:none">
+        </div>
+        <div class="profile-info">
+            <div class="profile-name" id="profile-name">Cargando...</div>
+            <div class="profile-username" id="profile-username">@usuario</div>
+            <div class="profile-bio" id="profile-bio">¡Hola! Estoy usando SnapBook 📸✨</div>
+            <div class="profile-stats">
+                <div class="stat-item"><span class="stat-num" id="stat-posts">0</span><span class="stat-label">Posts</span></div>
+                <div class="stat-item"><span class="stat-num" id="stat-followers">0</span><span class="stat-label">Seguidores</span></div>
+                <div class="stat-item"><span class="stat-num" id="stat-following">0</span><span class="stat-label">Siguiendo</span></div>
+                <div class="stat-item" title="Visitas a tu perfil en los últimos 30 días"><span class="stat-num" id="stat-visits">—</span><span class="stat-label">👁️ Visitas</span></div>
+            </div>
+            <div class="profile-actions">
+                <button class="btn-action primary" onclick="location.href='create-posts.html'"><i class="fa-solid fa-plus"></i> Publicar</button>
+                <button class="btn-action" onclick="location.href='settings.html'"><i class="fa-solid fa-pen"></i> Editar perfil</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-tabs">
+        <div class="ptab active" data-tab="posts"><i class="fa-solid fa-border-all"></i> Posts</div>
+        <div class="ptab" data-tab="fotos"><i class="fa-regular fa-image"></i> Fotos</div>
+        <div class="ptab" data-tab="videos"><i class="fa-solid fa-video"></i> Videos</div>
+    </div>
+
+    <!-- WRAPPED MENSUAL BANNER -->
+    <div class="wrapped-banner" id="wrapped-banner" onclick="openWrapped()">
+        <div class="wrapped-inner">
+            <div class="wrapped-emoji">🎬</div>
+            <div class="wrapped-info">
+                <div class="wrapped-title">Tu Wrapped de este mes está listo</div>
+                <div class="wrapped-sub">Descubre tus estadísticas de <span id="wrapped-month-name">este mes</span> ✨</div>
+            </div>
+            <div class="wrapped-cta">Ver →</div>
+        </div>
+    </div>
+
+    <!-- WRAPPED MODAL -->
+    <div class="wrapped-modal" id="wrapped-modal">
+        <div class="wrapped-card">
+            <!-- Slide 0: Intro -->
+            <div class="wrapped-slide wrapped-slide-0 active" id="wslide-0">
+                <div class="wrapped-close" onclick="closeWrapped()"><i class="fa-solid fa-xmark"></i></div>
+                <div class="wrapped-month-label" id="wlabel-0">Tu mes en SnapBook</div>
+                <div class="wrapped-big-emoji">🌟</div>
+                <div class="wrapped-highlight">¡Ha sido un gran mes!</div>
+                <div class="wrapped-stat-label">Aquí va un resumen de tu actividad</div>
+                <div class="wrapped-dots" id="wrapped-dots"></div>
+                <button class="wrapped-next" onclick="nextSlide()">Empezar →</button>
+            </div>
+            <!-- Slide 1: Posts publicados -->
+            <div class="wrapped-slide wrapped-slide-1" id="wslide-1">
+                <div class="wrapped-close" onclick="closeWrapped()"><i class="fa-solid fa-xmark"></i></div>
+                <div class="wrapped-month-label">Publicaciones</div>
+                <div class="wrapped-big-emoji">📝</div>
+                <div class="wrapped-stat-big" id="w-posts-count">0</div>
+                <div class="wrapped-stat-label">posts este mes</div>
+                <div class="wrapped-stat-sub" id="w-posts-sub"></div>
+                <div class="wrapped-dots" id="wrapped-dots-1"></div>
+                <button class="wrapped-next" onclick="nextSlide()">Siguiente →</button>
+            </div>
+            <!-- Slide 2: Likes recibidos -->
+            <div class="wrapped-slide wrapped-slide-2" id="wslide-2">
+                <div class="wrapped-close" onclick="closeWrapped()"><i class="fa-solid fa-xmark"></i></div>
+                <div class="wrapped-month-label">Reacciones</div>
+                <div class="wrapped-big-emoji">❤️</div>
+                <div class="wrapped-stat-big" id="w-likes-count">0</div>
+                <div class="wrapped-stat-label">likes recibidos</div>
+                <div class="wrapped-stat-sub" id="w-likes-sub"></div>
+                <div class="wrapped-dots" id="wrapped-dots-2"></div>
+                <button class="wrapped-next" onclick="nextSlide()">Siguiente →</button>
+            </div>
+            <!-- Slide 3: Tipos de contenido -->
+            <div class="wrapped-slide wrapped-slide-3" id="wslide-3">
+                <div class="wrapped-close" onclick="closeWrapped()"><i class="fa-solid fa-xmark"></i></div>
+                <div class="wrapped-month-label">Tipo de contenido</div>
+                <div class="wrapped-bar-row">
+                    <div class="wrapped-bar-label"><span>📝 Texto</span><span id="w-bar-text-pct">0%</span></div>
+                    <div class="wrapped-bar-track"><div class="wrapped-bar-fill" id="w-bar-text" style="background:#6c63ff;width:0%"></div></div>
+                </div>
+                <div class="wrapped-bar-row">
+                    <div class="wrapped-bar-label"><span>🖼️ Fotos</span><span id="w-bar-photo-pct">0%</span></div>
+                    <div class="wrapped-bar-track"><div class="wrapped-bar-fill" id="w-bar-photo" style="background:#43e97b;width:0%"></div></div>
+                </div>
+                <div class="wrapped-bar-row">
+                    <div class="wrapped-bar-label"><span>🎥 Videos</span><span id="w-bar-video-pct">0%</span></div>
+                    <div class="wrapped-bar-track"><div class="wrapped-bar-fill" id="w-bar-video" style="background:#ff6584;width:0%"></div></div>
+                </div>
+                <div class="wrapped-stat-sub" style="margin-top:16px" id="w-content-msg"></div>
+                <div class="wrapped-dots" id="wrapped-dots-3"></div>
+                <button class="wrapped-share" onclick="shareWrapped()">🎉 Compartir mi Wrapped</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="posts-grid" id="posts-grid">
+        <div class="grid-empty"><i class="fa-solid fa-images"></i><p>Aún no has publicado nada.</p></div>
+    </div>
+
+    <nav class="nav-float">
+        <div class="tab" onclick="location.href='Home.html'"><i class="fa-solid fa-house"></i></div>
+        <div class="tab" onclick="location.href='videos.html'"><i class="fa-solid fa-play"></i></div>
+        <div class="tab" onclick="location.href='create-posts.html'"><i class="fa-solid fa-plus"></i></div>
+        <div class="tab" onclick="location.href='chats.html'"><i class="fa-solid fa-comment-dots"></i></div>
+        <div class="tab active"><i class="fa-solid fa-user"></i></div>
+    </nav>
+
+    <script type="module">
+        import { auth, db, storage } from './firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        let currentUser = null;
+        let allPosts  = [];  // publicaciones del usuario
+        let allShorts = [];  // shorts del usuario
+        let activeTab = 'posts';
+
+
+        // ── Animación de contadores ──────────────────────────────────
+        function animateCount(el, target) {
+            const duration = 600;
+            const start = performance.now();
+            const from = parseInt(el.textContent) || 0;
+            if (from === target) return;
+            const step = timestamp => {
+                const progress = Math.min((timestamp - start) / duration, 1);
+                const ease = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(from + (target - from) * ease);
+                if (progress < 1) requestAnimationFrame(step);
+                else el.textContent = target;
+            };
+            requestAnimationFrame(step);
+        }
+
+        // ── Skeleton mientras carga ──────────────────────────────────
+        function showSkeleton() {
+            const grid = document.getElementById('posts-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const sk = document.createElement('div');
+                sk.className = 'grid-item';
+                sk.style.cssText = 'background:var(--surface2);animation:pulse 1.5s ease-in-out infinite;';
+                if (i % 3 === 1) sk.style.animationDelay = '0.2s';
+                if (i % 3 === 2) sk.style.animationDelay = '0.4s';
+                grid.appendChild(sk);
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { location.href = 'index.html'; return; }
+            currentUser = user;
+
+            // Mostrar datos de Auth inmediatamente
+            document.getElementById('profile-avatar').src = user.photoURL || 'default-avatar.png';
+            document.getElementById('profile-name').textContent = user.displayName || user.email?.split('@')[0] || 'Usuario';
+            document.getElementById('profile-username').textContent = '@' + (user.email?.split('@')[0] || 'usuario');
+            showSkeleton();
+
+            // Cargar datos de DB
+            try {
+                const userSnap = await get(ref(db, `usuarios/${user.uid}`));
+                if (userSnap.exists()) {
+                    const ud = userSnap.val();
+                    document.getElementById('profile-name').textContent = ud.nombre || user.displayName || 'Usuario';
+                    document.getElementById('profile-username').textContent = '@' + (ud.username || user.email?.split('@')[0] || 'usuario');
+                    document.getElementById('profile-bio').textContent = ud.bio || '¡Hola! Estoy usando SnapBook 📸✨';
+                    if (ud.photoURL) document.getElementById('profile-avatar').src = ud.photoURL;
+                } else {
+                    await set(ref(db, `usuarios/${user.uid}`), {
+                        nombre: user.displayName || user.email?.split('@')[0] || 'Usuario',
+                        email: user.email || '',
+                        photoURL: user.photoURL || '',
+                        createdAt: Date.now()
+                    });
+                }
+            } catch(e) { console.warn('DB no disponible'); }
+
+            // Registrar visita y cargar conteo (últimos 30 días)
+            try {
+                const visitKey = Date.now();
+                await push(ref(db, `visitas_perfil/${user.uid}`), {
+                    ts: visitKey, visitor: user.uid // en tu caso propio; desde perfil ajeno sería el uid del visitante
+                });
+                // Contar visitas últimos 30 días
+                const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+                const visSnap = await get(ref(db, `visitas_perfil/${user.uid}`));
+                let visitCount = 0;
+                if (visSnap.exists()) {
+                    visSnap.forEach(c => { if ((c.val().ts || 0) >= thirtyDaysAgo) visitCount++; });
+                }
+                document.getElementById('stat-visits').textContent = visitCount > 999
+                    ? Math.floor(visitCount/1000) + 'k' : visitCount;
+            } catch(e) {}
+
+            // Cargar seguidores/siguiendo
+            try {
+                const [fwersSnap, fwingSnap] = await Promise.all([
+                    get(ref(db, `seguidores/${user.uid}`)),
+                    get(ref(db, `siguiendo/${user.uid}`))
+                ]);
+                animateCount(document.getElementById('stat-followers'), fwersSnap.exists() ? Object.values(fwersSnap.val()).filter(Boolean).length : 0);
+                animateCount(document.getElementById('stat-following'), fwingSnap.exists() ? Object.values(fwingSnap.val()).filter(Boolean).length : 0);
+            } catch(e) {}
+
+            // Cargar publicaciones Y shorts en paralelo
+            try {
+                const [postsSnap, shortsSnap] = await Promise.all([
+                    get(ref(db, 'publicaciones')),
+                    get(ref(db, 'shorts'))
+                ]);
+
+                if (postsSnap.exists()) {
+                    postsSnap.forEach(c => {
+                        if (c.val().uid === user.uid) allPosts.push({id: c.key, ...c.val()});
+                    });
+                    allPosts.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+                }
+                if (shortsSnap.exists()) {
+                    shortsSnap.forEach(c => {
+                        if (c.val().uid === user.uid) allShorts.push({id: c.key, ...c.val()});
+                    });
+                    allShorts.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+                }
+
+                animateCount(document.getElementById('stat-posts'), allPosts.length + allShorts.length);
+                renderGrid('posts');
+            } catch(e) { console.error(e); }
+        });
+
+        // ── Iconos y labels por tab ──────────────────────────────────
+        const TAB_EMPTY = {
+            posts:  { icon: 'fa-images',     msg: 'Aún no has publicado nada.' },
+            fotos:  { icon: 'fa-image',       msg: 'No has publicado fotos todavía.' },
+            videos: { icon: 'fa-circle-play', msg: 'No has publicado videos ni shorts todavía.' }
+        };
+
+        function renderGrid(tab) {
+            activeTab = tab;
+            const grid = document.getElementById('posts-grid');
+            let list = [];
+
+            if (tab === 'posts') {
+                list = allPosts;
+            } else if (tab === 'fotos') {
+                list = allPosts.filter(p => p.imagenPost && !p.videoUrl);
+            } else if (tab === 'videos') {
+                // Videos de publicaciones + todos los shorts
+                const vidPosts = allPosts.filter(p => p.videoUrl);
+                list = [...vidPosts, ...allShorts].sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+            }
+
+            if (!list.length) {
+                const e = TAB_EMPTY[tab] || TAB_EMPTY.posts;
+                grid.innerHTML = `<div class="grid-empty"><i class="fa-solid ${e.icon}"></i><p>${e.msg}</p></div>`;
+                return;
+            }
+
+            grid.innerHTML = '';
+            list.forEach((post, idx) => {
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.style.animationDelay = (idx * 0.03) + 's';
+
+                const isVideo = !!(post.videoUrl || post.isShort);
+                const isShort = !!post.descripcion && !post.contenido; // distinguir short de publicación
+
+                if (isVideo) {
+                    const src = post.videoUrl || '';
+                    item.innerHTML = `
+                        <video src="${src}" muted preload="none" playsinline></video>
+                        <span class="video-badge">
+                            <i class="fa-solid ${isShort ? 'fa-bolt' : 'fa-play'}"></i>
+                        </span>
+                        <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px;color:rgba(255,255,255,0.7);font-weight:700">
+                            ${isShort ? 'SHORT' : ''}
+                        </div>`;
+                } else if (post.imagenPost) {
+                    item.innerHTML = `<img src="${post.imagenPost}" loading="lazy" onerror="this.style.display='none'">`;
+                } else {
+                    // Post de texto — mostrar extracto
+                    const words = (post.contenido || '').substring(0, 60);
+                    item.innerHTML = `
+                        <div style="display:flex;align-items:center;justify-content:center;height:100%;
+                            padding:10px;background:linear-gradient(135deg,var(--surface2),var(--surface));
+                            position:relative;">
+                            <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical">
+                                ${words}${words.length >= 60 ? '…' : ''}
+                            </div>
+                            <div style="position:absolute;top:5px;right:5px;font-size:9px;color:var(--accent);font-weight:800">Aa</div>
+                        </div>`;
+                }
+
+                // Al hacer tap, ir al post (se puede expandir más adelante)
+                item.onclick = () => {
+                    if (post.videoUrl && isShort) {
+                        location.href = 'videos.html';
+                    }
+                };
+
+                grid.appendChild(item);
+            });
+        }
+
+        document.querySelectorAll('.ptab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                renderGrid(tab.dataset.tab);
+            };
+        });
+
+        // ── WRAPPED MENSUAL ──
+        const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        const mesActual = new Date().getMonth();
+        const anioActual = new Date().getFullYear();
+        document.getElementById('wrapped-month-name').textContent = MESES[mesActual];
+        document.getElementById('wlabel-0').textContent = `Tu ${MESES[mesActual]} en SnapBook`;
+
+        // Calcular stats del mes actual
+        function calcWrappedStats() {
+            const inicioMes = new Date(anioActual, mesActual, 1).getTime();
+            const finMes    = new Date(anioActual, mesActual + 1, 0, 23, 59, 59).getTime();
+            const postsMes  = allPosts.filter(p => p.timestamp >= inicioMes && p.timestamp <= finMes);
+            const textos    = postsMes.filter(p => !p.imagenPost && !p.videoUrl).length;
+            const fotos     = postsMes.filter(p => !!p.imagenPost).length;
+            const videos    = postsMes.filter(p => !!p.videoUrl).length;
+            const totalLikes = postsMes.reduce((acc, p) => acc + Object.keys(p.likes || {}).length, 0);
+            return { total: postsMes.length, textos, fotos, videos, totalLikes };
+        }
+
+        window.openWrapped = function() {
+            const stats = calcWrappedStats();
+            // Slide 1
+            document.getElementById('w-posts-count').textContent = stats.total;
+            document.getElementById('w-posts-sub').textContent = stats.total === 0 ? 'Aún sin posts este mes 👀' :
+                stats.total === 1 ? '¡Empezaste bien!' : stats.total >= 10 ? '¡Increíble constancia! 🔥' : '¡Sigue así! 💪';
+            // Slide 2
+            document.getElementById('w-likes-count').textContent = stats.totalLikes;
+            document.getElementById('w-likes-sub').textContent = stats.totalLikes === 0 ? 'Publica más para recibir reacciones 💡' :
+                stats.totalLikes >= 50 ? '¡Eres una estrella! ⭐' : '¡Tu contenido gusta! ❤️';
+            // Slide 3 barras
+            const total = stats.total || 1;
+            const tp = Math.round((stats.textos/total)*100);
+            const fp = Math.round((stats.fotos/total)*100);
+            const vp = Math.round((stats.videos/total)*100);
+            document.getElementById('w-bar-text-pct').textContent  = tp + '%';
+            document.getElementById('w-bar-photo-pct').textContent = fp + '%';
+            document.getElementById('w-bar-video-pct').textContent = vp + '%';
+            setTimeout(() => {
+                document.getElementById('w-bar-text').style.width  = tp + '%';
+                document.getElementById('w-bar-photo').style.width = fp + '%';
+                document.getElementById('w-bar-video').style.width = vp + '%';
+            }, 400);
+            const tipo = fp >= vp && fp >= tp ? '📸 fotógrafa/o' : vp >= tp ? '🎥 creador/a de video' : '✍️ escritor/a';
+            document.getElementById('w-content-msg').textContent = `Este mes eres más ${tipo}`;
+            // Dots
+            currentSlide = 0;
+            totalSlides = 4;
+            buildDots();
+            showSlide(0);
+            document.getElementById('wrapped-modal').classList.add('open');
+        };
+
+        window.closeWrapped = function() {
+            document.getElementById('wrapped-modal').classList.remove('open');
+        };
+
+        let currentSlide = 0, totalSlides = 4;
+        function buildDots() {
+            ['','1','2','3'].forEach((s, i) => {
+                const el = document.getElementById('wrapped-dots' + (s ? '-'+s : ''));
+                if (!el) return;
+                el.innerHTML = '';
+                for (let j = 0; j < totalSlides; j++) {
+                    const d = document.createElement('div');
+                    d.className = 'wrapped-dot' + (j === i ? ' active' : '');
+                    el.appendChild(d);
+                }
+            });
+        }
+        function showSlide(n) {
+            document.querySelectorAll('.wrapped-slide').forEach((s,i) => s.classList.toggle('active', i === n));
+        }
+        window.nextSlide = function() {
+            currentSlide = Math.min(currentSlide + 1, totalSlides - 1);
+            buildDots();
+            showSlide(currentSlide);
+        };
+        window.shareWrapped = function() {
+            const stats = calcWrappedStats();
+            const text = `🎬 Mi SnapBook Wrapped de ${MESES[mesActual]}:\n📝 ${stats.total} posts publicados\n❤️ ${stats.totalLikes} likes recibidos\n¡Únete a SnapBook!`;
+            if (navigator.share) { navigator.share({ title: 'Mi Wrapped de SnapBook', text }); }
+            else { navigator.clipboard.writeText(text).then(() => alert('¡Copiado al portapapeles!')); }
+        };
+
+        document.getElementById('avatar-edit-btn').onclick = () => document.getElementById('avatar-input').click();
+        document.getElementById('avatar-input').onchange = async (e) => {
+            if (!currentUser || !e.target.files[0]) return;
+            try {
+                const snap = await uploadBytes(sRef(storage,`avatars/${currentUser.uid}/profile`), e.target.files[0]);
+                document.getElementById('profile-avatar').src = await getDownloadURL(snap.ref);
+            } catch(err) { alert('Error: '+err.message); }
+        };
+
+        document.getElementById('cover-edit-btn').onclick = () => document.getElementById('cover-input').click();
+        document.getElementById('cover-input').onchange = async (e) => {
+            if (!currentUser || !e.target.files[0]) return;
+            try {
+                const snap = await uploadBytes(sRef(storage,`covers/${currentUser.uid}/cover`), e.target.files[0]);
+                const url = await getDownloadURL(snap.ref);
+                const wrap = document.getElementById('cover-wrap');
+                wrap.style.background = 'none';
+                let img = wrap.querySelector('img.cover-img');
+                if (!img) { img = document.createElement('img'); img.className='cover-img'; wrap.prepend(img); }
+                img.src = url;
+            } catch(err) { alert('Error: '+err.message); }
+        };
+    </script>
+</body>
+</html>

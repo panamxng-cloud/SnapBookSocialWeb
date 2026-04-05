@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnapBook | Ajustes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:#f0f2f5;--surface:#fff;--surface2:#f0f2f5;--border:#dde1e7;--accent:#1877f2;--accent2:#ff6584;--text:#050505;--text-muted:#65676b;--card-shadow:0 2px 12px rgba(0,0,0,0.08);--header-bg:rgba(255,255,255,0.95);--nav-bg:rgba(255,255,255,0.97);--danger:#e74c3c;}
+        [data-theme="dark"]{--bg:#0f0f13;--surface:#1a1a24;--surface2:#22222e;--border:rgba(255,255,255,0.07);--accent:#6c63ff;--accent2:#ff6584;--text:#f0f0f5;--text-muted:#7a7a9a;--card-shadow:0 4px 24px rgba(0,0,0,0.4);--header-bg:rgba(15,15,19,0.92);--nav-bg:rgba(26,26,36,0.97);--danger:#e74c3c;}
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);padding-bottom:40px;min-height:100vh;}
+        .sb-header{background:var(--header-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 18px;display:flex;align-items:center;gap:12px;position:fixed;top:0;left:0;right:0;z-index:1000;border-bottom:1px solid var(--border);}
+        .back-btn{width:38px;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:16px;cursor:pointer;transition:all 0.2s;flex-shrink:0;}
+        .back-btn:active{transform:scale(0.92);background:var(--accent);color:white;}
+        .header-title{font-size:18px;font-weight:800;}
+
+        .main-content{margin-top:66px;padding:16px 14px;}
+
+        /* PROFILE CARD */
+        .profile-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:20px;box-shadow:var(--card-shadow);display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform 0.15s;}
+        .profile-card:active{transform:scale(0.98);}
+        .pc-avatar{width:58px;height:58px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);}
+        .pc-info{flex:1;}
+        .pc-name{font-size:16px;font-weight:800;margin-bottom:2px;}
+        .pc-sub{font-size:13px;color:var(--text-muted);}
+        .pc-arrow{color:var(--text-muted);font-size:16px;}
+
+        /* SECTION */
+        .section-label{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;padding:0 4px;margin-bottom:8px;margin-top:20px;}
+        .settings-group{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:var(--card-shadow);}
+        .setting-row{display:flex;align-items:center;gap:14px;padding:15px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+        .setting-row:last-child{border-bottom:none;}
+        .setting-row:active{background:var(--surface2);}
+        .setting-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+        .setting-icon.blue{background:rgba(24,119,242,0.12);color:var(--accent);}
+        .setting-icon.purple{background:rgba(108,99,255,0.12);color:#6c63ff;}
+        .setting-icon.green{background:rgba(67,233,123,0.12);color:#2ecc71;}
+        .setting-icon.orange{background:rgba(255,165,0,0.12);color:#f39c12;}
+        .setting-icon.pink{background:rgba(255,101,132,0.12);color:var(--accent2);}
+        .setting-icon.red{background:rgba(231,76,60,0.1);color:var(--danger);}
+        .setting-icon.gray{background:var(--surface2);color:var(--text-muted);}
+        .setting-label{flex:1;font-size:15px;font-weight:500;}
+        .setting-label small{display:block;font-size:12px;color:var(--text-muted);font-weight:400;margin-top:1px;}
+        .setting-arrow{color:var(--text-muted);font-size:13px;}
+        .setting-row.danger .setting-label{color:var(--danger);}
+
+        /* TOGGLE */
+        .toggle-wrap{position:relative;width:48px;height:28px;flex-shrink:0;}
+        .toggle-wrap input{opacity:0;width:0;height:0;position:absolute;}
+        .toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:14px;cursor:pointer;transition:0.3s;}
+        .toggle-slider:before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+        .toggle-wrap input:checked+.toggle-slider{background:var(--accent);}
+        .toggle-wrap input:checked+.toggle-slider:before{transform:translateX(20px);}
+
+        /* EDIT MODAL */
+        .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;backdrop-filter:blur(4px);}
+        .modal-backdrop.open{display:flex;align-items:flex-end;}
+        .modal-sheet{background:var(--surface);border-radius:26px 26px 0 0;width:100%;padding:20px 18px 40px;border-top:1px solid var(--border);}
+        .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+        .modal-title{font-size:17px;font-weight:800;margin-bottom:18px;}
+        .form-field{margin-bottom:14px;}
+        .form-field label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px;}
+        .form-field input,.form-field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;}
+        .form-field textarea{resize:none;min-height:80px;}
+        .form-field input:focus,.form-field textarea:focus{border-color:var(--accent);}
+        .modal-actions{display:flex;gap:10px;margin-top:18px;}
+        .modal-btn{flex:1;padding:13px;border-radius:14px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
+        .modal-btn.primary{background:var(--accent);color:white;border-color:var(--accent);}
+        .modal-btn:active{transform:scale(0.97);}
+
+        /* VERSION */
+        .version-text{text-align:center;font-size:12px;color:var(--text-muted);margin-top:24px;padding-bottom:10px;}
+
+        /* COLOR PICKER */
+        .color-preview{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;}
+        .color-sheet{position:fixed;inset:0;z-index:3000;display:none;}
+        .color-sheet.open{display:flex;align-items:flex-end;}
+        .color-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);}
+        .color-panel{position:relative;background:var(--surface);border-radius:26px 26px 0 0;width:100%;padding:20px 18px 40px;border-top:1px solid var(--border);z-index:1;}
+        .color-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+        .color-title{font-size:17px;font-weight:800;margin-bottom:6px;}
+        .color-subtitle{font-size:13px;color:var(--text-muted);margin-bottom:20px;}
+        .color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+        .color-swatch{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;}
+        .color-swatch .swatch-circle{width:52px;height:52px;border-radius:50%;border:3px solid transparent;transition:all 0.2s;box-shadow:0 4px 14px rgba(0,0,0,0.15);}
+        .color-swatch.active .swatch-circle{border-color:var(--text);transform:scale(1.1);}
+        .color-swatch span{font-size:11px;font-weight:600;color:var(--text-muted);}
+        .color-close{width:100%;padding:14px;border-radius:14px;border:none;background:var(--accent);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;}
+    
+        /* ══ APK POLISH ═══════════════════════════════════════════ */
+        *{-webkit-tap-highlight-color:transparent;}
+        .sb-header,.create-header,.back-btn+.header-title{
+            box-shadow:0 1px 0 var(--border),0 2px 16px rgba(0,0,0,0.05);
+        }
+        [data-theme="dark"] .sb-header{
+            box-shadow:0 1px 0 var(--border),0 4px 24px rgba(0,0,0,0.3);
+        }
+        .icon-btn,.back-btn{
+            transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1),background 0.15s,color 0.15s !important;
+        }
+        .icon-btn:active,.back-btn:active{
+            transform:scale(0.84) !important;
+            background:var(--accent) !important;
+            color:#fff !important;
+        }
+        .setting-row{transition:background 0.12s;}
+        .modal-btn,.color-close{
+            transition:transform 0.15s cubic-bezier(0.34,1.56,0.64,1) !important;
+        }
+        .modal-btn:active,.color-close:active{transform:scale(0.95) !important;}
+        body{animation:pageFade 0.22s ease both;}
+        @keyframes pageFade{from{opacity:0;}to{opacity:1;}}
+        .bottom-sheet,.modal-sheet,.color-panel{
+            box-shadow:0 -8px 48px rgba(0,0,0,0.22) !important;
+        }
+        [data-theme="dark"] .bottom-sheet,
+        [data-theme="dark"] .modal-sheet{
+            box-shadow:0 -8px 60px rgba(0,0,0,0.55) !important;
+        }
+</style>
+</head>
+<body>
+    <script>(function(){var t=localStorage.getItem('snapbook-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+
+    <header class="sb-header">
+        <div class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></div>
+        <div class="header-title">Ajustes</div>
+    </header>
+
+    <main class="main-content">
+
+        <!-- PROFILE CARD -->
+        <div class="profile-card" id="edit-profile-btn">
+            <img class="pc-avatar" id="settings-avatar" src="default-avatar.png" onerror="this.src='default-avatar.png'">
+            <div class="pc-info">
+                <div class="pc-name" id="settings-name">Cargando...</div>
+                <div class="pc-sub">Ver y editar perfil</div>
+            </div>
+            <i class="fa-solid fa-chevron-right pc-arrow"></i>
+        </div>
+
+        <!-- CUENTA -->
+        <div class="section-label">Cuenta</div>
+        <div class="settings-group">
+            <div class="setting-row" id="edit-name-row">
+                <div class="setting-icon blue"><i class="fa-solid fa-user"></i></div>
+                <div class="setting-label">Nombre <small id="display-name-val">—</small></div>
+                <i class="fa-solid fa-chevron-right setting-arrow"></i>
+            </div>
+            <div class="setting-row" id="edit-bio-row">
+                <div class="setting-icon purple"><i class="fa-solid fa-pen-line"></i></div>
+                <div class="setting-label">Biografía <small id="display-bio-val">—</small></div>
+                <i class="fa-solid fa-chevron-right setting-arrow"></i>
+            </div>
+            <div class="setting-row">
+                <div class="setting-icon gray"><i class="fa-solid fa-envelope"></i></div>
+                <div class="setting-label">Correo <small id="display-email-val">—</small></div>
+                <i class="fa-solid fa-chevron-right setting-arrow"></i>
+            </div>
+        </div>
+
+        <!-- APARIENCIA -->
+        <div class="section-label">Apariencia</div>
+        <div class="settings-group">
+            <div class="setting-row">
+                <div class="setting-icon orange"><i class="fa-solid fa-moon"></i></div>
+                <div class="setting-label">Modo oscuro</div>
+                <label class="toggle-wrap">
+                    <input type="checkbox" id="dark-toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="setting-row" onclick="openColorSheet()">
+                <div class="setting-icon purple"><i class="fa-solid fa-palette"></i></div>
+                <div class="setting-label">Color de la app <small id="color-name-val">Morado</small></div>
+                <div class="color-preview" id="color-preview-dot"></div>
+            </div>
+            <div class="setting-row" onclick="location.href='customization.html'">
+                <div class="setting-icon" style="background:linear-gradient(135deg,rgba(108,99,255,0.15),rgba(255,101,132,0.15));color:var(--accent)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <div class="setting-label">Personalización <small>Fuente, tamaño, fondo y más</small></div>
+                <i class="fa-solid fa-chevron-right setting-arrow"></i>
+            </div>
+        </div>
+
+        <!-- PRIVACIDAD -->
+        <div class="section-label">Privacidad</div>
+        <div class="settings-group">
+            <div class="setting-row">
+                <div class="setting-icon green"><i class="fa-solid fa-lock"></i></div>
+                <div class="setting-label">Cuenta privada <small>Solo seguidores ven tus posts</small></div>
+                <label class="toggle-wrap">
+                    <input type="checkbox" id="private-toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="setting-row">
+                <div class="setting-icon blue"><i class="fa-solid fa-user-check"></i></div>
+                <div class="setting-label">Quién puede seguirme</div>
+                <i class="fa-solid fa-chevron-right setting-arrow"></i>
+            </div>
+            <div class="setting-row">
+                <div class="setting-icon gray"><i class="fa-solid fa-eye-slash"></i></div>
+                <div class="setting-label">Usuarios bloqueados</div>
+                <i class="fa-solid fa-chevron-right setting-arrow"></i>
+            </div>
+        </div>
+
+        <!-- NOTIFICACIONES -->
+        <div class="section-label">Notificaciones</div>
+        <div class="settings-group">
+            <div class="setting-row">
+                <div class="setting-icon pink"><i class="fa-solid fa-heart"></i></div>
+                <div class="setting-label">Me gustas y reacciones</div>
+                <label class="toggle-wrap">
+                    <input type="checkbox" id="notif-likes" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="setting-row">
+                <div class="setting-icon blue"><i class="fa-solid fa-comment"></i></div>
+                <div class="setting-label">Comentarios</div>
+                <label class="toggle-wrap">
+                    <input type="checkbox" id="notif-comments" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="setting-row">
+                <div class="setting-icon purple"><i class="fa-solid fa-user-plus"></i></div>
+                <div class="setting-label">Nuevos seguidores</div>
+                <label class="toggle-wrap">
+                    <input type="checkbox" id="notif-followers" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- SOPORTE -->
+        <div class="section-label">Soporte</div>
+        <div class="settings-group">
+            <div class="setting-row">
+                <div class="setting-icon green"><i class="fa-solid fa-circle-question"></i></div>
+                <div class="setting-label">Ayuda y soporte</div>
+                <i class="fa-solid fa-chevron-right setting-arrow"></i>
+            </div>
+            <div class="setting-row">
+                <div class="setting-icon orange"><i class="fa-solid fa-shield"></i></div>
+                <div class="setting-label">Política de privacidad</div>
+                <i class="fa-solid fa-chevron-right setting-arrow"></i>
+            </div>
+            <div class="setting-row">
+                <div class="setting-icon gray"><i class="fa-solid fa-file-lines"></i></div>
+                <div class="setting-label">Términos de servicio</div>
+                <i class="fa-solid fa-chevron-right setting-arrow"></i>
+            </div>
+        </div>
+
+        <!-- SESIÓN -->
+        <div class="section-label">Sesión</div>
+        <div class="settings-group">
+            <div class="setting-row danger" id="logout-btn">
+                <div class="setting-icon red"><i class="fa-solid fa-right-from-bracket"></i></div>
+                <div class="setting-label">Cerrar sesión</div>
+            </div>
+            <div class="setting-row danger" id="delete-account-btn">
+                <div class="setting-icon red"><i class="fa-solid fa-trash"></i></div>
+                <div class="setting-label">Eliminar cuenta</div>
+            </div>
+        </div>
+
+        <div class="version-text">SnapBook v1.0.0 · Hecho con ❤️</div>
+    </main>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-backdrop" id="edit-modal">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title" id="modal-title">Editar perfil</div>
+            <div class="form-field">
+                <label>Nombre</label>
+                <input type="text" id="modal-name" placeholder="Tu nombre">
+            </div>
+            <div class="form-field">
+                <label>Biografía</label>
+                <textarea id="modal-bio" placeholder="Cuéntanos algo sobre ti..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" id="modal-cancel">Cancelar</button>
+                <button class="modal-btn primary" id="modal-save">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLOR SHEET -->
+    <div class="color-sheet" id="color-sheet">
+        <div class="color-backdrop" onclick="closeColorSheet()"></div>
+        <div class="color-panel">
+            <div class="color-handle"></div>
+            <div class="color-title">Color de la app</div>
+            <div class="color-subtitle">Se aplica en toda la app incluyendo modo oscuro</div>
+            <div class="color-grid" id="color-grid"></div>
+            <button class="color-close" onclick="closeColorSheet()">Listo</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        let currentUser = null;
+
+        // Dark mode toggle
+        const darkToggle = document.getElementById('dark-toggle');
+        const currentTheme = localStorage.getItem('snapbook-theme') || 'light';
+        darkToggle.checked = currentTheme === 'dark';
+        darkToggle.onchange = () => {
+            const theme = darkToggle.checked ? 'dark' : 'light';
+            localStorage.setItem('snapbook-theme', theme);
+            document.documentElement.setAttribute('data-theme', theme);
+        };
+
+        // ── Preferencias de notificación ─────────────────────────────
+        const NOTIF_PREFS_KEY = 'snapbook-notif-prefs';
+
+        function loadNotifPrefs() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY) || '{}');
+                document.getElementById('notif-likes').checked     = saved.likes     !== false;
+                document.getElementById('notif-comments').checked  = saved.comments  !== false;
+                document.getElementById('notif-followers').checked = saved.followers !== false;
+            } catch(e) {}
+        }
+
+        function saveNotifPrefs() {
+            const prefs = {
+                likes:     document.getElementById('notif-likes').checked,
+                comments:  document.getElementById('notif-comments').checked,
+                followers: document.getElementById('notif-followers').checked
+            };
+            localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs));
+            // Persistir en Firebase si hay usuario
+            if (currentUser) {
+                update(ref(db, `usuarios/${currentUser.uid}/notifPrefs`), prefs).catch(() => {});
+            }
+            showToast('Preferencias guardadas');
+        }
+
+        function showToast(msg) {
+            let t = document.getElementById('sb-settings-toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'sb-settings-toast';
+                t.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);
+                    background:var(--surface);border:1px solid var(--border);border-radius:30px;
+                    padding:10px 22px;font-size:14px;font-weight:600;color:var(--text);
+                    box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:9999;opacity:0;
+                    transition:all 0.3s;white-space:nowrap;pointer-events:none;font-family:inherit;`;
+                document.body.appendChild(t);
+            }
+            t.textContent = '✅ ' + msg;
+            t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
+            clearTimeout(t._t);
+            t._t = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 2200);
+        }
+
+        loadNotifPrefs();
+        ['notif-likes', 'notif-comments', 'notif-followers'].forEach(id => {
+            document.getElementById(id).onchange = saveNotifPrefs;
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { location.href = 'index.html'; return; }
+            currentUser = user;
+
+            document.getElementById('settings-avatar').src = user.photoURL || 'default-avatar.png';
+            document.getElementById('display-email-val').textContent = user.email || '—';
+
+            const snap = await get(ref(db, `usuarios/${user.uid}`));
+            const ud = snap.exists() ? snap.val() : {};
+            const name = ud.nombre || user.displayName || 'Usuario';
+            const bio = ud.bio || '';
+
+            document.getElementById('settings-name').textContent = name;
+            document.getElementById('display-name-val').textContent = name;
+            document.getElementById('display-bio-val').textContent = bio || 'Sin bio';
+            document.getElementById('modal-name').value = name;
+            document.getElementById('modal-bio').value = bio;
+
+            // Cargar prefs de Firebase si existen (sobreescribe localStorage)
+            if (ud.notifPrefs) {
+                localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(ud.notifPrefs));
+                loadNotifPrefs();
+            }
+        });
+
+        // Open modal
+        const modal = document.getElementById('edit-modal');
+        function openModal() { modal.classList.add('open'); }
+        function closeModal() { modal.classList.remove('open'); }
+        document.getElementById('edit-profile-btn').onclick = openModal;
+        document.getElementById('edit-name-row').onclick = openModal;
+        document.getElementById('edit-bio-row').onclick = openModal;
+        document.getElementById('modal-cancel').onclick = closeModal;
+        modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+        // Save profile
+        document.getElementById('modal-save').onclick = async () => {
+            if (!currentUser) return;
+            const name = document.getElementById('modal-name').value.trim();
+            const bio = document.getElementById('modal-bio').value.trim();
+            if (!name) return;
+            try {
+                await update(ref(db, `usuarios/${currentUser.uid}`), { nombre: name, bio });
+                document.getElementById('settings-name').textContent = name;
+                document.getElementById('display-name-val').textContent = name;
+                document.getElementById('display-bio-val').textContent = bio || 'Sin bio';
+                closeModal();
+            showToast('Perfil actualizado ✨'); } catch(err) { showToast('Error: ' + err.message); }
+        };
+
+        // Logout
+        document.getElementById('logout-btn').onclick = async () => {
+            const confirmed = await new Promise(res => {
+                const d = document.createElement('div');
+                d.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;backdrop-filter:blur(4px)';
+                d.innerHTML = `<div style="background:var(--surface);border-radius:24px 24px 0 0;width:100%;padding:24px 20px 40px;font-family:'Plus Jakarta Sans',sans-serif">
+                    <div style="font-size:17px;font-weight:800;margin-bottom:8px">¿Cerrar sesión?</div>
+                    <div style="font-size:14px;color:var(--text-muted);margin-bottom:20px">Tendrás que volver a iniciar sesión para usar SnapBook.</div>
+                    <div style="display:flex;gap:10px">
+                        <button id="_cancel-logout" style="flex:1;padding:13px;border-radius:14px;border:1px solid var(--border);background:var(--surface2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--text)">Cancelar</button>
+                        <button id="_confirm-logout" style="flex:1;padding:13px;border-radius:14px;border:none;background:#e74c3c;color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">Cerrar sesión</button>
+                    </div></div>`;
+                document.body.appendChild(d);
+                d.querySelector('#_cancel-logout').onclick  = () => { d.remove(); res(false); };
+                d.querySelector('#_confirm-logout').onclick = () => { d.remove(); res(true);  };
+            });
+            if (!confirmed) return;
+            await signOut(auth);
+            location.href = 'index.html';
+        };
+
+        // Delete account
+        document.getElementById('delete-account-btn').onclick = () => {
+            const d = document.createElement('div');
+            d.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;backdrop-filter:blur(4px)';
+            d.innerHTML = `<div style="background:var(--surface);border-radius:24px 24px 0 0;width:100%;padding:24px 20px 40px;font-family:'Plus Jakarta Sans',sans-serif">
+                <div style="font-size:17px;font-weight:800;margin-bottom:8px">Eliminar cuenta</div>
+                <div style="font-size:14px;color:var(--text-muted);margin-bottom:6px">Para eliminar tu cuenta permanentemente, escríbenos a:</div>
+                <div style="font-size:15px;font-weight:700;color:var(--accent);margin-bottom:20px">soporte@snapbookpro.app</div>
+                <button onclick="this.closest('div[style]').remove()" style="width:100%;padding:13px;border-radius:14px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">Entendido</button>
+            </div>`;
+            document.body.appendChild(d);
+        };
+    </script>
+
+    <!-- COLOR PICKER JS (no module, para window scope) -->
+    <script>
+    const COLORS = [
+        { name:'Morado',  light:'#6c63ff', dark:'#6c63ff' },
+        { name:'Azul',    light:'#1877f2', dark:'#4da3ff' },
+        { name:'Rosa',    light:'#e91e8c', dark:'#ff6eb4' },
+        { name:'Verde',   light:'#2ecc71', dark:'#43ef7b' },
+        { name:'Naranja', light:'#f39c12', dark:'#ffb347' },
+        { name:'Rojo',    light:'#e74c3c', dark:'#ff6b6b' },
+        { name:'Cyan',    light:'#00bcd4', dark:'#26d9f0' },
+        { name:'Dorado',  light:'#d4a017', dark:'#ffd700' },
+    ];
+
+    function applyAccent(color) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const val = isDark ? color.dark : color.light;
+        document.documentElement.style.setProperty('--accent', val);
+        // También actualizar el gradient del nav y botones
+        document.documentElement.style.setProperty('--accent-light', color.light);
+        document.documentElement.style.setProperty('--accent-dark', color.dark);
+    }
+
+    function saveAccent(colorName) {
+        localStorage.setItem('snapbook-accent', colorName);
+    }
+
+    function loadAccent() {
+        const saved = localStorage.getItem('snapbook-accent') || 'Morado';
+        const color = COLORS.find(c => c.name === saved) || COLORS[0];
+        applyAccent(color);
+        // Actualizar preview dot y nombre
+        const dot = document.getElementById('color-preview-dot');
+        const nameEl = document.getElementById('color-name-val');
+        if (dot) {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            dot.style.background = isDark ? color.dark : color.light;
+        }
+        if (nameEl) nameEl.textContent = saved;
+        return saved;
+    }
+
+    function buildColorGrid() {
+        const saved = localStorage.getItem('snapbook-accent') || 'Morado';
+        const grid = document.getElementById('color-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        COLORS.forEach(c => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch' + (c.name === saved ? ' active' : '');
+            swatch.innerHTML = `
+                <div class="swatch-circle" style="background:${isDark ? c.dark : c.light}"></div>
+                <span>${c.name}</span>`;
+            swatch.onclick = () => {
+                applyAccent(c);
+                saveAccent(c.name);
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+                const dot = document.getElementById('color-preview-dot');
+                if (dot) dot.style.background = isDark ? c.dark : c.light;
+                const nameEl = document.getElementById('color-name-val');
+                if (nameEl) nameEl.textContent = c.name;
+            };
+            grid.appendChild(swatch);
+        });
+    }
+
+    window.openColorSheet = function() {
+        buildColorGrid();
+        document.getElementById('color-sheet').classList.add('open');
+    };
+    window.closeColorSheet = function() {
+        document.getElementById('color-sheet').classList.remove('open');
+    };
+
+    // Aplicar al cargar
+    loadAccent();
+    </script>
+</body>
+</html>

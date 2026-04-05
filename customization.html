@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnapBook | Personalización</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#f0f2f5; --surface:#fff; --surface2:#f0f2f5; --surface3:#e4e6eb;
+            --border:#dde1e7; --accent:#6c63ff; --accent2:#ff6584;
+            --text:#050505; --text-muted:#65676b;
+            --card-shadow:0 2px 12px rgba(0,0,0,0.08);
+            --header-bg:rgba(255,255,255,0.95); --nav-bg:rgba(255,255,255,0.97);
+            --danger:#e74c3c;
+            --font:'Plus Jakarta Sans',sans-serif;
+            --radius:20px; --feed-gap:12px;
+        }
+        [data-theme="dark"] {
+            --bg:#0f0f13; --surface:#1a1a24; --surface2:#22222e; --surface3:#2a2a3a;
+            --border:rgba(255,255,255,0.07); --accent:#6c63ff; --accent2:#ff6584;
+            --text:#f0f0f5; --text-muted:#7a7a9a;
+            --card-shadow:0 4px 24px rgba(0,0,0,0.4);
+            --header-bg:rgba(15,15,19,0.92); --nav-bg:rgba(26,26,36,0.97);
+        }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--bg); font-family:var(--font); color:var(--text); padding-bottom:40px; min-height:100vh; transition:font-family 0.3s; }
+
+        /* HEADER */
+        .sb-header { background:var(--header-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); padding:14px 18px; display:flex; align-items:center; gap:12px; position:fixed; top:0; left:0; right:0; z-index:1000; border-bottom:1px solid var(--border); }
+        .back-btn { width:38px; height:38px; background:var(--surface2); border:1px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--text); font-size:16px; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+        .back-btn:active { transform:scale(0.92); background:var(--accent); color:white; }
+        .header-title { font-size:18px; font-weight:800; flex:1; }
+        .reset-btn { padding:6px 14px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface2); color:var(--text-muted); font-size:12px; font-weight:700; font-family:inherit; cursor:pointer; transition:all 0.2s; }
+        .reset-btn:active { background:var(--danger); color:white; border-color:var(--danger); }
+
+        .main-content { margin-top:66px; padding:16px 14px; }
+
+        /* PREVIEW CARD */
+        .preview-wrap { margin-bottom:22px; }
+        .preview-label { font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:10px; padding:0 2px; }
+        .preview-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--card-shadow); }
+        .preview-header { display:flex; align-items:center; gap:10px; padding:14px; border-bottom:1px solid var(--border); }
+        .preview-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:16px; }
+        .preview-name { font-size:14px; font-weight:700; }
+        .preview-time { font-size:11px; color:var(--text-muted); }
+        .preview-body { padding:14px; }
+        .preview-text { font-size:var(--preview-font-size, 14px); line-height:1.6; margin-bottom:12px; }
+        .preview-img { width:100%; height:140px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; color:white; font-size:28px; opacity:0.7; }
+        .preview-actions { display:flex; gap:16px; padding-top:10px; border-top:1px solid var(--border); }
+        .preview-action { display:flex; align-items:center; gap:5px; font-size:13px; color:var(--text-muted); font-weight:600; cursor:pointer; }
+        .preview-action i { font-size:14px; }
+        .preview-action.liked { color:var(--accent2); }
+
+        /* SECTION */
+        .section-label { font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.6px; padding:0 4px; margin-bottom:10px; margin-top:22px; display:flex; align-items:center; gap:6px; }
+        .section-label i { font-size:11px; }
+        .settings-group { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--card-shadow); }
+        .setting-row { display:flex; align-items:center; gap:14px; padding:15px 16px; border-bottom:1px solid var(--border); transition:background 0.15s; }
+        .setting-row:last-child { border-bottom:none; }
+        .setting-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+        .setting-icon.blue { background:rgba(24,119,242,0.12); color:#1877f2; }
+        .setting-icon.purple { background:rgba(108,99,255,0.12); color:#6c63ff; }
+        .setting-icon.green { background:rgba(67,233,123,0.12); color:#2ecc71; }
+        .setting-icon.orange { background:rgba(255,165,0,0.12); color:#f39c12; }
+        .setting-icon.pink { background:rgba(255,101,132,0.12); color:var(--accent2); }
+        .setting-icon.teal { background:rgba(0,188,212,0.12); color:#00bcd4; }
+        .setting-icon.grad { background:linear-gradient(135deg,rgba(108,99,255,0.15),rgba(255,101,132,0.15)); color:var(--accent); }
+        .setting-label { flex:1; font-size:15px; font-weight:500; }
+        .setting-label small { display:block; font-size:12px; color:var(--text-muted); font-weight:400; margin-top:1px; }
+        .setting-value { font-size:13px; color:var(--text-muted); font-weight:600; }
+
+        /* TOGGLE */
+        .toggle-wrap { position:relative; width:48px; height:28px; flex-shrink:0; }
+        .toggle-wrap input { opacity:0; width:0; height:0; position:absolute; }
+        .toggle-slider { position:absolute; inset:0; background:var(--border); border-radius:14px; cursor:pointer; transition:0.3s; }
+        .toggle-slider:before { content:''; position:absolute; width:22px; height:22px; left:3px; top:3px; background:white; border-radius:50%; transition:0.3s; box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+        .toggle-wrap input:checked + .toggle-slider { background:var(--accent); }
+        .toggle-wrap input:checked + .toggle-slider:before { transform:translateX(20px); }
+
+        /* FONT GRID */
+        .font-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px; }
+        .font-option { padding:14px 12px; border-radius:14px; border:2px solid var(--border); background:var(--surface2); cursor:pointer; transition:all 0.2s; text-align:center; }
+        .font-option.active { border-color:var(--accent); background:rgba(108,99,255,0.08); }
+        .font-option:active { transform:scale(0.97); }
+        .font-name { font-size:15px; font-weight:700; margin-bottom:3px; }
+        .font-sample { font-size:12px; color:var(--text-muted); }
+
+        /* SLIDER ROW */
+        .slider-row { padding:14px 16px 18px; }
+        .slider-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .slider-title { font-size:15px; font-weight:600; display:flex; align-items:center; gap:10px; }
+        .slider-title .setting-icon { width:32px; height:32px; font-size:14px; }
+        .slider-val { font-size:15px; font-weight:800; color:var(--accent); }
+        input[type=range] { -webkit-appearance:none; appearance:none; width:100%; height:6px; background:var(--surface3); border-radius:3px; outline:none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:24px; height:24px; background:var(--accent); border-radius:50%; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2); transition:transform 0.15s; }
+        input[type=range]::-webkit-slider-thumb:active { transform:scale(1.2); }
+        .slider-ticks { display:flex; justify-content:space-between; margin-top:8px; }
+        .slider-ticks span { font-size:10px; color:var(--text-muted); font-weight:600; }
+
+        /* COLOR PALETTE */
+        .color-palette { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px; }
+        .color-swatch { display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }
+        .swatch-circle { width:48px; height:48px; border-radius:50%; border:3px solid transparent; transition:all 0.2s; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+        .color-swatch.active .swatch-circle { border-color:var(--text); transform:scale(1.12); box-shadow:0 6px 20px rgba(0,0,0,0.25); }
+        .color-swatch span { font-size:10px; font-weight:600; color:var(--text-muted); }
+
+        /* WALLPAPER GRID */
+        .wallpaper-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:14px; }
+        .wallpaper-item { aspect-ratio:9/16; border-radius:12px; overflow:hidden; cursor:pointer; border:3px solid transparent; transition:all 0.2s; position:relative; }
+        .wallpaper-item.active { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent); }
+        .wallpaper-item:active { transform:scale(0.95); }
+        .wallpaper-item .wp-inner { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:24px; }
+        .wallpaper-check { position:absolute; top:6px; right:6px; width:20px; height:20px; background:var(--accent); border-radius:50%; display:none; align-items:center; justify-content:center; color:white; font-size:10px; }
+        .wallpaper-item.active .wallpaper-check { display:flex; }
+
+        /* NAV STYLE GRID */
+        .nav-style-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px; }
+        .nav-opt { padding:16px 12px; border-radius:14px; border:2px solid var(--border); background:var(--surface2); cursor:pointer; transition:all 0.2s; text-align:center; }
+        .nav-opt.active { border-color:var(--accent); background:rgba(108,99,255,0.08); }
+        .nav-opt:active { transform:scale(0.97); }
+        .nav-preview { font-size:24px; margin-bottom:8px; }
+        .nav-opt-label { font-size:13px; font-weight:700; }
+        .nav-opt-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+        /* RADIUS PREVIEW */
+        .radius-preview-strip { display:flex; gap:10px; padding:14px 16px; align-items:center; justify-content:space-around; }
+        .radius-demo { width:52px; height:52px; background:linear-gradient(135deg,var(--accent),var(--accent2)); cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; color:white; font-size:18px; border:3px solid transparent; }
+        .radius-demo.active { border-color:var(--text); transform:scale(1.1); }
+        .radius-demo:active { transform:scale(0.95); }
+        .radius-label { font-size:10px; color:var(--text-muted); font-weight:600; text-align:center; margin-top:4px; }
+        .radius-item { text-align:center; cursor:pointer; }
+
+        /* SAVE BTN */
+        .save-bar { position:fixed; bottom:0; left:0; right:0; padding:14px 18px max(18px,env(safe-area-inset-bottom)); background:var(--header-bg); backdrop-filter:blur(20px); border-top:1px solid var(--border); z-index:100; }
+        .save-btn { width:100%; padding:14px; border-radius:16px; border:none; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; font-size:15px; font-weight:800; font-family:var(--font); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; }
+        .save-btn:active { transform:scale(0.98); }
+
+        /* TOAST */
+        #custom-toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface); border:1px solid var(--border); border-radius:30px; padding:10px 22px; font-size:14px; font-weight:600; color:var(--text); box-shadow:0 8px 24px rgba(0,0,0,0.15); z-index:9999; opacity:0; transition:all 0.3s; white-space:nowrap; pointer-events:none; }
+        #custom-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+        /* DIVIDER */
+        .divider { height:1px; background:var(--border); margin:0 16px; }
+    </style>
+</head>
+<body>
+    <script>(function(){var t=localStorage.getItem('snapbook-theme')||'light';document.documentElement.setAttribute('data-theme',t);var a=localStorage.getItem('snapbook-accent')||'#6c63ff';document.documentElement.style.setProperty('--accent',a);var f=localStorage.getItem('snapbook-font')||"'Plus Jakarta Sans',sans-serif";document.documentElement.style.setProperty('--font',f);document.body.style.fontFamily=f;})();</script>
+
+    <header class="sb-header">
+        <div class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></div>
+        <div class="header-title">✨ Personalización</div>
+        <button class="reset-btn" onclick="resetAll()">Resetear</button>
+    </header>
+
+    <main class="main-content" style="padding-bottom:90px">
+
+        <!-- PREVIEW -->
+        <div class="preview-wrap">
+            <div class="preview-label"><i class="fa-solid fa-eye"></i> Vista previa</div>
+            <div class="preview-card" id="preview-card">
+                <div class="preview-header">
+                    <div class="preview-avatar">😊</div>
+                    <div>
+                        <div class="preview-name" id="prev-name">Laura Gómez</div>
+                        <div class="preview-time">hace 5 min · 🌍</div>
+                    </div>
+                </div>
+                <div class="preview-body">
+                    <div class="preview-text" id="prev-text">¡Qué día tan increíble! Así se ve tu app con la personalización que elijas. ¿Te gusta? 🚀✨</div>
+                    <div class="preview-img">🌅</div>
+                    <div class="preview-actions">
+                        <div class="preview-action liked"><i class="fa-solid fa-heart"></i> 142</div>
+                        <div class="preview-action"><i class="fa-regular fa-comment"></i> 28</div>
+                        <div class="preview-action"><i class="fa-solid fa-share-nodes"></i> Compartir</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FUENTE -->
+        <div class="section-label"><i class="fa-solid fa-font"></i> Tipografía</div>
+        <div class="settings-group">
+            <div class="font-grid" id="font-grid">
+                <div class="font-option active" data-font="'Plus Jakarta Sans',sans-serif" onclick="setFont(this)">
+                    <div class="font-name" style="font-family:'Plus Jakarta Sans',sans-serif">Jakarta</div>
+                    <div class="font-sample" style="font-family:'Plus Jakarta Sans',sans-serif">Aa Bb 123</div>
+                </div>
+                <div class="font-option" data-font="'Inter',sans-serif" onclick="setFont(this)">
+                    <div class="font-name" style="font-family:'Inter',sans-serif">Inter</div>
+                    <div class="font-sample" style="font-family:'Inter',sans-serif">Aa Bb 123</div>
+                </div>
+                <div class="font-option" data-font="'Poppins',sans-serif" onclick="setFont(this)">
+                    <div class="font-name" style="font-family:'Poppins',sans-serif">Poppins</div>
+                    <div class="font-sample" style="font-family:'Poppins',sans-serif">Aa Bb 123</div>
+                </div>
+                <div class="font-option" data-font="'DM Sans',sans-serif" onclick="setFont(this)">
+                    <div class="font-name" style="font-family:'DM Sans',sans-serif">DM Sans</div>
+                    <div class="font-sample" style="font-family:'DM Sans',sans-serif">Aa Bb 123</div>
+                </div>
+                <div class="font-option" data-font="'Nunito',sans-serif" onclick="setFont(this)">
+                    <div class="font-name" style="font-family:'Nunito',sans-serif">Nunito</div>
+                    <div class="font-sample" style="font-family:'Nunito',sans-serif">Aa Bb 123</div>
+                </div>
+                <div class="font-option" data-font="Georgia,serif" onclick="setFont(this)">
+                    <div class="font-name" style="font-family:Georgia,serif">Georgia</div>
+                    <div class="font-sample" style="font-family:Georgia,serif">Aa Bb 123</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAMAÑO DE TEXTO -->
+        <div class="section-label"><i class="fa-solid fa-text-size"></i> Tamaño de texto</div>
+        <div class="settings-group">
+            <div class="slider-row">
+                <div class="slider-header">
+                    <div class="slider-title">
+                        <div class="setting-icon blue"><i class="fa-solid fa-text-height"></i></div>
+                        Tamaño del feed
+                    </div>
+                    <div class="slider-val" id="font-size-val">14px</div>
+                </div>
+                <input type="range" id="font-size-slider" min="12" max="18" step="1" value="14" oninput="setFontSize(this.value)">
+                <div class="slider-ticks">
+                    <span>Pequeño</span><span>Normal</span><span>Grande</span>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="slider-row">
+                <div class="slider-header">
+                    <div class="slider-title">
+                        <div class="setting-icon purple"><i class="fa-solid fa-arrows-up-down"></i></div>
+                        Espaciado entre posts
+                    </div>
+                    <div class="slider-val" id="feed-gap-val">12px</div>
+                </div>
+                <input type="range" id="feed-gap-slider" min="4" max="24" step="4" value="12" oninput="setFeedGap(this.value)">
+                <div class="slider-ticks">
+                    <span>Compacto</span><span>Normal</span><span>Amplio</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLOR DE ACENTO -->
+        <div class="section-label"><i class="fa-solid fa-palette"></i> Color de acento</div>
+        <div class="settings-group">
+            <div class="color-palette" id="color-palette"></div>
+        </div>
+
+        <!-- RADIO DE BORDES -->
+        <div class="section-label"><i class="fa-solid fa-vector-square"></i> Estilo de tarjetas</div>
+        <div class="settings-group">
+            <div class="radius-preview-strip" id="radius-strip">
+                <div class="radius-item" onclick="setRadius(this,'0px')">
+                    <div class="radius-demo" style="border-radius:0px">□</div>
+                    <div class="radius-label">Cuadrado</div>
+                </div>
+                <div class="radius-item" onclick="setRadius(this,'8px')">
+                    <div class="radius-demo" style="border-radius:8px">▢</div>
+                    <div class="radius-label">Suave</div>
+                </div>
+                <div class="radius-item active" onclick="setRadius(this,'20px')">
+                    <div class="radius-demo active" style="border-radius:20px">◻</div>
+                    <div class="radius-label">Normal</div>
+                </div>
+                <div class="radius-item" onclick="setRadius(this,'32px')">
+                    <div class="radius-demo" style="border-radius:32px">○</div>
+                    <div class="radius-label">Redondo</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FONDO -->
+        <div class="section-label"><i class="fa-solid fa-image"></i> Fondo de la app</div>
+        <div class="settings-group">
+            <div class="wallpaper-grid" id="wallpaper-grid">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- ANIMACIONES -->
+        <div class="section-label"><i class="fa-solid fa-bolt"></i> Animaciones</div>
+        <div class="settings-group">
+            <div class="setting-row">
+                <div class="setting-icon grad"><i class="fa-solid fa-wand-sparkles"></i></div>
+                <div class="setting-label">Animaciones de UI <small>Transiciones y efectos</small></div>
+                <label class="toggle-wrap">
+                    <input type="checkbox" id="anim-toggle" checked onchange="toggleAnimations(this)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="setting-row">
+                <div class="setting-icon teal"><i class="fa-solid fa-sparkles"></i></div>
+                <div class="setting-label">Efecto blur en nav <small>Desactivar mejora rendimiento</small></div>
+                <label class="toggle-wrap">
+                    <input type="checkbox" id="blur-toggle" checked onchange="toggleBlur(this)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="setting-row">
+                <div class="setting-icon orange"><i class="fa-solid fa-eye"></i></div>
+                <div class="setting-label">Modo alto contraste <small>Mejor legibilidad</small></div>
+                <label class="toggle-wrap">
+                    <input type="checkbox" id="contrast-toggle" onchange="toggleContrast(this)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- FEED -->
+        <div class="section-label"><i class="fa-solid fa-table-cells"></i> Diseño del feed</div>
+        <div class="settings-group">
+            <div class="nav-style-grid" id="feed-layout-grid">
+                <div class="nav-opt active" data-layout="list" onclick="setFeedLayout(this)">
+                    <div class="nav-preview">☰</div>
+                    <div class="nav-opt-label">Lista</div>
+                    <div class="nav-opt-sub">Una columna</div>
+                </div>
+                <div class="nav-opt" data-layout="card" onclick="setFeedLayout(this)">
+                    <div class="nav-preview">▦</div>
+                    <div class="nav-opt-label">Tarjetas</div>
+                    <div class="nav-opt-sub">Con sombras</div>
+                </div>
+                <div class="nav-opt" data-layout="minimal" onclick="setFeedLayout(this)">
+                    <div class="nav-preview">─</div>
+                    <div class="nav-opt-label">Minimal</div>
+                    <div class="nav-opt-sub">Sin bordes</div>
+                </div>
+                <div class="nav-opt" data-layout="magazine" onclick="setFeedLayout(this)">
+                    <div class="nav-preview">⊞</div>
+                    <div class="nav-opt-label">Magazine</div>
+                    <div class="nav-opt-sub">Dos columnas</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- SAVE BAR -->
+    <div class="save-bar">
+        <button class="save-btn" onclick="saveAll()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Aplicar cambios
+        </button>
+    </div>
+
+    <div id="custom-toast"></div>
+
+    <script>
+    // ─── State ────────────────────────────────────────────────────
+    const S = {
+        font:     localStorage.getItem('snapbook-font')     || "'Plus Jakarta Sans',sans-serif",
+        fontSize: parseInt(localStorage.getItem('snapbook-fontsize')) || 14,
+        feedGap:  parseInt(localStorage.getItem('snapbook-feedgap'))  || 12,
+        accent:   localStorage.getItem('snapbook-accent-hex')         || '#6c63ff',
+        radius:   localStorage.getItem('snapbook-radius')   || '20px',
+        wallpaper:localStorage.getItem('snapbook-wallpaper')|| 'none',
+        layout:   localStorage.getItem('snapbook-layout')   || 'list',
+        animations: localStorage.getItem('snapbook-animations') !== 'false',
+        blur:     localStorage.getItem('snapbook-blur') !== 'false',
+        contrast: localStorage.getItem('snapbook-contrast') === 'true',
+    };
+
+    const COLORS = [
+        { name:'Morado',  hex:'#6c63ff' },
+        { name:'Azul',    hex:'#1877f2' },
+        { name:'Rosa',    hex:'#e91e8c' },
+        { name:'Verde',   hex:'#2ecc71' },
+        { name:'Naranja', hex:'#f39c12' },
+        { name:'Rojo',    hex:'#e74c3c' },
+        { name:'Cyan',    hex:'#00bcd4' },
+        { name:'Dorado',  hex:'#d4a017' },
+    ];
+
+    const WALLPAPERS = [
+        { id:'none',   label:'Sin fondo',  bg:'var(--bg)',                           emoji:'🚫' },
+        { id:'dots',   label:'Puntos',     bg:'radial-gradient(circle,#c0c0c0 1px,transparent 1px) 0 0/20px 20px', emoji:'· · ·' },
+        { id:'sunset', label:'Atardecer',  bg:'linear-gradient(135deg,#ff9a9e,#fad0c4,#ffecd2)', emoji:'🌅' },
+        { id:'ocean',  label:'Océano',     bg:'linear-gradient(135deg,#a8edea,#fed6e3)',          emoji:'🌊' },
+        { id:'night',  label:'Noche',      bg:'linear-gradient(135deg,#0f0c29,#302b63,#24243e)',  emoji:'🌙' },
+        { id:'forest', label:'Bosque',     bg:'linear-gradient(135deg,#11998e,#38ef7d)',          emoji:'🌿' },
+        { id:'candy',  label:'Candy',      bg:'linear-gradient(135deg,#fd79a8,#fdcb6e,#6c5ce7)',  emoji:'🍭' },
+        { id:'galaxy', label:'Galaxia',    bg:'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)',  emoji:'🌌' },
+        { id:'mint',   label:'Menta',      bg:'linear-gradient(135deg,#d4fc79,#96e6a1)',          emoji:'🍃' },
+    ];
+
+    // ─── Init ─────────────────────────────────────────────────────
+    function init() {
+        // Font
+        document.querySelectorAll('.font-option').forEach(el => {
+            el.classList.toggle('active', el.dataset.font === S.font);
+        });
+        applyFont(S.font, false);
+
+        // Font size
+        document.getElementById('font-size-slider').value = S.fontSize;
+        document.getElementById('font-size-val').textContent = S.fontSize + 'px';
+        applyFontSize(S.fontSize, false);
+
+        // Feed gap
+        document.getElementById('feed-gap-slider').value = S.feedGap;
+        document.getElementById('feed-gap-val').textContent = S.feedGap + 'px';
+
+        // Colors
+        buildColorPalette();
+
+        // Radius
+        document.querySelectorAll('.radius-item').forEach(el => {
+            const demo = el.querySelector('.radius-demo');
+            el.classList.toggle('active', demo.style.borderRadius === S.radius);
+            demo.classList.toggle('active', demo.style.borderRadius === S.radius);
+        });
+        applyRadius(S.radius, false);
+
+        // Wallpapers
+        buildWallpaperGrid();
+
+        // Toggles
+        document.getElementById('anim-toggle').checked = S.animations;
+        document.getElementById('blur-toggle').checked = S.blur;
+        document.getElementById('contrast-toggle').checked = S.contrast;
+
+        // Feed layout
+        document.querySelectorAll('.nav-opt[data-layout]').forEach(el => {
+            el.classList.toggle('active', el.dataset.layout === S.layout);
+        });
+
+        // Accent CSS var
+        document.documentElement.style.setProperty('--accent', S.accent);
+    }
+
+    // ─── Font ─────────────────────────────────────────────────────
+    function setFont(el) {
+        document.querySelectorAll('.font-option').forEach(o => o.classList.remove('active'));
+        el.classList.add('active');
+        S.font = el.dataset.font;
+        applyFont(S.font, true);
+    }
+    function applyFont(font, preview=true) {
+        document.documentElement.style.setProperty('--font', font);
+        document.body.style.fontFamily = font;
+        if (preview) updatePreview();
+    }
+
+    // ─── Font size ────────────────────────────────────────────────
+    function setFontSize(val) {
+        S.fontSize = parseInt(val);
+        document.getElementById('font-size-val').textContent = val + 'px';
+        applyFontSize(val, true);
+    }
+    function applyFontSize(val, preview=true) {
+        document.documentElement.style.setProperty('--preview-font-size', val + 'px');
+        if (preview) updatePreview();
+    }
+
+    // ─── Feed gap ─────────────────────────────────────────────────
+    function setFeedGap(val) {
+        S.feedGap = parseInt(val);
+        document.getElementById('feed-gap-val').textContent = val + 'px';
+        document.documentElement.style.setProperty('--feed-gap', val + 'px');
+    }
+
+    // ─── Colors ───────────────────────────────────────────────────
+    function buildColorPalette() {
+        const grid = document.getElementById('color-palette');
+        grid.innerHTML = '';
+        COLORS.forEach(c => {
+            const el = document.createElement('div');
+            el.className = 'color-swatch' + (c.hex === S.accent ? ' active' : '');
+            el.innerHTML = `<div class="swatch-circle" style="background:${c.hex}"></div><span>${c.name}</span>`;
+            el.onclick = () => {
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                el.classList.add('active');
+                S.accent = c.hex;
+                document.documentElement.style.setProperty('--accent', c.hex);
+                updatePreview();
+            };
+            grid.appendChild(el);
+        });
+    }
+
+    // ─── Radius ───────────────────────────────────────────────────
+    function setRadius(item, val) {
+        document.querySelectorAll('.radius-item').forEach(el => {
+            el.classList.remove('active');
+            el.querySelector('.radius-demo').classList.remove('active');
+        });
+        item.classList.add('active');
+        item.querySelector('.radius-demo').classList.add('active');
+        S.radius = val;
+        applyRadius(val, true);
+    }
+    function applyRadius(val, preview=true) {
+        document.documentElement.style.setProperty('--radius', val);
+        if (preview) updatePreview();
+    }
+
+    // ─── Wallpaper ────────────────────────────────────────────────
+    function buildWallpaperGrid() {
+        const grid = document.getElementById('wallpaper-grid');
+        grid.innerHTML = '';
+        WALLPAPERS.forEach(wp => {
+            const el = document.createElement('div');
+            el.className = 'wallpaper-item' + (wp.id === S.wallpaper ? ' active' : '');
+            el.innerHTML = `
+                <div class="wp-inner" style="background:${wp.bg}">${wp.emoji}</div>
+                <div class="wallpaper-check"><i class="fa-solid fa-check"></i></div>`;
+            el.title = wp.label;
+            el.onclick = () => {
+                document.querySelectorAll('.wallpaper-item').forEach(w => w.classList.remove('active'));
+                el.classList.add('active');
+                S.wallpaper = wp.id;
+                document.body.style.background = wp.id === 'none' ? '' : wp.bg;
+            };
+            grid.appendChild(el);
+        });
+    }
+
+    // ─── Toggles ──────────────────────────────────────────────────
+    function toggleAnimations(el) {
+        S.animations = el.checked;
+        if (!el.checked) {
+            document.documentElement.style.setProperty('--transition-speed','0s');
+        } else {
+            document.documentElement.style.removeProperty('--transition-speed');
+        }
+    }
+    function toggleBlur(el) {
+        S.blur = el.checked;
+    }
+    function toggleContrast(el) {
+        S.contrast = el.checked;
+        if (el.checked) {
+            document.documentElement.style.setProperty('--text','#000000');
+            document.documentElement.style.setProperty('--text-muted','#333333');
+        } else {
+            document.documentElement.style.removeProperty('--text');
+            document.documentElement.style.removeProperty('--text-muted');
+        }
+    }
+
+    // ─── Feed layout ──────────────────────────────────────────────
+    function setFeedLayout(el) {
+        document.querySelectorAll('.nav-opt[data-layout]').forEach(o => o.classList.remove('active'));
+        el.classList.add('active');
+        S.layout = el.dataset.layout;
+    }
+
+    // ─── Preview update ───────────────────────────────────────────
+    function updatePreview() {
+        const card = document.getElementById('preview-card');
+        card.style.borderRadius = S.radius;
+        const txt = document.getElementById('prev-text');
+        txt.style.fontSize = S.fontSize + 'px';
+        txt.style.fontFamily = S.font;
+    }
+
+    // ─── Save all ────────────────────────────────────────────────
+    function saveAll() {
+        localStorage.setItem('snapbook-font',       S.font);
+        localStorage.setItem('snapbook-fontsize',   S.fontSize);
+        localStorage.setItem('snapbook-feedgap',    S.feedGap);
+        localStorage.setItem('snapbook-accent-hex', S.accent);
+        localStorage.setItem('snapbook-radius',     S.radius);
+        localStorage.setItem('snapbook-wallpaper',  S.wallpaper);
+        localStorage.setItem('snapbook-layout',     S.layout);
+        localStorage.setItem('snapbook-animations', S.animations);
+        localStorage.setItem('snapbook-blur',       S.blur);
+        localStorage.setItem('snapbook-contrast',   S.contrast);
+        // Also save accent for existing pages
+        localStorage.setItem('snapbook-accent', COLORS.find(c=>c.hex===S.accent)?.name || 'Morado');
+        showToast('✨ ¡Cambios aplicados!');
+    }
+
+    // ─── Reset ────────────────────────────────────────────────────
+    function resetAll() {
+        const keys = ['snapbook-font','snapbook-fontsize','snapbook-feedgap','snapbook-accent-hex','snapbook-radius','snapbook-wallpaper','snapbook-layout','snapbook-animations','snapbook-blur','snapbook-contrast','snapbook-accent'];
+        keys.forEach(k => localStorage.removeItem(k));
+        location.reload();
+    }
+
+    // ─── Toast ────────────────────────────────────────────────────
+    function showToast(msg) {
+        const t = document.getElementById('custom-toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2400);
+    }
+
+    // ─── Run ──────────────────────────────────────────────────────
+    init();
+    </script>
+</body>
+</html>
