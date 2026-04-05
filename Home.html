@@ -409,6 +409,174 @@
             pointer-events:none;
         }
 
+        /* ── SEARCH SHEET ── */
+        .search-overlay{
+            position:fixed;inset:0;z-index:9992;
+            background:rgba(0,0,0,0.5);
+            display:flex;flex-direction:column;justify-content:flex-end;
+            animation:fadeIn 0.2s ease;
+        }
+        .search-sheet{
+            background:var(--surface);
+            border-radius:24px 24px 0 0;
+            max-height:88vh;
+            display:flex;flex-direction:column;
+            animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
+        }
+        .search-handle{
+            width:40px;height:4px;border-radius:2px;
+            background:var(--border);margin:12px auto 0;flex-shrink:0;
+        }
+        .search-header{
+            padding:14px 16px 10px;flex-shrink:0;
+        }
+        .search-title{font-size:17px;font-weight:800;margin-bottom:12px;}
+        .search-input-wrap{
+            display:flex;align-items:center;gap:10px;
+            background:var(--surface2);border:1.5px solid var(--border);
+            border-radius:16px;padding:10px 14px;
+            transition:border-color 0.2s;
+        }
+        .search-input-wrap:focus-within{border-color:var(--accent);}
+        .search-input-wrap i{color:var(--text-muted);font-size:15px;}
+        #search-input{
+            flex:1;background:none;border:none;outline:none;
+            font-size:16px;color:var(--text);font-family:inherit;
+        }
+        #search-input::placeholder{color:var(--text-muted);}
+        #search-clear{
+            color:var(--text-muted);font-size:14px;cursor:pointer;
+            display:none;padding:2px 4px;
+        }
+        #search-clear.show{display:block;}
+        .search-results{
+            flex:1;overflow-y:auto;
+            padding:8px 0 24px;
+            scrollbar-width:none;
+        }
+        .search-results::-webkit-scrollbar{display:none;}
+        .search-state{
+            text-align:center;padding:40px 24px;
+            color:var(--text-muted);
+        }
+        .search-state i{font-size:40px;margin-bottom:12px;display:block;opacity:0.35;}
+        .search-state p{font-size:14px;font-weight:600;}
+        .search-user-item{
+            display:flex;align-items:center;gap:12px;
+            padding:12px 18px;cursor:pointer;
+            transition:background 0.15s;
+        }
+        .search-user-item:active{background:var(--surface2);}
+        .search-user-avatar{
+            width:50px;height:50px;border-radius:50%;
+            object-fit:cover;border:2px solid var(--accent);flex-shrink:0;
+        }
+        .search-user-info{flex:1;min-width:0;}
+        .search-user-name{font-size:15px;font-weight:700;color:var(--text);}
+        .search-user-username{font-size:13px;color:var(--text-muted);margin-top:2px;}
+        .search-follow-btn{
+            padding:7px 16px;border-radius:20px;border:none;
+            background:var(--accent);color:#fff;
+            font-size:13px;font-weight:700;font-family:inherit;
+            cursor:pointer;flex-shrink:0;transition:all 0.2s;
+        }
+        .search-follow-btn.siguiendo{
+            background:var(--surface2);color:var(--text-muted);
+            border:1.5px solid var(--border);
+        }
+        .search-follow-btn:active{transform:scale(0.93);}
+        .search-divider{
+            font-size:11px;font-weight:800;color:var(--text-muted);
+            text-transform:uppercase;letter-spacing:.8px;
+            padding:12px 18px 6px;
+        }
+        .notif-overlay{
+            position:fixed;inset:0;z-index:9990;
+            background:rgba(0,0,0,0.45);
+            display:flex;flex-direction:column;justify-content:flex-end;
+            animation:fadeIn 0.2s ease;
+        }
+        .notif-sheet{
+            background:var(--surface);
+            border-radius:24px 24px 0 0;
+            max-height:85vh;
+            display:flex;flex-direction:column;
+            animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
+        }
+        .notif-handle{
+            width:40px;height:4px;border-radius:2px;
+            background:var(--border);margin:12px auto 0;flex-shrink:0;
+        }
+        .notif-header{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:14px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
+        }
+        .notif-title{font-size:17px;font-weight:800;}
+        .notif-mark-all{
+            font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;
+        }
+        .notif-list{
+            flex:1;overflow-y:auto;
+            display:flex;flex-direction:column;
+            scrollbar-width:none;
+        }
+        .notif-list::-webkit-scrollbar{display:none;}
+        .notif-item{
+            display:flex;align-items:center;gap:12px;
+            padding:14px 18px;
+            border-bottom:1px solid var(--border);
+            cursor:pointer;transition:background 0.15s;
+            position:relative;
+        }
+        .notif-item:active{background:var(--surface2);}
+        .notif-item.unread{background:rgba(108,99,255,0.06);}
+        .notif-item.unread::before{
+            content:'';position:absolute;left:0;top:0;bottom:0;
+            width:3px;border-radius:0 3px 3px 0;
+            background:var(--accent);
+        }
+        .notif-avatar-wrap{position:relative;flex-shrink:0;}
+        .notif-avatar{
+            width:48px;height:48px;border-radius:50%;
+            object-fit:cover;border:2px solid var(--border);
+        }
+        .notif-icon-badge{
+            position:absolute;bottom:-2px;right:-2px;
+            width:20px;height:20px;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            font-size:10px;color:#fff;
+            border:2px solid var(--surface);
+        }
+        .notif-body{flex:1;min-width:0;}
+        .notif-text{font-size:14px;line-height:1.4;color:var(--text);}
+        .notif-text strong{font-weight:700;}
+        .notif-time{font-size:12px;color:var(--text-muted);margin-top:3px;}
+        .notif-thumb{
+            width:44px;height:44px;border-radius:10px;
+            object-fit:cover;flex-shrink:0;
+        }
+        .notif-unread-dot{
+            width:9px;height:9px;border-radius:50%;
+            background:var(--accent);flex-shrink:0;
+        }
+        .notif-empty{
+            text-align:center;padding:48px 24px;color:var(--text-muted);
+        }
+        .notif-empty i{font-size:44px;margin-bottom:14px;display:block;opacity:0.4;}
+        .notif-empty p{font-size:15px;font-weight:600;}
+        /* badge en campana */
+        #notif-btn .notif-badge{
+            position:absolute;top:4px;right:4px;
+            min-width:16px;height:16px;border-radius:8px;
+            background:#e74c3c;color:#fff;
+            font-size:10px;font-weight:800;
+            display:flex;align-items:center;justify-content:center;
+            padding:0 3px;
+            border:2px solid var(--header-bg);
+            display:none;
+        }
+        #notif-btn .notif-badge.show{display:flex;}
+
         /* MEDIA queries */
         @media(min-width:600px){
             .feed,.compose-box,.stories-wrap,.header{max-width:600px;margin-left:auto;margin-right:auto;}
@@ -432,10 +600,10 @@
 
 <!-- HEADER -->
 <div class="header">
-    <div class="logo">SnapBookSocial</div>
+    <div class="logo">SnapBook</div>
     <div class="header-actions">
-        <a class="hbtn" href="search.html" title="Buscar"><i class="fa-solid fa-magnifying-glass"></i></a>
-        <a class="hbtn notif-dot" href="notifications.html" title="Notificaciones" id="notif-btn"><i class="fa-solid fa-bell"></i></a>
+        <div class="hbtn" onclick="openSearchSheet()" title="Buscar" style="cursor:pointer;"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <div class="hbtn" id="notif-btn" onclick="openNotifSheet()" title="Notificaciones" style="cursor:pointer;"><i class="fa-solid fa-bell"></i><span class="notif-badge" id="notif-badge"></span></div>
         <a class="hbtn" href="settings.html" title="Ajustes"><i class="fa-solid fa-gear"></i></a>
     </div>
 </div>
@@ -807,6 +975,13 @@ window.toggleLike = async function(id) {
         btn.classList.add('liked');
         iconEl.className = 'fa-solid fa-thumbs-up';
 
+        // ── Notificación al dueño del post ──
+        const postSnap = await get(ref(db, `publicaciones/${id}`));
+        if (postSnap.exists()) {
+            const post = postSnap.val();
+            if (post.uid) writeNotif(post.uid, 'like', { postId: id, postImagen: post.imagenPost || '' });
+        }
+
         // ── Animación pop ──
         iconEl.classList.remove('like-anim');
         void iconEl.offsetWidth; // reflow
@@ -1163,6 +1338,12 @@ window.sendSheetComment = async function(postId) {
         texto: txt,
         timestamp: Date.now()
     });
+    // ── Notificación al dueño del post ──
+    const postSnap = await get(ref(db, `publicaciones/${postId}`));
+    if (postSnap.exists()) {
+        const post = postSnap.val();
+        if (post.uid) writeNotif(post.uid, 'comment', { postId, comentario: txt, postImagen: post.imagenPost || '' });
+    }
 };
 
 window.quickComment = async function(e, postId) {
@@ -1178,6 +1359,9 @@ window.quickComment = async function(e, postId) {
         texto: txt,
         timestamp: Date.now()
     });
+    // Notificación
+    const qSnap = await get(ref(db, `publicaciones/${postId}`));
+    if (qSnap.exists() && qSnap.val().uid) writeNotif(qSnap.val().uid, 'comment', { postId, comentario: txt });
     showToast('💬 Comentario publicado');
 };
 
@@ -1206,7 +1390,283 @@ window.deletePost = async function(id) {
     showToast('🗑️ Publicación eliminada');
 };
 
-// ── Load feed ──────────────────────────────────
+// ── BUSCADOR DE USUARIOS ────────────────────────
+window.openSearchSheet = function() {
+    const overlay = document.createElement('div');
+    overlay.className = 'search-overlay';
+    overlay.innerHTML = `
+        <div class="search-sheet">
+            <div class="search-handle"></div>
+            <div class="search-header">
+                <div class="search-title">🔍 Buscar personas</div>
+                <div class="search-input-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input id="search-input" type="text" placeholder="Buscar por nombre de usuario..." autocomplete="off" autocorrect="off" spellcheck="false">
+                    <span id="search-clear" onclick="clearSearch()"><i class="fa-solid fa-xmark"></i></span>
+                </div>
+            </div>
+            <div class="search-results" id="search-results">
+                <div class="search-state">
+                    <i class="fa-solid fa-users"></i>
+                    <p>Escribe un nombre para buscar</p>
+                </div>
+            </div>
+        </div>
+    `;
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+
+    const input = document.getElementById('search-input');
+    input.focus();
+
+    let debounceTimer;
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+        document.getElementById('search-clear').classList.toggle('show', q.length > 0);
+        clearTimeout(debounceTimer);
+        if (q.length === 0) {
+            document.getElementById('search-results').innerHTML = `
+                <div class="search-state"><i class="fa-solid fa-users"></i><p>Escribe un nombre para buscar</p></div>`;
+            return;
+        }
+        if (q.length < 2) return;
+        debounceTimer = setTimeout(() => runSearch(q), 350);
+    });
+};
+
+window.clearSearch = function() {
+    const inp = document.getElementById('search-input');
+    if (inp) { inp.value = ''; inp.focus(); }
+    document.getElementById('search-clear')?.classList.remove('show');
+    document.getElementById('search-results').innerHTML = `
+        <div class="search-state"><i class="fa-solid fa-users"></i><p>Escribe un nombre para buscar</p></div>`;
+};
+
+async function runSearch(q) {
+    const resultsEl = document.getElementById('search-results');
+    if (!resultsEl) return;
+    resultsEl.innerHTML = `<div class="search-state"><i class="fa-solid fa-circle-notch fa-spin" style="opacity:.5;"></i><p>Buscando...</p></div>`;
+
+    try {
+        const snap = await get(ref(db, 'usuarios'));
+        if (!snap.exists()) {
+            resultsEl.innerHTML = `<div class="search-state"><i class="fa-solid fa-user-slash"></i><p>No se encontraron usuarios</p></div>`;
+            return;
+        }
+
+        const qLow = q.toLowerCase();
+        const matches = [];
+        snap.forEach(child => {
+            const u = child.val();
+            const nombre = (u.nombre || u.displayName || '').toLowerCase();
+            const username = (u.username || u.nombre || '').toLowerCase();
+            if (nombre.includes(qLow) || username.includes(qLow)) {
+                matches.push({ uid: child.key, ...u });
+            }
+        });
+
+        // Cargar lista de siguiendo
+        const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
+        const siguiendoSet = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
+
+        if (matches.length === 0) {
+            resultsEl.innerHTML = `<div class="search-state"><i class="fa-solid fa-user-slash"></i><p>Sin resultados para "<strong>${q}</strong>"</p></div>`;
+            return;
+        }
+
+        resultsEl.innerHTML = `<div class="search-divider">${matches.length} resultado${matches.length !== 1 ? 's' : ''}</div>` +
+            matches.map(u => {
+                const isMe = u.uid === currentUser.uid;
+                const following = siguiendoSet.has(u.uid);
+                const avatar = u.photoURL || u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.nombre||'U')}&background=6c63ff&color=fff&size=96`;
+                const btn = isMe
+                    ? `<span style="font-size:12px;color:var(--text-muted);font-weight:700;">Tú</span>`
+                    : `<button class="search-follow-btn ${following?'siguiendo':''}" onclick="searchToggleFollow('${u.uid}',this)">${following?'Siguiendo':'Seguir'}</button>`;
+                return `
+                    <div class="search-user-item" onclick="goToProfile('${u.uid}')">
+                        <img class="search-user-avatar" src="${avatar}" onerror="this.src='default-avatar.png'">
+                        <div class="search-user-info">
+                            <div class="search-user-name">${u.nombre || u.displayName || 'Usuario'}</div>
+                            <div class="search-user-username">@${(u.username || u.nombre || 'usuario').toLowerCase().replace(/\s+/g,'')}</div>
+                        </div>
+                        ${btn}
+                    </div>`;
+            }).join('');
+    } catch(e) {
+        resultsEl.innerHTML = `<div class="search-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Error al buscar</p></div>`;
+    }
+}
+
+window.goToProfile = function(uid) {
+    document.querySelector('.search-overlay')?.remove();
+    location.href = `Profile.html?uid=${uid}`;
+};
+
+window.searchToggleFollow = async function(uid, btn) {
+    if (!currentUser) return;
+    const followRef = ref(db, `siguiendo/${currentUser.uid}/${uid}`);
+    const snap = await get(followRef);
+    if (snap.exists()) {
+        await remove(followRef);
+        btn.textContent = 'Seguir';
+        btn.classList.remove('siguiendo');
+    } else {
+        await set(followRef, true);
+        btn.textContent = 'Siguiendo';
+        btn.classList.add('siguiendo');
+        // Notificación de nuevo seguidor
+        writeNotif(uid, 'follow');
+        showToast('✅ Ahora lo sigues');
+    }
+};
+
+// ── NOTIFICACIONES ──────────────────────────────
+function listenNotifications(uid) {
+    const notifRef = ref(db, `notificaciones/${uid}`);
+    onValue(notifRef, (snap) => {
+        let unread = 0;
+        if (snap.exists()) {
+            snap.forEach(n => { if (!n.val().leida) unread++; });
+        }
+        const badge = document.getElementById('notif-badge');
+        if (unread > 0) {
+            badge.textContent = unread > 9 ? '9+' : unread;
+            badge.classList.add('show');
+        } else {
+            badge.classList.remove('show');
+        }
+    });
+}
+
+window.openNotifSheet = function() {
+    const overlay = document.createElement('div');
+    overlay.className = 'notif-overlay';
+    overlay.innerHTML = `
+        <div class="notif-sheet">
+            <div class="notif-handle"></div>
+            <div class="notif-header">
+                <span class="notif-title">🔔 Notificaciones</span>
+                <span class="notif-mark-all" onclick="markAllRead()">Marcar todo leído</span>
+            </div>
+            <div class="notif-list" id="notif-list-content">
+                <div class="notif-empty"><i class="fa-regular fa-bell"></i><p>Cargando...</p></div>
+            </div>
+        </div>
+    `;
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+    loadNotifList();
+};
+
+async function loadNotifList() {
+    const listEl = document.getElementById('notif-list-content');
+    if (!listEl || !currentUser) return;
+
+    const snap = await get(ref(db, `notificaciones/${currentUser.uid}`));
+    if (!snap.exists()) {
+        listEl.innerHTML = `<div class="notif-empty"><i class="fa-regular fa-bell"></i><p>Sin notificaciones aún</p></div>`;
+        return;
+    }
+
+    const items = [];
+    snap.forEach(c => items.push({ key: c.key, ...c.val() }));
+    items.sort((a, b) => b.timestamp - a.timestamp);
+
+    const ICONS = {
+        like:     { icon:'fa-solid fa-thumbs-up',   bg:'#1877f2' },
+        comment:  { icon:'fa-solid fa-comment',      bg:'#43e97b' },
+        follow:   { icon:'fa-solid fa-user-plus',    bg:'#ff6584' },
+        mention:  { icon:'fa-solid fa-at',           bg:'#f7b731' },
+    };
+
+    listEl.innerHTML = items.map(n => {
+        const cfg = ICONS[n.tipo] || { icon:'fa-solid fa-bell', bg:'var(--accent)' };
+        const unreadClass = n.leida ? '' : 'unread';
+        const dot = n.leida ? '' : '<div class="notif-unread-dot"></div>';
+        const thumb = n.postImagen
+            ? `<img class="notif-thumb" src="${n.postImagen}" onerror="this.style.display='none'">`
+            : '';
+        return `
+            <div class="notif-item ${unreadClass}" onclick="handleNotifClick('${n.key}','${n.tipo}','${n.postId||''}')">
+                <div class="notif-avatar-wrap">
+                    <img class="notif-avatar" src="${n.fromAvatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+                    <div class="notif-icon-badge" style="background:${cfg.bg}">
+                        <i class="${cfg.icon}"></i>
+                    </div>
+                </div>
+                <div class="notif-body">
+                    <div class="notif-text">${buildNotifText(n)}</div>
+                    <div class="notif-time">${timeAgo(n.timestamp)}</div>
+                </div>
+                ${thumb}
+                ${dot}
+            </div>
+        `;
+    }).join('');
+
+    // Marcar como leídas automáticamente después de 2s
+    setTimeout(() => markAllRead(false), 2000);
+}
+
+function buildNotifText(n) {
+    const name = `<strong>${n.fromName || 'Alguien'}</strong>`;
+    switch (n.tipo) {
+        case 'like':    return `${name} le dio Me gusta a tu publicación 👍`;
+        case 'comment': return `${name} comentó: <em>"${(n.comentario||'').slice(0,60)}${(n.comentario||'').length>60?'…':''}"</em>`;
+        case 'follow':  return `${name} empezó a seguirte 🎉`;
+        case 'mention': return `${name} te mencionó en un comentario`;
+        default:        return `${name} interactuó contigo`;
+    }
+}
+
+window.markAllRead = async function(showFeedback = true) {
+    if (!currentUser) return;
+    const snap = await get(ref(db, `notificaciones/${currentUser.uid}`));
+    if (!snap.exists()) return;
+    const updates = {};
+    snap.forEach(c => { updates[`notificaciones/${currentUser.uid}/${c.key}/leida`] = true; });
+    // Firebase set múltiple
+    await Promise.all(Object.entries(updates).map(([path, val]) => set(ref(db, path), val)));
+    if (showFeedback) {
+        // Refrescar lista
+        loadNotifList();
+        showToast('✅ Todo marcado como leído');
+    }
+    document.getElementById('notif-badge')?.classList.remove('show');
+};
+
+window.handleNotifClick = async function(key, tipo, postId) {
+    // Marcar esta notif como leída
+    if (currentUser && key) {
+        await set(ref(db, `notificaciones/${currentUser.uid}/${key}/leida`), true);
+    }
+    // Navegar según tipo
+    if (tipo === 'follow') {
+        document.querySelector('.notif-overlay')?.remove();
+        return;
+    }
+    if (postId && postId !== 'undefined' && postId !== '') {
+        document.querySelector('.notif-overlay')?.remove();
+        // Abrir hoja de comentarios si aplica
+        if (tipo === 'comment') openCommentSheet(postId);
+    }
+};
+
+// Escribir notificación en Firebase (se llama desde toggleLike, seguir, comentar)
+window.writeNotif = async function(toUid, tipo, extra = {}) {
+    if (!currentUser || toUid === currentUser.uid) return; // no notificarse a uno mismo
+    const n = {
+        tipo,
+        fromUid:    currentUser.uid,
+        fromName:   currentUser.displayName || 'Usuario',
+        fromAvatar: currentUser.photoURL    || '',
+        timestamp:  Date.now(),
+        leida:      false,
+        ...extra
+    };
+    await push(ref(db, `notificaciones/${toUid}`), n);
+};
+
 async function loadFeed() {
     const feed = document.getElementById('feed');
 
@@ -1287,6 +1747,7 @@ onAuthStateChanged(auth, (user) => {
 
     loadFeed();
     loadStories();
+    listenNotifications(user.uid);
 });
 </script>
 </body>
