@@ -55,9 +55,12 @@
         /* ── STORIES ── */
         .stories-wrap{
             background:var(--surface);
-            border-bottom:1px solid var(--border);
+            border-radius:18px;
+            border:1px solid var(--border);
+            margin:10px 10px 0;
             padding:12px 0 12px 12px;
             display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;
+            box-shadow:var(--card-shadow);
         }
         .stories-wrap::-webkit-scrollbar{display:none;}
         .story-item{
@@ -108,10 +111,11 @@
         /* ── COMPOSE BOX ── */
         .compose-box{
             background:var(--surface);
-            margin:8px 0;
+            margin:10px 10px 0;
             padding:14px 16px;
-            border-top:1px solid var(--border);
-            border-bottom:1px solid var(--border);
+            border-radius:18px;
+            border:1px solid var(--border);
+            box-shadow:var(--card-shadow);
         }
         .compose-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
         .compose-avatar{
@@ -136,10 +140,10 @@
         .compose-action .ic-video{color:var(--accent2);}
 
         /* ── FEED ── */
-        .feed{display:flex;flex-direction:column;gap:8px;}
+        .feed{display:flex;flex-direction:column;gap:10px;padding:10px 10px 0;}
 
         /* ── POST CARD ── */
-        .post-card{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+        .post-card{background:var(--surface);border-radius:18px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--card-shadow);}
         .post-header{display:flex;align-items:center;gap:10px;padding:12px 14px 8px;}
         .post-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
         .post-meta{flex:1;}
@@ -201,7 +205,7 @@
         .empty-state p{font-size:14px;line-height:1.6;}
 
         /* ── SKELETON ── */
-        .skeleton{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px;}
+        .skeleton{background:var(--surface);border-radius:18px;border:1px solid var(--border);padding:14px;box-shadow:var(--card-shadow);}
         .sk-row{display:flex;gap:10px;margin-bottom:12px;}
         .sk-circle{width:44px;height:44px;border-radius:50%;background:var(--surface3);flex-shrink:0;animation:shimmer 1.4s infinite;}
         .sk-lines{flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;}
@@ -210,6 +214,125 @@
         .sk-line.w40{width:40%;}
         .sk-img{height:200px;border-radius:8px;background:var(--surface3);animation:shimmer 1.4s infinite;margin-top:8px;}
         @keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.5}}
+
+        /* ── ADD STORY SHEET ── */
+        .story-sheet-option{
+            display:flex;align-items:center;gap:16px;
+            padding:16px 24px;cursor:pointer;
+            transition:background 0.15s;border-radius:14px;margin:0 8px;
+        }
+        .story-sheet-option:active{background:var(--surface2);}
+        .story-sheet-icon{
+            width:52px;height:52px;border-radius:16px;
+            display:flex;align-items:center;justify-content:center;
+            font-size:22px;color:#fff;flex-shrink:0;
+        }
+        .story-sheet-label{font-size:16px;font-weight:700;color:var(--text);}
+        .story-sheet-desc{font-size:13px;color:var(--text-muted);margin-top:2px;}
+
+        /* ── COMMENT SHEET ── */
+        .comment-sheet-overlay{
+            position:fixed;inset:0;z-index:9990;
+            background:rgba(0,0,0,0.45);
+            display:flex;flex-direction:column;justify-content:flex-end;
+            animation:fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .comment-sheet{
+            background:var(--surface);
+            border-radius:24px 24px 0 0;
+            max-height:80vh;
+            display:flex;flex-direction:column;
+            animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
+        }
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        .comment-sheet-handle{
+            width:40px;height:4px;border-radius:2px;
+            background:var(--border);margin:12px auto 0;flex-shrink:0;
+        }
+        .comment-sheet-header{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;
+        }
+        .comment-sheet-title{font-size:16px;font-weight:800;color:var(--text);}
+        .comment-sheet-close{
+            width:30px;height:30px;border-radius:50%;
+            background:var(--surface2);border:none;
+            display:flex;align-items:center;justify-content:center;
+            font-size:16px;color:var(--text-muted);cursor:pointer;
+        }
+        .comment-sheet-list{
+            flex:1;overflow-y:auto;padding:12px 16px;
+            display:flex;flex-direction:column;gap:14px;
+            scrollbar-width:none;
+        }
+        .comment-sheet-list::-webkit-scrollbar{display:none;}
+        .cs-comment{display:flex;gap:10px;align-items:flex-start;}
+        .cs-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
+        .cs-bubble{
+            flex:1;background:var(--surface2);border-radius:14px;padding:9px 13px;
+        }
+        .cs-author{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+        .cs-text{font-size:14px;color:var(--text);line-height:1.4;}
+        .cs-time{font-size:11px;color:var(--text-muted);margin-top:4px;}
+        .cs-empty{text-align:center;color:var(--text-muted);font-size:14px;padding:24px 0;}
+        .comment-sheet-input-row{
+            display:flex;align-items:center;gap:10px;
+            padding:12px 16px 16px;
+            border-top:1px solid var(--border);flex-shrink:0;
+            box-sizing:border-box;width:100%;
+        }
+        .cs-input-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--accent);}
+        .cs-input{
+            flex:1;min-width:0;background:var(--surface2);border:1.5px solid var(--border);
+            border-radius:22px;padding:10px 16px;
+            font-size:15px;color:var(--text);font-family:inherit;outline:none;
+            transition:border-color 0.2s;
+        }
+        .cs-input:focus{border-color:var(--accent);}
+        .cs-input::placeholder{color:var(--text-muted);}
+        .cs-send{
+            width:38px;height:38px;min-width:38px;border-radius:50%;border:none;
+            background:var(--accent);color:#fff;
+            display:flex;align-items:center;justify-content:center;
+            font-size:16px;cursor:pointer;flex-shrink:0;
+            transition:transform 0.15s,opacity 0.15s;
+        }
+        .cs-send:active{transform:scale(0.9);}
+
+        /* ── LIKE ANIMATION ── */
+        @keyframes like-pop {
+            0%   { transform: scale(1); }
+            30%  { transform: scale(1.45); }
+            60%  { transform: scale(0.88); }
+            100% { transform: scale(1); }
+        }
+        @keyframes like-burst {
+            0%   { transform: translate(-50%,-50%) scale(0); opacity: 1; }
+            100% { transform: translate(-50%,-50%) scale(1.8); opacity: 0; }
+        }
+        @keyframes like-particle {
+            0%   { transform: translate(0,0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx),var(--ty)) scale(0); opacity: 0; }
+        }
+        .like-anim { animation: like-pop 0.4s cubic-bezier(0.36,0.07,0.19,0.97) both; }
+        .like-ring {
+            position: absolute;
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            border: 3px solid var(--accent);
+            pointer-events: none;
+            animation: like-burst 0.45s ease-out forwards;
+        }
+        .like-dot {
+            position: absolute;
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            pointer-events: none;
+            animation: like-particle 0.5s ease-out forwards;
+        }
+        .action-btn { position: relative; overflow: visible; }
 
         /* ── TOAST ── */
         .toast{
@@ -231,23 +354,60 @@
         /* ── STORY VIEWER ── */
         .story-viewer{
             display:none;position:fixed;inset:0;z-index:9999;
-            background:#000;flex-direction:column;
+            background:#000;
         }
-        .story-viewer.open{display:flex;}
-        .story-viewer img,.story-viewer video{width:100%;height:100%;object-fit:contain;flex:1;}
+        .story-viewer.open{display:block;}
+
+        /* imagen/video a pantalla completa */
+        .story-viewer #sv-img,
+        .story-viewer #sv-video{
+            position:absolute;inset:0;
+            width:100%;height:100%;
+            object-fit:cover;
+        }
+
+        /* degradado arriba */
         .story-viewer-header{
-            position:absolute;top:0;left:0;right:0;
-            padding:48px 16px 16px;
-            background:linear-gradient(to bottom,rgba(0,0,0,0.6),transparent);
+            position:absolute;top:0;left:0;right:0;z-index:2;
+            padding:52px 14px 20px;
+            background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 100%);
+        }
+
+        /* barra de progreso */
+        .sv-bars{display:flex;gap:4px;margin-bottom:12px;}
+        .sv-progress{
+            flex:1;height:3px;
+            background:rgba(255,255,255,0.35);
+            border-radius:2px;overflow:hidden;
+        }
+        .sv-fill{height:100%;background:#fff;width:0%;animation:story-prog 5s linear forwards;}
+        @keyframes story-prog{from{width:0}to{width:100%}}
+
+        /* fila usuario + cerrar */
+        .sv-user-row{
             display:flex;align-items:center;gap:10px;
         }
-        .sv-progress{flex:1;height:3px;background:rgba(255,255,255,0.3);border-radius:2px;overflow:hidden;}
-        .sv-fill{height:100%;background:#fff;animation:story-prog 5s linear forwards;}
-        @keyframes story-prog{from{width:0}to{width:100%}}
-        .sv-close{color:#fff;font-size:22px;cursor:pointer;margin-left:auto;}
-        .sv-user{display:flex;align-items:center;gap:8px;position:absolute;top:64px;left:16px;}
-        .sv-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #fff;}
-        .sv-name{color:#fff;font-size:14px;font-weight:700;}
+        .sv-avatar{
+            width:40px;height:40px;border-radius:50%;
+            object-fit:cover;border:2px solid #fff;flex-shrink:0;
+        }
+        .sv-user-info{flex:1;}
+        .sv-name{color:#fff;font-size:14px;font-weight:700;line-height:1.2;}
+        .sv-time{color:rgba(255,255,255,0.75);font-size:12px;}
+        .sv-close{
+            width:36px;height:36px;border-radius:50%;
+            background:rgba(0,0,0,0.4);
+            display:flex;align-items:center;justify-content:center;
+            color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;
+        }
+
+        /* degradado abajo */
+        .sv-bottom-fade{
+            position:absolute;bottom:0;left:0;right:0;z-index:2;
+            height:120px;
+            background:linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 100%);
+            pointer-events:none;
+        }
 
         /* MEDIA queries */
         @media(min-width:600px){
@@ -282,7 +442,7 @@
 
 <!-- STORIES -->
 <div class="stories-wrap" id="stories-wrap">
-    <div class="story-add-box" onclick="location.href='create-posts.html?type=historia'">
+    <div class="story-add-box" onclick="openAddStorySheet()">
         <div class="story-add-circle"><i class="fa-solid fa-plus"></i></div>
         <span>Tu historia</span>
     </div>
@@ -326,16 +486,33 @@
 
 <!-- STORY VIEWER -->
 <div class="story-viewer" id="story-viewer">
-    <div class="story-viewer-header">
-        <div class="sv-progress"><div class="sv-fill" id="sv-fill"></div></div>
-        <i class="fa-solid fa-xmark sv-close" onclick="closeStory()"></i>
-    </div>
-    <div class="sv-user">
-        <img class="sv-avatar" id="sv-avatar" src="">
-        <span class="sv-name" id="sv-name"></span>
-    </div>
+    <!-- Media a pantalla completa -->
     <img id="sv-img" src="" style="display:none">
     <video id="sv-video" src="" autoplay playsinline style="display:none"></video>
+
+    <!-- Header: barras + usuario + cerrar -->
+    <div class="story-viewer-header">
+        <div class="sv-bars" id="sv-bars"></div>
+        <div class="sv-user-row">
+            <img class="sv-avatar" id="sv-avatar" src="">
+            <div class="sv-user-info">
+                <div class="sv-name" id="sv-name"></div>
+                <div class="sv-time" id="sv-time">Hace un momento</div>
+            </div>
+            <div class="sv-close" onclick="closeStory()">
+                <i class="fa-solid fa-xmark"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Degradado abajo -->
+    <div class="sv-bottom-fade"></div>
+
+    <!-- Zonas tap: anterior (izq) / siguiente (der) -->
+    <div style="position:absolute;inset:0;z-index:1;display:flex;">
+        <div style="flex:1;" onclick="_svPrev()"></div>
+        <div style="flex:1;" onclick="_svNext()"></div>
+    </div>
 </div>
 
 <!-- NAV BAR -->
@@ -348,11 +525,14 @@
 </nav>
 
 <script type="module">
-import { auth, db } from './firebase-config.js';
+import { auth, db, storage } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
     ref, onValue, get, set, remove, push, query, orderByChild
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import {
+    ref as sRef, uploadBytesResumable, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 let currentUser = null;
 let followingSet = new Set();   // UIDs que sigo
@@ -380,23 +560,98 @@ function removeSkeletons() {
 }
 
 // ── Story viewer ───────────────────────────────
-window.openStory = function(url, name, avatar, isVideo) {
-    const sv = document.getElementById('story-viewer');
-    document.getElementById('sv-name').textContent = name;
-    document.getElementById('sv-avatar').src = avatar || 'default-avatar.png';
-    const img = document.getElementById('sv-img');
-    const vid = document.getElementById('sv-video');
-    if (isVideo) { img.style.display='none'; vid.src=url; vid.style.display='block'; }
-    else { vid.style.display='none'; img.src=url; img.style.display='block'; }
-    // reset progress
-    const fill = document.getElementById('sv-fill');
-    fill.style.animation='none'; fill.offsetHeight; fill.style.animation='story-prog 5s linear forwards';
-    sv.classList.add('open');
-    setTimeout(() => { if (sv.classList.contains('open')) closeStory(); }, 5500);
+let _svStories = [];   // lista de historias del grupo actual
+let _svIndex   = 0;    // índice actual
+let _svTimer   = null; // timeout de avance automático
+
+window.openStoryGroup = function(stories, startIndex) {
+    _svStories = stories;
+    _svIndex   = startIndex;
+    _svRender();
+    document.getElementById('story-viewer').classList.add('open');
 };
+
+function _svRender() {
+    clearTimeout(_svTimer);
+    const s    = _svStories[_svIndex];
+    const sv   = document.getElementById('story-viewer');
+    const img  = document.getElementById('sv-img');
+    const vid  = document.getElementById('sv-video');
+
+    // Info usuario
+    document.getElementById('sv-name').textContent   = s.autor || 'Usuario';
+    document.getElementById('sv-avatar').src          = s.avatar || 'default-avatar.png';
+    document.getElementById('sv-time').textContent    = timeAgo(s.timestamp);
+
+    // Barras de progreso (una por historia)
+    const barsEl = document.getElementById('sv-bars');
+    barsEl.innerHTML = _svStories.map((_, i) => `
+        <div class="sv-progress">
+            <div class="sv-fill" id="sv-bar-${i}" style="width:${i < _svIndex ? '100%' : '0%'};animation:none;"></div>
+        </div>
+    `).join('');
+
+    // Animar barra actual
+    requestAnimationFrame(() => {
+        const bar = document.getElementById(`sv-bar-${_svIndex}`);
+        if (bar) { bar.style.animation = 'none'; bar.offsetHeight; bar.style.animation = 'story-prog 5s linear forwards'; }
+    });
+
+    // Contenido
+    img.style.display = 'none';
+    vid.style.display = 'none';
+    const txtEl = document.getElementById('sv-texto');
+    if (txtEl) txtEl.style.display = 'none';
+
+    if (s.textoHistoria) {
+        sv.style.background = s.bgGradient || 'linear-gradient(135deg,#6c63ff,#f5576c)';
+        let el = document.getElementById('sv-texto');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'sv-texto';
+            el.style.cssText = 'position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;padding:32px;font-size:26px;font-weight:800;color:#fff;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,0.4);line-height:1.3;pointer-events:none;';
+            sv.appendChild(el);
+        }
+        el.textContent = s.textoHistoria;
+        el.style.display = 'flex';
+    } else {
+        sv.style.background = '#000';
+        const isVideo = !!s.videoUrl;
+        const url = s.imagenUrl || s.videoUrl || '';
+        if (isVideo) { vid.src = url; vid.style.display = 'block'; }
+        else { img.src = url; img.style.display = 'block'; }
+    }
+
+    // Avance automático a los 5s
+    _svTimer = setTimeout(() => _svNext(), 5000);
+}
+
+function _svNext() {
+    if (_svIndex < _svStories.length - 1) {
+        _svIndex++;
+        _svRender();
+    } else {
+        closeStory();
+    }
+}
+
+function _svPrev() {
+    if (_svIndex > 0) {
+        _svIndex--;
+        _svRender();
+    }
+}
+
 window.closeStory = function() {
+    clearTimeout(_svTimer);
     document.getElementById('story-viewer').classList.remove('open');
     document.getElementById('sv-video').src = '';
+    _svStories = []; _svIndex = 0;
+};
+
+// Mantener openStory como alias simple por si acaso
+window.openStory = function(url, name, avatar, isVideo, textoHistoria, bgGradient, timestamp) {
+    openStoryGroup([{ imagenUrl: isVideo ? null : url, videoUrl: isVideo ? url : null, textoHistoria, bgGradient, autor: name, avatar, timestamp: timestamp || Date.now() }], 0);
 };
 
 // ── Build story items ──────────────────────────
@@ -404,30 +659,41 @@ function buildStories(storiesData) {
     const list = document.getElementById('stories-list');
     list.innerHTML = '';
     if (!storiesData) return;
-    // Group by uid, keep latest
+
+    // Agrupar por uid, filtrar expiradas
     const byUser = {};
     Object.entries(storiesData).forEach(([id, s]) => {
-        if (!byUser[s.uid] || s.timestamp > byUser[s.uid].timestamp)
-            byUser[s.uid] = { ...s, id };
+        if (!s.uid) return;
+        const isFollowing = followingSet.has(s.uid) || s.uid === currentUser.uid;
+        if (!isFollowing) return;
+        if (s.expira && Date.now() > s.expira) return;
+        if (!byUser[s.uid]) byUser[s.uid] = [];
+        byUser[s.uid].push({ ...s, id });
     });
-    Object.values(byUser).forEach(s => {
+
+    // Una tarjeta por usuario — muestra la más reciente como preview
+    Object.values(byUser).forEach(stories => {
+        stories.sort((a, b) => a.timestamp - b.timestamp);
+        const latest = stories[stories.length - 1];
+        const isMe = latest.uid === currentUser.uid;
+        const mediaUrl = latest.imagenUrl || latest.videoUrl || '';
+        const bgStyle = latest.textoHistoria
+            ? `background:${latest.bgGradient||'linear-gradient(135deg,var(--accent),var(--accent2))'}`
+            : (mediaUrl ? `background-image:url('${mediaUrl}')` : `background:var(--surface3)`);
+        const avatarSrc = latest.avatar || 'default-avatar.png';
+        const nombre = isMe ? 'Tu historia' : (latest.autor || 'Usuario');
+
         const div = document.createElement('div');
         div.className = 'story-item';
-        const isMe = s.uid === currentUser.uid;
-        const isFollowing = followingSet.has(s.uid) || isMe;
-        if (!isFollowing) return;
-        const isVideo = !!s.videoUrl;
-        const mediaUrl = s.imagenUrl || s.videoUrl || '';
-        const bgStyle = mediaUrl ? `background-image:url('${mediaUrl}')` : `background:var(--surface3)`;
-        const avatarSrc = s.avatar || 'default-avatar.png';
-        const nombre = isMe ? 'Tu historia' : (s.autor || 'Usuario');
         div.innerHTML = `
             <div class="story-bg" style="${bgStyle};background-size:cover;background-position:center;"></div>
             <div class="story-overlay"></div>
+            ${latest.textoHistoria ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:10px;font-size:12px;font-weight:700;color:#fff;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,0.5);">${latest.textoHistoria}</div>` : ''}
             <div class="story-user-badge"><img src="${avatarSrc}" onerror="this.src='default-avatar.png'"></div>
+            ${stories.length > 1 ? `<div style="position:absolute;top:6px;right:6px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:2px 5px;">${stories.length}</div>` : ''}
             <span class="story-name">${nombre}</span>
         `;
-        div.onclick = () => openStory(mediaUrl, s.autor || 'Usuario', s.avatar, isVideo);
+        div.onclick = () => openStoryGroup(stories, 0);
         list.appendChild(div);
     });
 }
@@ -490,25 +756,21 @@ function buildPost(id, p, myLikes) {
         ${extraHTML}
         ${mediaHTML}
         <div class="post-stats">
-            <div class="likes-count">
-                ${likeCount > 0 ? `<div class="like-bubble">👍</div> ${likeCount}` : ''}
+            <div class="likes-count" id="likes-count-${id}">
+                ${likeCount > 0 ? `<div class="like-bubble">👍</div> <span>${likeCount} Me gusta</span>` : ''}
             </div>
-            <div class="comments-count" onclick="goComments('${id}')">Ver comentarios</div>
+            <div class="comments-count" id="comments-count-${id}" onclick="openCommentSheet('${id}')" style="cursor:pointer;">Ver comentarios</div>
         </div>
         <div class="post-actions">
             <div class="action-btn ${isLiked?'liked':''}" id="like-btn-${id}" onclick="toggleLike('${id}')">
                 <i class="fa-${isLiked?'solid':'regular'} fa-thumbs-up"></i> Me gusta
             </div>
-            <div class="action-btn" onclick="goComments('${id}')">
+            <div class="action-btn" onclick="openCommentSheet('${id}')">
                 <i class="fa-regular fa-comment"></i> Comentar
             </div>
             <div class="action-btn" onclick="sharePost('${id}')">
                 <i class="fa-solid fa-share"></i> Compartir
             </div>
-        </div>
-        <div class="post-comment-row">
-            <img class="comment-avatar" id="qa-av-${id}" src="${currentUser.photoURL||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
-            <input class="comment-input" placeholder="Escribe un comentario..." onkeydown="quickComment(event,'${id}')">
         </div>
     `;
     return card;
@@ -534,16 +796,69 @@ window.toggleLike = async function(id) {
     const likeRef = ref(db, `publicaciones/${id}/likes/${currentUser.uid}`);
     const snap    = await get(likeRef);
     const btn     = document.getElementById(`like-btn-${id}`);
+    const iconEl  = btn.querySelector('i');
+
     if (snap.exists()) {
         await remove(likeRef);
         btn.classList.remove('liked');
-        btn.querySelector('i').className = 'fa-regular fa-thumbs-up';
+        iconEl.className = 'fa-regular fa-thumbs-up';
     } else {
         await set(likeRef, true);
         btn.classList.add('liked');
-        btn.querySelector('i').className = 'fa-solid fa-thumbs-up';
+        iconEl.className = 'fa-solid fa-thumbs-up';
+
+        // ── Animación pop ──
+        iconEl.classList.remove('like-anim');
+        void iconEl.offsetWidth; // reflow
+        iconEl.classList.add('like-anim');
+        iconEl.addEventListener('animationend', () => iconEl.classList.remove('like-anim'), { once: true });
+
+        // ── Anillo explosión ──
+        const ring = document.createElement('div');
+        ring.className = 'like-ring';
+        ring.style.cssText = 'left:50%;top:50%;';
+        btn.appendChild(ring);
+        ring.addEventListener('animationend', () => ring.remove());
+
+        // ── Partículas ──
+        const colors = ['#1877f2','#ff6584','#ffcc00','#43e97b','#f093fb'];
+        for (let k = 0; k < 6; k++) {
+            const dot = document.createElement('div');
+            dot.className = 'like-dot';
+            const angle = (k / 6) * Math.PI * 2;
+            const dist  = 28 + Math.random() * 14;
+            dot.style.cssText = `
+                left:50%;top:50%;
+                background:${colors[k % colors.length]};
+                --tx:${Math.round(Math.cos(angle)*dist)}px;
+                --ty:${Math.round(Math.sin(angle)*dist)}px;
+                animation-delay:${k*0.03}s;
+            `;
+            btn.appendChild(dot);
+            dot.addEventListener('animationend', () => dot.remove());
+        }
+    }
+
+    // ── Actualizar conteo de likes en stats bar ──
+    const allSnap = await get(ref(db, `publicaciones/${id}/likes`));
+    const count   = allSnap.exists() ? Object.keys(allSnap.val()).length : 0;
+    const bar     = document.getElementById(`likes-count-${id}`);
+    if (bar) {
+        bar.innerHTML = count > 0
+            ? `<div class="like-bubble">👍</div> <span>${count} Me gusta</span>`
+            : '';
     }
 };
+
+// ── Live comment count per post ────────────────
+function watchCommentCount(postId) {
+    onValue(ref(db, `comentarios/${postId}`), (snap) => {
+        const el = document.getElementById(`comments-count-${postId}`);
+        if (!el) return;
+        const n = snap.exists() ? Object.keys(snap.val()).length : 0;
+        el.textContent = n > 0 ? `${n} comentario${n !== 1 ? 's' : ''}` : 'Ver comentarios';
+    });
+}
 
 window.votarEncuesta = async function(postId, idx, el) {
     if (!currentUser) return;
@@ -551,6 +866,303 @@ window.votarEncuesta = async function(postId, idx, el) {
     const snap = await get(voteRef);
     if (!snap.exists()) { await set(voteRef, true); showToast('✅ Voto registrado'); }
     else showToast('Ya votaste en esta encuesta');
+};
+
+window.openAddStorySheet = function() {
+    const overlay = document.createElement('div');
+    overlay.className = 'comment-sheet-overlay';
+    overlay.innerHTML = `
+        <div class="comment-sheet" id="story-sheet">
+            <div class="comment-sheet-handle"></div>
+            <div class="comment-sheet-header">
+                <span class="comment-sheet-title">Nueva historia</span>
+                <button class="comment-sheet-close" onclick="this.closest('.comment-sheet-overlay').remove()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Vista inicial: elegir tipo -->
+            <div id="story-type-picker" style="padding:12px 8px 28px;display:flex;flex-direction:column;gap:4px;">
+                <div class="story-sheet-option" onclick="storyPickMedia('imagen')">
+                    <div class="story-sheet-icon" style="background:linear-gradient(135deg,#43e97b,#38f9d7);">
+                        <i class="fa-solid fa-image"></i>
+                    </div>
+                    <div>
+                        <div class="story-sheet-label">Foto</div>
+                        <div class="story-sheet-desc">Comparte una imagen como historia</div>
+                    </div>
+                </div>
+                <div class="story-sheet-option" onclick="storyPickMedia('video')">
+                    <div class="story-sheet-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
+                        <i class="fa-solid fa-video"></i>
+                    </div>
+                    <div>
+                        <div class="story-sheet-label">Video</div>
+                        <div class="story-sheet-desc">Comparte un video corto</div>
+                    </div>
+                </div>
+                <div class="story-sheet-option" onclick="storyShowTextEditor()">
+                    <div class="story-sheet-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);">
+                        <i class="fa-solid fa-font"></i>
+                    </div>
+                    <div>
+                        <div class="story-sheet-label">Texto</div>
+                        <div class="story-sheet-desc">Crea una historia solo con texto</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista: preview + publicar (oculta) -->
+            <div id="story-preview-view" style="display:none;flex-direction:column;flex:1;">
+                <div style="position:relative;background:#000;min-height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                    <img id="story-preview-img" style="max-width:100%;max-height:320px;display:none;border-radius:0;">
+                    <video id="story-preview-vid" style="max-width:100%;max-height:320px;display:none;" controls playsinline></video>
+                    <div id="story-preview-txt" style="display:none;color:#fff;font-size:22px;font-weight:800;text-align:center;padding:24px;text-shadow:0 2px 8px rgba(0,0,0,0.7);"></div>
+                </div>
+                <div style="padding:16px;">
+                    <div id="story-upload-bar" style="display:none;margin-bottom:12px;">
+                        <div style="height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;">
+                            <div id="story-upload-fill" style="height:100%;width:0%;background:var(--accent);transition:width 0.3s;border-radius:3px;"></div>
+                        </div>
+                        <div id="story-upload-pct" style="font-size:12px;color:var(--text-muted);margin-top:4px;text-align:center;">Subiendo...</div>
+                    </div>
+                    <button id="story-publish-btn" onclick="storyPublish()" style="
+                        width:100%;padding:14px;border-radius:14px;border:none;
+                        background:linear-gradient(135deg,var(--accent),var(--accent2));
+                        color:#fff;font-size:16px;font-weight:800;
+                        cursor:pointer;font-family:inherit;
+                        display:flex;align-items:center;justify-content:center;gap:8px;
+                    "><i class='fa-solid fa-paper-plane'></i> Publicar historia</button>
+                    <button onclick="storyBackToPicker()" style="
+                        width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);
+                        background:transparent;color:var(--text-muted);font-size:14px;font-weight:700;
+                        cursor:pointer;font-family:inherit;margin-top:8px;
+                    ">Cambiar</button>
+                </div>
+            </div>
+
+            <!-- Vista: editor de texto (oculta) -->
+            <div id="story-text-view" style="display:none;flex-direction:column;flex:1;padding:16px;gap:12px;">
+                <div id="story-text-bg" style="
+                    min-height:200px;border-radius:16px;
+                    background:linear-gradient(135deg,var(--accent),var(--accent2));
+                    display:flex;align-items:center;justify-content:center;padding:20px;
+                ">
+                    <textarea id="story-text-input" placeholder="Escribe tu historia..." style="
+                        background:transparent;border:none;outline:none;
+                        color:#fff;font-size:20px;font-weight:700;text-align:center;
+                        width:100%;resize:none;font-family:inherit;
+                        text-shadow:0 1px 4px rgba(0,0,0,0.4);min-height:120px;
+                    " oninput="document.getElementById('story-text-preview').textContent=this.value"></textarea>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    ${['linear-gradient(135deg,#6c63ff,#f5576c)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#1a1a24,#2a2a38)'].map((g,i)=>`
+                        <div onclick="document.getElementById('story-text-bg').style.background='${g}'" style="
+                            width:36px;height:36px;border-radius:50%;background:${g};cursor:pointer;
+                            border:2px solid var(--border);flex-shrink:0;
+                        "></div>
+                    `).join('')}
+                </div>
+                <button onclick="storyPublishText()" style="
+                    width:100%;padding:14px;border-radius:14px;border:none;
+                    background:linear-gradient(135deg,var(--accent),var(--accent2));
+                    color:#fff;font-size:16px;font-weight:800;
+                    cursor:pointer;font-family:inherit;
+                    display:flex;align-items:center;justify-content:center;gap:8px;
+                "><i class='fa-solid fa-paper-plane'></i> Publicar historia</button>
+                <button onclick="storyBackToPicker()" style="
+                    width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);
+                    background:transparent;color:var(--text-muted);font-size:14px;font-weight:700;
+                    cursor:pointer;font-family:inherit;
+                ">Volver</button>
+            </div>
+        </div>
+
+        <!-- Input file oculto -->
+        <input type="file" id="story-file-input" style="display:none" onchange="storyFileSelected(this)">
+    `;
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+};
+
+// Estado temporal de la historia
+let _storyFile = null;
+let _storyType = null; // 'imagen' o 'video'
+
+window.storyPickMedia = function(tipo) {
+    _storyType = tipo;
+    const input = document.getElementById('story-file-input');
+    input.accept = tipo === 'imagen' ? 'image/*' : 'video/*';
+    input.click();
+};
+
+window.storyFileSelected = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    _storyFile = file;
+    const url = URL.createObjectURL(file);
+
+    document.getElementById('story-type-picker').style.display = 'none';
+    document.getElementById('story-text-view').style.display = 'none';
+    const pv = document.getElementById('story-preview-view');
+    pv.style.display = 'flex';
+
+    const img = document.getElementById('story-preview-img');
+    const vid = document.getElementById('story-preview-vid');
+    const txt = document.getElementById('story-preview-txt');
+    img.style.display = 'none'; vid.style.display = 'none'; txt.style.display = 'none';
+
+    if (_storyType === 'imagen') { img.src = url; img.style.display = 'block'; }
+    else { vid.src = url; vid.style.display = 'block'; }
+};
+
+window.storyShowTextEditor = function() {
+    document.getElementById('story-type-picker').style.display = 'none';
+    document.getElementById('story-text-view').style.display = 'flex';
+};
+
+window.storyBackToPicker = function() {
+    _storyFile = null; _storyType = null;
+    document.getElementById('story-preview-view').style.display = 'none';
+    document.getElementById('story-text-view').style.display = 'none';
+    document.getElementById('story-type-picker').style.display = 'flex';
+    document.getElementById('story-upload-bar').style.display = 'none';
+    document.getElementById('story-upload-fill').style.width = '0%';
+};
+
+window.storyPublish = async function() {
+    if (!_storyFile || !currentUser) return;
+    const btn = document.getElementById('story-publish-btn');
+    btn.disabled = true;
+    btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Subiendo...";
+    document.getElementById('story-upload-bar').style.display = 'block';
+
+    const ext = _storyFile.name.split('.').pop();
+    const path = `stories/${currentUser.uid}/${Date.now()}.${ext}`;
+    const storageRef = sRef(storage, path);
+    const task = uploadBytesResumable(storageRef, _storyFile);
+
+    task.on('state_changed',
+        snap => {
+            const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+            document.getElementById('story-upload-fill').style.width = pct + '%';
+            document.getElementById('story-upload-pct').textContent = `Subiendo... ${pct}%`;
+        },
+        err => {
+            showToast('❌ Error al subir: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> Publicar historia";
+        },
+        async () => {
+            const downloadURL = await getDownloadURL(task.snapshot.ref);
+            const data = {
+                uid: currentUser.uid,
+                autor: currentUser.displayName || 'Usuario',
+                avatar: currentUser.photoURL || '',
+                timestamp: Date.now(),
+                expira: Date.now() + 24 * 60 * 60 * 1000, // 24h
+            };
+            if (_storyType === 'imagen') data.imagenUrl = downloadURL;
+            else data.videoUrl = downloadURL;
+
+            await push(ref(db, 'historias'), data);
+            showToast('✅ Historia publicada');
+            document.querySelector('.comment-sheet-overlay')?.remove();
+            loadStories();
+        }
+    );
+};
+
+window.storyPublishText = async function() {
+    const texto = document.getElementById('story-text-input')?.value.trim();
+    if (!texto || !currentUser) { showToast('Escribe algo primero'); return; }
+    const bg = document.getElementById('story-text-bg')?.style.background || '';
+    await push(ref(db, 'historias'), {
+        uid: currentUser.uid,
+        autor: currentUser.displayName || 'Usuario',
+        avatar: currentUser.photoURL || '',
+        timestamp: Date.now(),
+        expira: Date.now() + 24 * 60 * 60 * 1000,
+        textoHistoria: texto,
+        bgGradient: bg,
+    });
+    showToast('✅ Historia publicada');
+    document.querySelector('.comment-sheet-overlay')?.remove();
+    loadStories();
+};
+
+window.openCommentSheet = async function(postId) {
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'comment-sheet-overlay';
+    overlay.innerHTML = `
+        <div class="comment-sheet" id="cs-sheet">
+            <div class="comment-sheet-handle"></div>
+            <div class="comment-sheet-header">
+                <span class="comment-sheet-title">Comentarios</span>
+                <button class="comment-sheet-close" onclick="this.closest('.comment-sheet-overlay').remove()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="comment-sheet-list" id="cs-list-${postId}">
+                <div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>
+            </div>
+            <div class="comment-sheet-input-row">
+                <img class="cs-input-avatar" src="${currentUser.photoURL||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+                <input class="cs-input" id="cs-input-${postId}" placeholder="Escribe un comentario..." autocomplete="off">
+                <button class="cs-send" onclick="sendSheetComment('${postId}')">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+
+    // Foco en input
+    setTimeout(() => document.getElementById(`cs-input-${postId}`)?.focus(), 300);
+
+    // Enviar con Enter
+    document.getElementById(`cs-input-${postId}`)?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') sendSheetComment(postId);
+    });
+
+    // Cargar comentarios en tiempo real
+    const listEl = document.getElementById(`cs-list-${postId}`);
+    onValue(ref(db, `comentarios/${postId}`), (snap) => {
+        if (!snap.exists()) {
+            listEl.innerHTML = `<div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>`;
+            return;
+        }
+        const comments = [];
+        snap.forEach(c => comments.push(c.val()));
+        comments.sort((a,b) => a.timestamp - b.timestamp);
+        listEl.innerHTML = comments.map(c => `
+            <div class="cs-comment">
+                <img class="cs-avatar" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+                <div class="cs-bubble">
+                    <div class="cs-author">${c.autor||'Usuario'}</div>
+                    <div class="cs-text">${c.texto}</div>
+                    <div class="cs-time">${timeAgo(c.timestamp)}</div>
+                </div>
+            </div>
+        `).join('');
+        listEl.scrollTop = listEl.scrollHeight;
+    });
+};
+
+window.sendSheetComment = async function(postId) {
+    const inp = document.getElementById(`cs-input-${postId}`);
+    const txt = inp?.value.trim();
+    if (!txt || !currentUser) return;
+    inp.value = '';
+    await push(ref(db, `comentarios/${postId}`), {
+        autor: currentUser.displayName || 'Usuario',
+        avatar: currentUser.photoURL || '',
+        uid: currentUser.uid,
+        texto: txt,
+        timestamp: Date.now()
+    });
 };
 
 window.quickComment = async function(e, postId) {
@@ -654,6 +1266,7 @@ async function loadFeed() {
         filtered.forEach(p => {
             const card = buildPost(p.id, p, p.likes);
             feed.appendChild(card);
+            watchCommentCount(p.id);
         });
     });
 }

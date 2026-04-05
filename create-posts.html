@@ -99,17 +99,24 @@
         /* PANELES */
         .panel { display: none; margin: 0 16px 8px; }
         .panel.visible { display: block; }
+        #panel-anonimo.visible { display: flex; }
+        #panel-anonimo { margin: 12px 16px 4px; }
         #panel-short {
             background: linear-gradient(135deg,rgba(255,101,132,0.1),rgba(108,99,255,0.1));
             border: 1px solid rgba(255,101,132,0.25); border-radius: 14px;
             padding: 12px 16px; font-size: 13px; color: var(--text-muted); line-height: 1.5;
         }
+        /* PANEL ANÓNIMO */
         #panel-anonimo {
             background: rgba(108,99,255,0.08); border: 1px dashed rgba(108,99,255,0.4);
-            border-radius: 14px; padding: 10px 14px; font-size: 13px;
-            color: var(--text-muted); display: flex; align-items: center; gap: 8px;
+            border-radius: 14px; padding: 14px 16px; font-size: 14px;
+            color: var(--text-muted); align-items: center; gap: 12px;
+            margin: 12px 16px 4px;
         }
-        #panel-anonimo i { color: var(--accent); }
+        #panel-anonimo i { color: var(--accent); font-size: 22px; flex-shrink: 0; }
+        #panel-anonimo .anon-info { display: flex; flex-direction: column; gap: 2px; }
+        #panel-anonimo .anon-title { font-size: 15px; font-weight: 700; color: var(--text); }
+        #panel-anonimo .anon-desc { font-size: 13px; color: var(--text-muted); }
         #panel-momento { margin: 0 16px 8px; display: none; }
         #panel-momento.visible { display: block; }
         .momento-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
@@ -353,7 +360,10 @@
 <!-- PANEL ANÓNIMO -->
 <div class="panel" id="panel-anonimo">
     <i class="fa-solid fa-mask"></i>
-    Tu identidad estará oculta. Nadie sabrá que eres tú <strong style="color:var(--accent)">🎭</strong>
+    <div class="anon-info">
+        <div class="anon-title">🎭 Modo Anónimo</div>
+        <div class="anon-desc">Tu identidad estará oculta. Nadie sabrá que eres tú.</div>
+    </div>
 </div>
 
 <!-- PANEL MOMENTO -->
@@ -584,6 +594,10 @@ function cambiarTab(tab) {
     const esEnc   = tab === 'encuesta';
     const esShort = tab === 'short';
     const esVoz   = tab === 'voz';
+    const esAnon  = tab === 'anonimo';
+
+    // Ocultar fila de usuario en modo anónimo
+    document.querySelector('.user-row').style.display = esAnon ? 'none' : '';
 
     document.getElementById('compose-area').style.display = esEnc ? 'none' : '';
     charCount.style.display = esEnc ? 'none' : '';
