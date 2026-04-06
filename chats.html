@@ -1213,7 +1213,7 @@ let pollOptCount = 2;
 const EMOJIS = ['😀','😂','😍','🥰','😎','🤔','😢','😭','😡','🥳','🎉','❤️','🔥','👍','👎','🙏','💪','🤝','👏','✨','🌟','💯','🚀','😴','🤯','😅','🤣','😊','😇','🥺','😤','😏','🤗','😋','🙄','🤮','🥱','😐','😑','😶','🫡','🤭','🫣','🫠','🥴','😵','🤑','😈','👻','💀','🎃','🌈','🌊','⚡','🎵','🎶','🏆','💎','🎯'];
 
 // ── AUTH ───────────────────────────────────────────────────────────────────
-onAuthStateChanged(auth, u => {
+onAuthStateChanged(auth, async u => {
     if (!u) { location.href = 'index.html'; return; }
     currentUser = u;
     initEmojis();
@@ -2618,6 +2618,8 @@ document.querySelectorAll('.ctab').forEach(tab => {
         tab.classList.add('active');
         currentTab = tab.dataset.tab;
         renderChats(filterChats(allChats));
+        const labels = { all:'Recientes', privados:'Privados', grupos:'Grupos', archivados:'Archivados' };
+        document.getElementById('section-label').textContent = labels[currentTab] || 'Chats';
     };
 });
 
@@ -2830,7 +2832,6 @@ function escapeHtml(s) {
 document.getElementById('cv-messages').addEventListener('click', () => {
     closeAttachMenu(); closeEmojiPanel(); closeMsgCtx();
 });
-
 
 // ══════════════════════════════════════════════════════════════
 //  SISTEMA DE LLAMADAS  (WebRTC + Firebase Realtime Database)
