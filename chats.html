@@ -1032,6 +1032,7 @@ let mediaRecorder = null;
 let voiceChunks = [];
 let selectedGroupMembers = new Set();
 let allUsers = {};
+let myFollowing = new Set(); // UIDs que yo sigo
 let fabOpen = false;
 let pollOptCount = 2;
 
@@ -1042,6 +1043,7 @@ onAuthStateChanged(auth, u => {
     if (!u) { location.href = 'index.html'; return; }
     currentUser = u;
     initEmojis();
+    await loadMyFollowing();
     loadAllUsers();
     loadOnlineUsers();
     loadChats();
@@ -1054,6 +1056,26 @@ function setupPresence() {
     const presRef = ref(db, `presencia/${currentUser.uid}`);
     set(presRef, { online: true, lastSeen: Date.now(), nombre: currentUser.displayName || 'Usuario', avatar: currentUser.photoURL || '' });
     window.addEventListener('beforeunload', () => set(presRef, { online: false, lastSeen: Date.now() }));
+}
+
+// ── FOLLOWING ─────────────────────────────────────────────────────────────
+async function loadMyFollowing() {
+    // Carga en tiempo real la lista de seguidos del usuario actual.
+    // Se espera que en Firebase exista: seguidos/{myUid}/{otherUid} = true
+    return new Promise(resolve => {
+        onValue(ref(db, `seguidos/${currentUser.uid}`), snap => {
+            myFollowing.clear();
+            if (snap.exists()) {
+                snap.forEach(c => { if (c.val() === true) myFollowing.add(c.key); });
+            }
+            resolve();
+        });
+    });
+}
+
+// Verifica si yo sigo a un UID
+function iFollow(uid) {
+    return myFollowing.has(uid);
 }
 
 // ── LOAD USERS ─────────────────────────────────────────────────────────────
@@ -1077,6 +1099,7 @@ function loadOnlineUsers() {
         snap.forEach(c => {
             const u = c.val();
             if (!u.online || c.key === currentUser.uid) return;
+            if (!iFollow(c.key)) return; // solo mostrar seguidos
             const el = document.createElement('div');
             el.className = 'online-user';
             el.innerHTML = `<div class="online-ring"><img src="${u.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'"><div class="dot"></div></div><span>${(u.nombre||'Usuario').split(' ')[0]}</span>`;
@@ -1093,9 +1116,13 @@ function loadChats() {
         if (!snap.exists()) { renderChats([]); return; }
         snap.forEach(c => {
             const chat = c.val();
-            if (chat.participants && chat.participants[currentUser.uid] === true) {
-                allChats.push({ id: c.key, ...chat });
+            if (!chat.participants || !chat.participants[currentUser.uid]) return;
+            if (!chat.isGroup) {
+                // Chat privado: solo mostrar si yo sigo al otro usuario
+                const otherUid = Object.keys(chat.participants).find(uid => uid !== currentUser.uid);
+                if (otherUid && !iFollow(otherUid)) return;
             }
+            allChats.push({ id: c.key, ...chat });
         });
         allChats.sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
         renderChats(filterChats(allChats));
@@ -1199,6 +1226,11 @@ function openChat(chat) {
 }
 
 window.openDirectChat = async function(uid, userData) {
+    // Verificar que yo sigo a este usuario
+    if (!iFollow(uid)) {
+        showToast('⚠️ Solo puedes chatear con personas que sigues');
+        return;
+    }
     // find existing private chat or create
     let existing = allChats.find(c => !c.isGroup && c.participants && c.participants[uid] && c.participants[currentUser.uid]);
     if (existing) { openChat(existing); return; }
@@ -1354,6 +1386,14 @@ function renderMessage(msg, container, consecutive) {
 // ── SEND MESSAGE ───────────────────────────────────────────────────────────
 async function sendTextMessage(text) {
     if (!text.trim() || !activeChatId) return;
+    // Verificar seguimiento en chats privados
+    if (activeChatData && !activeChatData.isGroup) {
+        const otherUid = Object.keys(activeChatData.participants||{}).find(u => u !== currentUser.uid);
+        if (otherUid && !iFollow(otherUid)) {
+            showToast('⚠️ Solo puedes enviar mensajes a personas que sigues');
+            return;
+        }
+    }
     const msgData = {
         senderUid: currentUser.uid,
         senderName: currentUser.displayName || 'Usuario',
@@ -1793,8 +1833,24 @@ window.deleteChat = async function() {
 };
 
 // ── CALL BUTTONS ───────────────────────────────────────────────────────────
-document.getElementById('cv-call-btn').onclick = () => alert('📞 Llamada de voz próximamente');
-document.getElementById('cv-video-btn').onclick = () => alert('📹 Videollamada próximamente');
+document.getElementById('cv-call-btn').onclick = () => {
+    if (!activeChatData) return;
+    if (!activeChatData.isGroup) {
+        const otherUid = Object.keys(activeChatData.participants||{}).find(u => u !== currentUser.uid);
+        if (otherUid && !iFollow(otherUid)) { showToast('⚠️ Solo puedes llamar a personas que sigues'); return; }
+    }
+    if (activeChatData.isGroup) startGroupCall('voice');
+    else startCall('voice');
+};
+document.getElementById('cv-video-btn').onclick = () => {
+    if (!activeChatData) return;
+    if (!activeChatData.isGroup) {
+        const otherUid = Object.keys(activeChatData.participants||{}).find(u => u !== currentUser.uid);
+        if (otherUid && !iFollow(otherUid)) { showToast('⚠️ Solo puedes llamar a personas que sigues'); return; }
+    }
+    if (activeChatData.isGroup) startGroupCall('video');
+    else startCall('video');
+};
 
 // ── INFO SHEET ─────────────────────────────────────────────────────────────
 document.getElementById('cv-info-btn').onclick = openInfoSheet;
@@ -1975,6 +2031,7 @@ function renderPickUsers(listId, searchId, onSelect) {
     list.innerHTML = '';
     Object.values(allUsers).forEach(u => {
         if (u.uid === currentUser.uid) return;
+        if (!iFollow(u.uid)) return; // solo seguidos
         if (q && !(u.nombre||u.name||'').toLowerCase().includes(q)) return;
         const selected = selectedGroupMembers.has(u.uid);
         const item = document.createElement('div');
