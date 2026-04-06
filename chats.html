@@ -117,9 +117,10 @@
         /* video streams */
         .call-remote-video{
             position:absolute;inset:0;width:100%;height:100%;
-            object-fit:cover;display:none;z-index:0;
+            object-fit:cover;z-index:0;
+            opacity:0;pointer-events:none;
         }
-        .call-screen.video-mode .call-remote-video{display:block;}
+        .call-screen.video-mode .call-remote-video{opacity:1;pointer-events:auto;}
         .call-local-video{
             position:absolute;top:20px;right:16px;
             width:90px;height:130px;border-radius:16px;
@@ -835,6 +836,7 @@ onAuthStateChanged(auth, u => {
     loadOnlineUsers();
     loadChats();
     setupPresence();
+    listenIncomingCalls(u.uid);
 });
 
 // ── PRESENCE ───────────────────────────────────────────────────────────────
@@ -2047,6 +2049,7 @@ async function startCall(type) {
     pc.ontrack = e => {
         const remote = document.getElementById('call-remote-video');
         remote.srcObject = e.streams[0];
+        remote.play().catch(() => {});
     };
 
     // Crear entrada en Firebase
@@ -2083,10 +2086,8 @@ async function startCall(type) {
     });
 
     // Escuchar ICE candidates del callee
-    onValue(ref(db, `llamadas/${callId}/candidatosB`), snap => {
-        snap.forEach(c => {
-            pc?.addIceCandidate(new RTCIceCandidate(c.val())).catch(() => {});
-        });
+    onChildAdded(ref(db, `llamadas/${callId}/candidatosB`), snap => {
+        pc?.addIceCandidate(new RTCIceCandidate(snap.val())).catch(() => {});
     });
 
     // Escuchar cambio de estado (aceptada / rechazada / colgada)
@@ -2116,18 +2117,22 @@ async function startCall(type) {
 
 // ── Escuchar llamadas entrantes ────────────────
 function listenIncomingCalls(uid) {
-    onValue(ref(db, 'llamadas'), snap => {
-        if (!snap.exists()) return;
-        snap.forEach(c => {
-            const call = c.val();
-            if (
-                call.para?.uid === uid &&
-                call.estado === 'llamando' &&
-                c.key !== callId       // no es mi propia llamada
-            ) {
-                showIncomingCall(c.key, call);
-            }
-        });
+    // Escuchar solo llamadas nuevas (últimos 60 segundos) para evitar descargar todo el nodo
+    const llamadasRef = query(
+        ref(db, 'llamadas'),
+        orderByChild('timestamp'),
+        limitToLast(10)
+    );
+    onChildAdded(llamadasRef, snap => {
+        const call = snap.val();
+        if (
+            call.para?.uid === uid &&
+            call.estado === 'llamando' &&
+            snap.key !== callId &&
+            (Date.now() - (call.timestamp || 0)) < 60000  // máx 60s de antigüedad
+        ) {
+            showIncomingCall(snap.key, call);
+        }
     });
 }
 
@@ -2175,6 +2180,7 @@ window.acceptCall = async function() {
 
     pc.ontrack = e => {
         document.getElementById('call-remote-video').srcObject = e.streams[0];
+        document.getElementById('call-remote-video').play().catch(() => {});
     };
 
     pc.onicecandidate = e => {
@@ -2184,10 +2190,8 @@ window.acceptCall = async function() {
     };
 
     // Escuchar ICE candidates del caller
-    onValue(ref(db, `llamadas/${callId}/candidatosA`), snap => {
-        snap.forEach(c => {
-            pc?.addIceCandidate(new RTCIceCandidate(c.val())).catch(() => {});
-        });
+    onChildAdded(ref(db, `llamadas/${callId}/candidatosA`), snap => {
+        pc?.addIceCandidate(new RTCIceCandidate(snap.val())).catch(() => {});
     });
 
     // Aplicar oferta y crear respuesta
@@ -2310,15 +2314,7 @@ window.toggleCamera = function() {
         : '<i class="fa-solid fa-video"></i>';
 };
 
-// ── Conectar listener cuando el usuario cargue ─
-const _origAuth = onAuthStateChanged;
-// Escuchar llamadas entrantes después de auth
-const _callWait = setInterval(() => {
-    if (currentUser) {
-        clearInterval(_callWait);
-        listenIncomingCalls(currentUser.uid);
-    }
-}, 400);
+
 
 
 // Cuando el teclado sube en Android, ajusta la altura del chat-view
