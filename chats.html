@@ -422,6 +422,9 @@
         .ctx-item.danger{color:var(--danger);}
         .ctx-item.danger i{color:var(--danger);}
         .ctx-sep{height:1px;background:var(--border);margin:4px 6px;}
+        .ctx-reactions-row{display:flex;align-items:center;justify-content:space-around;padding:10px 8px 8px;gap:4px;}
+        .ctx-reactions-row span{font-size:26px;cursor:pointer;border-radius:50%;padding:4px;transition:transform 0.15s,background 0.15s;display:flex;align-items:center;justify-content:center;width:42px;height:42px;}
+        .ctx-reactions-row span:active{transform:scale(1.35);background:var(--surface2);}
 
         /* --- reply bar --- */
         .reply-bar{display:none;background:var(--surface2);border-top:1px solid var(--border);padding:10px 14px;flex-direction:row;align-items:center;gap:10px;flex-shrink:0;}
@@ -839,15 +842,20 @@
 </div>
 
 
-    <!-- emoji reactions row -->
-    <div style="display:flex;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border)">
-        <span style="font-size:22px;cursor:pointer" onclick="reactToMsg('❤️')">❤️</span>
-        <span style="font-size:22px;cursor:pointer" onclick="reactToMsg('😂')">😂</span>
-        <span style="font-size:22px;cursor:pointer" onclick="reactToMsg('😮')">😮</span>
-        <span style="font-size:22px;cursor:pointer" onclick="reactToMsg('👍')">👍</span>
-        <span style="font-size:22px;cursor:pointer" onclick="reactToMsg('🔥')">🔥</span>
-        <span style="font-size:22px;cursor:pointer" onclick="reactToMsg('😢')">😢</span>
+<!-- ===========================
+     MESSAGE CONTEXT MENU
+     =========================== -->
+<div class="ctx-menu" id="msg-ctx-menu">
+    <div class="ctx-reactions-row">
+        <span onclick="reactToMsg('❤️')" title="Me encanta">❤️</span>
+        <span onclick="reactToMsg('😂')" title="Jaja">😂</span>
+        <span onclick="reactToMsg('😮')" title="Sorpresa">😮</span>
+        <span onclick="reactToMsg('👍')" title="Me gusta">👍</span>
+        <span onclick="reactToMsg('🔥')" title="Fuego">🔥</span>
+        <span onclick="reactToMsg('😢')" title="Triste">😢</span>
     </div>
+    <div class="ctx-sep" style="margin:4px 6px 2px"></div>
+    <div class="ctx-item" id="ctx-edit-btn" onclick="editMsg()" style="display:none"><i class="fa-solid fa-pen"></i> Editar</div>
     <div class="ctx-item" onclick="replyToMsg()"><i class="fa-solid fa-reply"></i> Responder</div>
     <div class="ctx-item" onclick="copyMsg()"><i class="fa-solid fa-copy"></i> Copiar</div>
     <div class="ctx-item" onclick="forwardMsg()"><i class="fa-solid fa-share"></i> Reenviar</div>
