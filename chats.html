@@ -770,8 +770,15 @@
 <!-- ===== MAIN ===== -->
 <main class="main-content" id="main-content">
     <div class="search-wrap" id="search-wrap" style="display:none">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input class="search-input" type="text" placeholder="Buscar conversación o usuario..." id="search-input">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="position:relative; flex:1;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input class="search-input" type="text" placeholder="Buscar amigos seguidos..." id="search-input">
+            </div>
+            <div class="icon-btn" id="requests-file-btn" title="Solicitudes de mensaje" style="border-radius:12px; background:var(--surface); box-shadow:var(--card-shadow);">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+        </div>
     </div>
 
     <!-- Online users -->
@@ -1301,7 +1308,18 @@ function loadChats() {
 function filterChats(list) {
     const q = document.getElementById('search-input')?.value?.toLowerCase() || '';
     return list.filter(c => {
-        if (q && !(c.name||'').toLowerCase().includes(q) && !(c.lastMessage||'').toLowerCase().includes(q)) return false;
+        // Si hay búsqueda, solo mostrar amigos seguidos que coincidan
+        if (q) {
+            const isMatch = (c.name||'').toLowerCase().includes(q) || (c.lastMessage||'').toLowerCase().includes(q);
+            if (!isMatch) return false;
+            
+            // Si es chat privado, verificar si lo sigo
+            if (!c.isGroup) {
+                const otherUid = Object.keys(c.participants || {}).find(uid => uid !== currentUser.uid);
+                if (otherUid && !iFollow(otherUid)) return false;
+            }
+        }
+        
         if (currentTab === 'privados') return !c.isGroup;
         if (currentTab === 'grupos') return !!c.isGroup;
         if (currentTab === 'archivados') return !!c.archived?.[currentUser.uid];
@@ -2669,6 +2687,7 @@ document.getElementById('search-input')?.addEventListener('input', () => renderC
     }
 
     reqBtn.onclick = openPanel;
+    document.getElementById('requests-file-btn').onclick = openPanel;
     document.getElementById('req-close').onclick = closePanel;
     document.getElementById('req-backdrop').onclick = closePanel;
 
