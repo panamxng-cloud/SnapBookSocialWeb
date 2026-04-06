@@ -296,6 +296,62 @@
         }
         .igc-avatars img:first-child{margin-left:0;}
 
+        /* ===========================
+           BANNER FLOTANTE LLAMADA GRUPAL (estilo WhatsApp)
+           =========================== */
+        .gc-banner{
+            position:fixed;top:-110px;left:12px;right:12px;z-index:9700;
+            background:linear-gradient(135deg,#1e1e2e,#2a2a3e);
+            border-radius:20px;
+            padding:12px 14px;
+            display:flex;align-items:center;gap:12px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.45),0 2px 8px rgba(0,0,0,0.3);
+            border:1px solid rgba(255,255,255,0.08);
+            transition:top 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .gc-banner.show{top:10px;}
+        .gc-banner-avatars{position:relative;width:44px;height:44px;flex-shrink:0;}
+        .gc-banner-avatars img{
+            width:30px;height:30px;border-radius:50%;object-fit:cover;
+            border:2px solid #1e1e2e;position:absolute;
+        }
+        .gc-banner-avatars img:nth-child(1){top:0;left:0;}
+        .gc-banner-avatars img:nth-child(2){bottom:0;right:0;}
+        .gc-banner-avatars img:nth-child(3){top:0;right:0;width:22px;height:22px;}
+        .gc-banner-info{flex:1;min-width:0;}
+        .gc-banner-title{
+            font-size:13px;font-weight:800;color:#fff;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+        }
+        .gc-banner-sub{
+            font-size:11px;color:rgba(255,255,255,0.55);font-weight:500;
+            margin-top:1px;display:flex;align-items:center;gap:5px;
+        }
+        .gc-banner-pulse{
+            width:7px;height:7px;background:#2ecc71;border-radius:50%;
+            animation:bannerPulse 1.2s ease-in-out infinite;flex-shrink:0;
+        }
+        @keyframes bannerPulse{
+            0%,100%{opacity:1;transform:scale(1);}
+            50%{opacity:0.5;transform:scale(0.7);}
+        }
+        .gc-banner-actions{display:flex;gap:8px;flex-shrink:0;}
+        .gc-banner-btn{
+            height:34px;border-radius:20px;border:none;
+            font-size:12px;font-weight:700;cursor:pointer;
+            display:flex;align-items:center;gap:5px;
+            padding:0 12px;transition:transform 0.15s,opacity 0.15s;
+        }
+        .gc-banner-btn:active{transform:scale(0.93);}
+        .gc-banner-btn.join{
+            background:linear-gradient(135deg,#2ecc71,#27ae60);
+            color:#fff;box-shadow:0 4px 14px rgba(46,204,113,0.4);
+        }
+        .gc-banner-btn.decline{
+            background:rgba(255,255,255,0.1);
+            color:rgba(255,255,255,0.7);
+        }
+
 
         .fab-wrap{position:fixed;bottom:90px;right:18px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;z-index:600;}
         .fab-mini{display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(10px) scale(0.8);transition:all 0.25s;pointer-events:none;}
@@ -820,24 +876,26 @@
 </div>
 
 <!-- ===========================
-     INCOMING GROUP CALL
+     INCOMING GROUP CALL - BANNER FLOTANTE (estilo WhatsApp)
      =========================== -->
-<div class="incoming-group-call" id="incoming-group-call">
-    <div class="incoming-top">
-        <div class="incoming-label" id="igc-label">Llamada grupal entrante</div>
-        <div class="igc-avatars" id="igc-avatars"></div>
-        <div class="incoming-name" id="igc-name">Grupo</div>
-        <div class="incoming-type" id="igc-type">📞 Llamada de voz grupal</div>
+<div class="gc-banner" id="gc-banner">
+    <div class="gc-banner-avatars" id="gc-banner-avatars">
+        <!-- avatares se inyectan por JS -->
     </div>
-    <div class="incoming-actions">
-        <div class="incoming-btn-wrap">
-            <button class="call-action-btn hangup" onclick="rejectGroupCall()"><i class="fa-solid fa-phone-slash"></i></button>
-            <span>Rechazar</span>
+    <div class="gc-banner-info">
+        <div class="gc-banner-title" id="gc-banner-title">Llamada grupal</div>
+        <div class="gc-banner-sub">
+            <div class="gc-banner-pulse"></div>
+            <span id="gc-banner-sub">En curso · Toca para unirte</span>
         </div>
-        <div class="incoming-btn-wrap">
-            <button class="call-action-btn accept" onclick="acceptGroupCall()"><i class="fa-solid fa-phone"></i></button>
-            <span>Aceptar</span>
-        </div>
+    </div>
+    <div class="gc-banner-actions">
+        <button class="gc-banner-btn decline" onclick="rejectGroupCall()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <button class="gc-banner-btn join" onclick="acceptGroupCall()">
+            <i class="fa-solid fa-phone"></i> Unirse
+        </button>
     </div>
 </div>
 
@@ -2320,12 +2378,28 @@ function listenIncomingCalls(uid) {
             if (partSnap.exists()) {
                 partSnap.forEach(c => { if (avatares.length < 3) avatares.push(c.val().avatar || 'default-avatar.png'); });
             }
-            document.getElementById('igc-avatars').innerHTML = avatares.map(a => `<img src="${a}" onerror="this.src='default-avatar.png'">`).join('');
-            document.getElementById('igc-name').textContent = data.grupoNombre || 'Grupo';
-            document.getElementById('igc-type').textContent = data.tipo === 'video' ? '📹 Videollamada grupal' : '📞 Llamada grupal';
-            document.getElementById('igc-label').textContent = data.tipo === 'video' ? 'Videollamada grupal entrante' : 'Llamada grupal entrante';
-            document.getElementById('incoming-group-call').classList.add('show');
+
+            // Inyectar avatares en el banner
+            const bannerAvatars = document.getElementById('gc-banner-avatars');
+            bannerAvatars.innerHTML = avatares.slice(0,3).map(a =>
+                `<img src="${a}" onerror="this.src='default-avatar.png'">`
+            ).join('');
+
+            // Título y subtítulo
+            document.getElementById('gc-banner-title').textContent = data.grupoNombre || 'Llamada grupal';
+            document.getElementById('gc-banner-sub').textContent =
+                data.tipo === 'video' ? '📹 Videollamada en curso · Únete' : '📞 Llamada de voz en curso · Únete';
+
+            // Mostrar banner con animación
+            document.getElementById('gc-banner').classList.add('show');
             if (navigator.vibrate) navigator.vibrate([400,200,400,200,400]);
+
+            // Auto-ocultar el banner después de 30s si no se responde
+            gcBannerTimeout = setTimeout(() => {
+                document.getElementById('gc-banner').classList.remove('show');
+                set(ref(db, `llamadas_entrantes/${currentUser.uid}`), null);
+                gcIncomingData = null;
+            }, 30000);
             return;
         }
 
@@ -2538,6 +2612,7 @@ let gcTimerInt      = null;
 let gcSeconds       = 0;
 let gcIncomingData  = null;
 let gcFacingMode    = 'user';
+let gcBannerTimeout = null;
 
 window.startGroupCall = async function(type) {
     if (!activeChatData?.isGroup) return;
@@ -2578,7 +2653,8 @@ window.startGroupCall = async function(type) {
 
 window.acceptGroupCall = async function() {
     if (!gcIncomingData) return;
-    document.getElementById('incoming-group-call').classList.remove('show');
+    clearTimeout(gcBannerTimeout);
+    document.getElementById('gc-banner').classList.remove('show');
     gcCallId = gcIncomingData.callId;
     gcCallType = gcIncomingData.tipo || 'voice';
 
@@ -2609,8 +2685,9 @@ window.acceptGroupCall = async function() {
 
 window.rejectGroupCall = function() {
     if (!gcIncomingData) return;
+    clearTimeout(gcBannerTimeout);
     set(ref(db, `llamadas_entrantes/${currentUser.uid}`), null);
-    document.getElementById('incoming-group-call').classList.remove('show');
+    document.getElementById('gc-banner').classList.remove('show');
     if (navigator.vibrate) navigator.vibrate(0);
     gcIncomingData = null;
 };
@@ -2630,7 +2707,8 @@ function cleanupGroupCall() {
     gcPeers = {};
     clearInterval(gcTimerInt); gcTimerInt = null; gcSeconds = 0;
     document.getElementById('group-call-screen').classList.remove('show');
-    document.getElementById('incoming-group-call').classList.remove('show');
+    document.getElementById('gc-banner').classList.remove('show');
+    clearTimeout(gcBannerTimeout);
     document.getElementById('gc-grid').innerHTML = '';
     gcCallId = null; gcMuted = false; gcCameraOff = false;
     if (currentUser) set(ref(db, `llamadas_entrantes/${currentUser.uid}`), null);
