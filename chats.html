@@ -2649,7 +2649,14 @@ function addLocalTile() {
     } else {
         const av = document.createElement('img');
         av.className = 'gc-tile-avatar';
-        av.src = currentUser.photoURL || 'default-avatar.png';
+        // Usar avatar del usuario o generar uno con inicial si no hay foto
+        const photoURL = currentUser.photoURL;
+        if (photoURL) {
+            av.src = photoURL;
+            av.onerror = () => { av.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName||'Yo')}&background=6c63ff&color=fff&size=128`; };
+        } else {
+            av.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName||'Yo')}&background=6c63ff&color=fff&size=128`;
+        }
         tile.appendChild(av);
     }
     const name = document.createElement('div');
@@ -2669,7 +2676,9 @@ function addRemoteTile(uid, userData) {
     tile.appendChild(vid);
     const av = document.createElement('img');
     av.className = 'gc-tile-avatar'; av.id = `gc-av-${uid}`;
-    av.src = userData?.avatar || 'default-avatar.png';
+    const remoteAvatar = userData?.avatar;
+    av.src = remoteAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.nombre||'Usuario')}&background=6c63ff&color=fff&size=128`;
+    if (remoteAvatar) av.onerror = () => { av.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.nombre||'Usuario')}&background=6c63ff&color=fff&size=128`; };
     tile.appendChild(av);
     const muteIcon = document.createElement('div');
     muteIcon.className = 'gc-tile-muted'; muteIcon.id = `gc-muted-${uid}`;
@@ -2709,11 +2718,25 @@ function createGcPeer(remoteUid, userData, isInitiator) {
             audioEl = document.createElement('audio');
             audioEl.id = `gc-audio-${remoteUid}`;
             audioEl.autoplay = true;
+            audioEl.playsInline = true;
+            audioEl.volume = 1.0;
             audioEl.style.display = 'none';
             document.body.appendChild(audioEl);
         }
         audioEl.srcObject = stream;
-        audioEl.play().catch(() => {});
+        // Intentar reproducir; si falla por política de autoplay, reintentar al primer toque
+        const tryPlay = () => {
+            audioEl.play().catch(() => {
+                const unlock = () => {
+                    audioEl.play().catch(() => {});
+                    document.removeEventListener('touchstart', unlock);
+                    document.removeEventListener('click', unlock);
+                };
+                document.addEventListener('touchstart', unlock, { once: true });
+                document.addEventListener('click', unlock, { once: true });
+            });
+        };
+        tryPlay();
 
         // Si hay video, mostrarlo en el tile
         if (e.track.kind === 'video') {
