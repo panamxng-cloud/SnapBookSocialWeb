@@ -608,6 +608,69 @@
            =========================== */
         .new-chat-sheet .user-pick-item{border-bottom:1px solid var(--border);}
         .new-chat-sheet .user-pick-item:last-child{border-bottom:none;}
+
+        /* ===========================
+           REQUESTS PANEL
+           =========================== */
+        .requests-panel{
+            position:fixed;inset:0;background:var(--bg);z-index:2500;
+            transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+            display:flex;flex-direction:column;overflow:hidden;
+        }
+        .requests-panel.open{transform:translateX(0);}
+        .req-header{
+            background:var(--header-bg);backdrop-filter:blur(20px);
+            padding:14px 18px;display:flex;align-items:center;gap:12px;
+            border-bottom:1px solid var(--border);flex-shrink:0;
+        }
+        .req-header-title{flex:1;font-size:17px;font-weight:800;}
+        .req-tabs{
+            display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;
+        }
+        .req-tab{
+            flex:1;text-align:center;padding:13px 0;font-size:13px;font-weight:700;
+            color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;
+        }
+        .req-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+        .req-body{flex:1;overflow-y:auto;padding:12px;}
+        .req-item{
+            display:flex;align-items:center;gap:12px;
+            background:var(--surface);border:1px solid var(--border);
+            border-radius:18px;padding:14px;margin-bottom:10px;
+            box-shadow:var(--card-shadow);
+        }
+        .req-item img{
+            width:56px;height:56px;border-radius:50%;object-fit:cover;
+            border:2px solid var(--border);flex-shrink:0;cursor:pointer;
+        }
+        .req-info{flex:1;min-width:0;}
+        .req-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .req-preview{font-size:13px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+        .req-time{font-size:11px;color:var(--text-muted);margin-top:3px;}
+        .req-btns{display:flex;flex-direction:column;gap:7px;flex-shrink:0;}
+        .req-btn{
+            padding:8px 14px;border-radius:10px;border:none;font-size:12px;font-weight:700;
+            font-family:inherit;cursor:pointer;transition:all 0.2s;white-space:nowrap;
+        }
+        .req-btn.accept{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+        .req-btn.accept:active{opacity:.85;transform:scale(0.96);}
+        .req-btn.decline{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);}
+        .req-btn.decline:active{background:var(--surface3);}
+        .req-btn.follow{background:var(--surface2);border:1.5px solid var(--accent);color:var(--accent);}
+        .req-btn.follow:active{background:var(--accent);color:#fff;}
+        .req-btn.follow.following{background:var(--surface2);border-color:var(--border);color:var(--text-muted);}
+        .req-empty{text-align:center;padding:60px 20px;color:var(--text-muted);}
+        .req-empty i{font-size:48px;opacity:.18;display:block;margin-bottom:14px;}
+        .req-empty p{font-size:14px;line-height:1.5;}
+        /* badge en el botón de solicitudes del header */
+        .req-header-badge{
+            position:absolute;top:-4px;right:-4px;
+            width:18px;height:18px;background:var(--accent2);
+            border-radius:50%;border:2px solid var(--surface);
+            font-size:10px;font-weight:800;color:#fff;
+            display:flex;align-items:center;justify-content:center;
+        }
+        #requests-btn{position:relative;}
     </style>
 </head>
 <body>
@@ -1007,6 +1070,23 @@
     </div>
 </div>
 
+<!-- ===========================
+     REQUESTS PANEL
+     =========================== -->
+<div class="requests-panel" id="requests-panel">
+    <div class="req-header">
+        <div class="cv-back" onclick="closeRequestsPanel()"><i class="fa-solid fa-arrow-left"></i></div>
+        <div class="req-header-title">Solicitudes de mensaje</div>
+    </div>
+    <div class="req-tabs">
+        <div class="req-tab active" id="req-tab-pending" onclick="switchReqTab('pending')">Pendientes <span id="req-badge-pending" style="display:none;background:var(--accent2);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle"></span></div>
+        <div class="req-tab" id="req-tab-sent" onclick="switchReqTab('sent')">Enviadas</div>
+    </div>
+    <div class="req-body" id="req-body">
+        <div class="req-empty"><i class="fa-regular fa-envelope-open"></i><p>No tienes solicitudes pendientes.</p></div>
+    </div>
+</div>
+
 <script type="module">
 import { auth, db, storage } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -1049,6 +1129,7 @@ onAuthStateChanged(auth, u => {
     loadChats();
     setupPresence();
     listenIncomingCalls(u.uid);
+    listenRequestsBadge();
 });
 
 // ── PRESENCE ───────────────────────────────────────────────────────────────
@@ -1228,7 +1309,9 @@ function openChat(chat) {
 window.openDirectChat = async function(uid, userData) {
     // Verificar que yo sigo a este usuario
     if (!iFollow(uid)) {
-        showToast('⚠️ Solo puedes chatear con personas que sigues');
+        // Enviar solicitud de mensaje al usuario
+        await sendRequestIfNeeded(uid, '👋 Hola, quiero enviarte un mensaje');
+        closeNewChatSheet();
         return;
     }
     // find existing private chat or create
@@ -1249,6 +1332,234 @@ window.openDirectChat = async function(uid, userData) {
     openChat({ id: chatRef.key, ...chatData });
     closeNewChatSheet();
 };
+
+// ── SOLICITUDES DE MENSAJE ─────────────────────────────────────────────────
+// Cuando alguien que no te sigue quiere mandarte mensaje, se crea una solicitud
+// en: solicitudes_chat/{destinatario}/{remitente}
+
+let currentReqTab = 'pending';
+
+window.openRequestsPanel = function() {
+    document.getElementById('requests-panel').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    loadRequests();
+};
+window.closeRequestsPanel = function() {
+    document.getElementById('requests-panel').classList.remove('open');
+    document.body.style.overflow = '';
+};
+
+window.switchReqTab = function(tab) {
+    currentReqTab = tab;
+    document.getElementById('req-tab-pending').classList.toggle('active', tab === 'pending');
+    document.getElementById('req-tab-sent').classList.toggle('active', tab === 'sent');
+    loadRequests();
+};
+
+function loadRequests() {
+    const body = document.getElementById('req-body');
+    body.innerHTML = '<div class="req-empty"><i class="fa-solid fa-circle-notch fa-spin"></i><p>Cargando...</p></div>';
+
+    if (currentReqTab === 'pending') {
+        // Solicitudes que me enviaron a mí
+        get(ref(db, `solicitudes_chat/${currentUser.uid}`)).then(snap => {
+            if (!snap.exists()) {
+                body.innerHTML = '<div class="req-empty"><i class="fa-regular fa-envelope-open"></i><p>No tienes solicitudes pendientes.</p></div>';
+                return;
+            }
+            body.innerHTML = '';
+            snap.forEach(c => {
+                const req = c.val();
+                const fromUid = c.key;
+                renderRequestItem(body, fromUid, req, 'pending');
+            });
+        });
+    } else {
+        // Solicitudes que yo envié
+        get(ref(db, 'solicitudes_chat')).then(snap => {
+            body.innerHTML = '';
+            let found = false;
+            if (snap.exists()) {
+                snap.forEach(toSnap => {
+                    const toUid = toSnap.key;
+                    if (toSnap.hasChild(currentUser.uid)) {
+                        const req = toSnap.child(currentUser.uid).val();
+                        found = true;
+                        renderSentItem(body, toUid, req);
+                    }
+                });
+            }
+            if (!found) {
+                body.innerHTML = '<div class="req-empty"><i class="fa-regular fa-paper-plane"></i><p>No has enviado solicitudes.</p></div>';
+            }
+        });
+    }
+}
+
+function renderRequestItem(container, fromUid, req, type) {
+    const user = allUsers[fromUid] || {};
+    const avatar = req.fromAvatar || user.avatar || 'default-avatar.png';
+    const name = req.fromName || user.nombre || 'Usuario';
+    const preview = req.preview || 'Quiere enviarte un mensaje';
+    const timeStr = req.timestamp ? timeAgo(req.timestamp) : '';
+    const amFollowing = iFollow(fromUid);
+
+    const el = document.createElement('div');
+    el.className = 'req-item';
+    el.id = `req-item-${fromUid}`;
+    el.innerHTML = `
+        <img src="${avatar}" onerror="this.src='default-avatar.png'" onclick="openRequestsPanel()">
+        <div class="req-info">
+            <div class="req-name">${name}</div>
+            <div class="req-preview">${preview}</div>
+            <div class="req-time">${timeStr}</div>
+        </div>
+        <div class="req-btns">
+            <button class="req-btn accept" onclick="acceptRequest('${fromUid}')"><i class="fa-solid fa-check"></i> Aceptar</button>
+            <button class="req-btn ${amFollowing ? 'follow following' : 'follow'}" id="follow-btn-${fromUid}" onclick="toggleFollowFromReq('${fromUid}','${name}','${avatar}')">
+                ${amFollowing ? '<i class="fa-solid fa-user-check"></i> Siguiendo' : '<i class="fa-solid fa-user-plus"></i> Seguir'}
+            </button>
+            <button class="req-btn decline" onclick="declineRequest('${fromUid}')">Rechazar</button>
+        </div>`;
+    container.appendChild(el);
+}
+
+function renderSentItem(container, toUid, req) {
+    const user = allUsers[toUid] || {};
+    const avatar = user.avatar || 'default-avatar.png';
+    const name = user.nombre || req.toName || 'Usuario';
+    const preview = req.preview || 'Solicitud enviada';
+    const timeStr = req.timestamp ? timeAgo(req.timestamp) : '';
+    const el = document.createElement('div');
+    el.className = 'req-item';
+    el.innerHTML = `
+        <img src="${avatar}" onerror="this.src='default-avatar.png'">
+        <div class="req-info">
+            <div class="req-name">${name}</div>
+            <div class="req-preview">${preview}</div>
+            <div class="req-time">${timeStr}</div>
+        </div>
+        <div class="req-btns">
+            <button class="req-btn decline" onclick="cancelSentRequest('${toUid}',this)"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+        </div>`;
+    container.appendChild(el);
+}
+
+window.acceptRequest = async function(fromUid) {
+    const req = (await get(ref(db, `solicitudes_chat/${currentUser.uid}/${fromUid}`))).val();
+    if (!req) return;
+    // Crear chat entre ambos
+    let existing = allChats.find(c => !c.isGroup && c.participants && c.participants[fromUid] && c.participants[currentUser.uid]);
+    if (!existing) {
+        const user = allUsers[fromUid] || {};
+        const chatRef = push(ref(db, 'chats'));
+        const chatData = {
+            name: req.fromName || user.nombre || 'Usuario',
+            avatar: req.fromAvatar || user.avatar || '',
+            isGroup: false,
+            participants: { [currentUser.uid]: true, [fromUid]: true },
+            createdAt: Date.now(),
+            lastMessage: req.preview || '',
+            lastTimestamp: req.timestamp || Date.now()
+        };
+        await set(chatRef, chatData);
+        existing = { id: chatRef.key, ...chatData };
+    }
+    // Eliminar solicitud
+    await remove(ref(db, `solicitudes_chat/${currentUser.uid}/${fromUid}`));
+    showToast('✅ Solicitud aceptada');
+    document.getElementById(`req-item-${fromUid}`)?.remove();
+    updateRequestsBadge();
+    closeRequestsPanel();
+    openChat(existing);
+};
+
+window.declineRequest = async function(fromUid) {
+    await remove(ref(db, `solicitudes_chat/${currentUser.uid}/${fromUid}`));
+    document.getElementById(`req-item-${fromUid}`)?.remove();
+    showToast('Solicitud rechazada');
+    updateRequestsBadge();
+    checkReqBodyEmpty();
+};
+
+window.cancelSentRequest = async function(toUid, btn) {
+    await remove(ref(db, `solicitudes_chat/${toUid}/${currentUser.uid}`));
+    btn.closest('.req-item')?.remove();
+    showToast('Solicitud cancelada');
+    checkReqBodyEmpty();
+};
+
+window.toggleFollowFromReq = async function(uid, name, avatar) {
+    const btn = document.getElementById(`follow-btn-${uid}`);
+    if (iFollow(uid)) {
+        // Dejar de seguir
+        await remove(ref(db, `seguidos/${currentUser.uid}/${uid}`));
+        await remove(ref(db, `seguidores/${uid}/${currentUser.uid}`));
+        if (btn) { btn.className = 'req-btn follow'; btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Seguir'; }
+    } else {
+        // Seguir
+        await set(ref(db, `seguidos/${currentUser.uid}/${uid}`), true);
+        await set(ref(db, `seguidores/${uid}/${currentUser.uid}`), true);
+        if (btn) { btn.className = 'req-btn follow following'; btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Siguiendo'; }
+        showToast('Ahora sigues a ' + name);
+    }
+};
+
+function checkReqBodyEmpty() {
+    const body = document.getElementById('req-body');
+    if (body && !body.querySelector('.req-item')) {
+        body.innerHTML = currentReqTab === 'pending'
+            ? '<div class="req-empty"><i class="fa-regular fa-envelope-open"></i><p>No tienes solicitudes pendientes.</p></div>'
+            : '<div class="req-empty"><i class="fa-regular fa-paper-plane"></i><p>No has enviado solicitudes.</p></div>';
+    }
+}
+
+// Escucha en tiempo real las solicitudes entrantes y actualiza el badge
+function listenRequestsBadge() {
+    onValue(ref(db, `solicitudes_chat/${currentUser.uid}`), snap => {
+        const count = snap.exists() ? snap.size : 0;
+        updateRequestsBadge(count);
+    });
+}
+
+function updateRequestsBadge(count) {
+    if (count === undefined) {
+        get(ref(db, `solicitudes_chat/${currentUser.uid}`)).then(snap => {
+            updateRequestsBadge(snap.exists() ? snap.size : 0);
+        });
+        return;
+    }
+    let badge = document.querySelector('#requests-btn .req-header-badge');
+    const pendingSpan = document.getElementById('req-badge-pending');
+    if (count > 0) {
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'req-header-badge';
+            document.getElementById('requests-btn').appendChild(badge);
+        }
+        badge.textContent = count > 9 ? '9+' : count;
+        if (pendingSpan) { pendingSpan.style.display = ''; pendingSpan.textContent = count; }
+    } else {
+        badge?.remove();
+        if (pendingSpan) pendingSpan.style.display = 'none';
+    }
+}
+
+// Modificar sendTextMessage para enviar solicitud si no se siguen mutuamente
+async function sendRequestIfNeeded(otherUid, text) {
+    const user = allUsers[otherUid] || {};
+    await set(ref(db, `solicitudes_chat/${otherUid}/${currentUser.uid}`), {
+        fromUid: currentUser.uid,
+        fromName: currentUser.displayName || 'Usuario',
+        fromAvatar: currentUser.photoURL || '',
+        preview: text.length > 60 ? text.substring(0, 60) + '…' : text,
+        timestamp: Date.now(),
+        status: 'pending'
+    });
+    showToast('📨 Solicitud de mensaje enviada');
+}
+
+document.getElementById('requests-btn').onclick = openRequestsPanel;
 
 function closeChatView() {
     document.getElementById('chat-view').classList.remove('open');
@@ -1386,11 +1697,11 @@ function renderMessage(msg, container, consecutive) {
 // ── SEND MESSAGE ───────────────────────────────────────────────────────────
 async function sendTextMessage(text) {
     if (!text.trim() || !activeChatId) return;
-    // Verificar seguimiento en chats privados
+    // Verificar seguimiento en chats privados: si no sigo al otro, envío solicitud
     if (activeChatData && !activeChatData.isGroup) {
         const otherUid = Object.keys(activeChatData.participants||{}).find(u => u !== currentUser.uid);
         if (otherUid && !iFollow(otherUid)) {
-            showToast('⚠️ Solo puedes enviar mensajes a personas que sigues');
+            await sendRequestIfNeeded(otherUid, text.trim());
             return;
         }
     }
