@@ -2076,6 +2076,15 @@ async function startCall(type) {
         timestamp: Date.now()
     });
 
+    // Notificar al receptor directamente en su nodo
+    await set(ref(db, `llamadas_entrantes/${otherUid}`), {
+        callId,
+        tipo: type,
+        estado: 'llamando',
+        de: { uid: currentUser.uid, nombre: currentUser.displayName || 'Usuario', avatar: currentUser.photoURL || '' },
+        timestamp: Date.now()
+    });
+
     // Escuchar respuesta
     onValue(ref(db, `llamadas/${callId}/respuesta`), async snap => {
         if (!snap.exists() || !pc) return;
@@ -2117,22 +2126,21 @@ async function startCall(type) {
 
 // ── Escuchar llamadas entrantes ────────────────
 function listenIncomingCalls(uid) {
-    // Escuchar solo llamadas nuevas (últimos 60 segundos) para evitar descargar todo el nodo
-    const llamadasRef = query(
-        ref(db, 'llamadas'),
-        orderByChild('timestamp'),
-        limitToLast(10)
-    );
-    onChildAdded(llamadasRef, snap => {
-        const call = snap.val();
-        if (
-            call.para?.uid === uid &&
-            call.estado === 'llamando' &&
-            snap.key !== callId &&
-            (Date.now() - (call.timestamp || 0)) < 60000  // máx 60s de antigüedad
-        ) {
-            showIncomingCall(snap.key, call);
-        }
+    onValue(ref(db, `llamadas_entrantes/${uid}`), async snap => {
+        if (!snap.exists()) return;
+        const data = snap.val();
+        // Ignorar si ya está en una llamada o es muy antigua (>60s)
+        if (callId) return;
+        if ((Date.now() - (data.timestamp || 0)) > 60000) return;
+        if (data.estado !== 'llamando') return;
+
+        // Obtener datos completos de la llamada
+        const callSnap = await get(ref(db, `llamadas/${data.callId}`));
+        if (!callSnap.exists()) return;
+        const call = callSnap.val();
+        if (call.estado !== 'llamando') return;
+
+        showIncomingCall(data.callId, call);
     });
 }
 
@@ -2218,6 +2226,7 @@ window.acceptCall = async function() {
 window.rejectCall = function() {
     if (!incomingCallData) return;
     set(ref(db, `llamadas/${incomingCallData.id}/estado`), 'rechazada');
+    set(ref(db, `llamadas_entrantes/${currentUser.uid}`), null);
     document.getElementById('incoming-call').classList.remove('show');
     if (navigator.vibrate) navigator.vibrate(0);
     incomingCallData = null;
@@ -2257,6 +2266,9 @@ function endCallCleanup() {
     incomingCallData = null;
     isMuted = false;
     isCameraOff = false;
+
+    // Limpiar notificación entrante
+    if (currentUser) set(ref(db, `llamadas_entrantes/${currentUser.uid}`), null);
 
     if (navigator.vibrate) navigator.vibrate(0);
 }
