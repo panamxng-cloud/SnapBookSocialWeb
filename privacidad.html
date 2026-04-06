@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnapBook | Privacidad</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#f0f2f5; --surface:#fff; --surface2:#f0f2f5; --surface3:#e4e6eb;
+            --border:#dde1e7; --accent:#1877f2; --accent2:#ff6584;
+            --text:#050505; --text-muted:#65676b;
+            --card-shadow:0 2px 12px rgba(0,0,0,0.08);
+            --header-bg:rgba(255,255,255,0.97);
+            --nav-bg:rgba(255,255,255,0.97);
+            --online:#31a24c;
+        }
+        [data-theme="dark"] {
+            --bg:#0f0f13; --surface:#1a1a24; --surface2:#22222e; --surface3:#2a2a3a;
+            --border:rgba(255,255,255,0.07); --accent:#6c63ff; --accent2:#ff6584;
+            --text:#f0f0f5; --text-muted:#7a7a9a;
+            --card-shadow:0 4px 24px rgba(0,0,0,0.4);
+            --header-bg:rgba(15,15,19,0.97); --nav-bg:rgba(26,26,36,0.97);
+        }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--bg); font-family:'Plus Jakarta Sans',sans-serif; color:var(--text); min-height:100vh; }
+
+        /* HEADER */
+        .sb-header {
+            background:var(--header-bg); backdrop-filter:blur(20px);
+            padding:14px 18px; display:flex; align-items:center; gap:12px;
+            position:fixed; top:0; left:0; right:0; z-index:1000;
+            border-bottom:1px solid var(--border);
+        }
+        .back-btn {
+            width:38px; height:38px; background:var(--surface2); border:1px solid var(--border);
+            border-radius:50%; display:flex; align-items:center; justify-content:center;
+            color:var(--text); font-size:15px; cursor:pointer; flex-shrink:0;
+            transition:all 0.2s;
+        }
+        .back-btn:active { transform:scale(0.9); background:var(--accent); color:#fff; }
+        .header-title { font-size:18px; font-weight:800; flex:1; }
+        .logo { font-size:20px; font-weight:800; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+        /* MAIN */
+        .main-content { margin-top:68px; padding:16px 14px 110px; }
+
+        /* SECTION HEADER */
+        .section-title {
+            font-size:11px; font-weight:800; color:var(--text-muted);
+            text-transform:uppercase; letter-spacing:0.8px;
+            padding:0 4px; margin:20px 0 8px;
+        }
+        .section-title:first-child { margin-top:4px; }
+
+        /* CARD */
+        .priv-card {
+            background:var(--surface); border:1px solid var(--border);
+            border-radius:20px; overflow:hidden;
+            box-shadow:var(--card-shadow); margin-bottom:10px;
+        }
+        .priv-row {
+            display:flex; align-items:center; gap:14px;
+            padding:15px 16px; cursor:pointer;
+            transition:background 0.15s; position:relative;
+        }
+        .priv-row:not(:last-child)::after {
+            content:''; position:absolute; bottom:0; left:56px; right:16px;
+            height:1px; background:var(--border);
+        }
+        .priv-row:active { background:var(--surface2); }
+        .priv-icon {
+            width:40px; height:40px; border-radius:12px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:17px; color:#fff; flex-shrink:0;
+        }
+        .priv-info { flex:1; min-width:0; }
+        .priv-label { font-size:15px; font-weight:700; }
+        .priv-sub { font-size:12px; color:var(--text-muted); margin-top:2px; line-height:1.4; }
+        .priv-value {
+            font-size:12px; font-weight:700; color:var(--accent);
+            background:rgba(24,119,242,0.08); padding:4px 10px;
+            border-radius:20px; white-space:nowrap; flex-shrink:0;
+            display:flex; align-items:center; gap:5px;
+        }
+        [data-theme="dark"] .priv-value { background:rgba(108,99,255,0.15); }
+        .priv-arrow { color:var(--text-muted); font-size:13px; flex-shrink:0; }
+
+        /* TOGGLE */
+        .toggle-wrap { flex-shrink:0; }
+        .toggle {
+            width:50px; height:28px; background:var(--surface3);
+            border-radius:14px; position:relative; cursor:pointer;
+            transition:background 0.25s; border:none;
+        }
+        .toggle.on { background:var(--accent); }
+        .toggle::after {
+            content:''; position:absolute; top:3px; left:3px;
+            width:22px; height:22px; background:#fff;
+            border-radius:50%; transition:transform 0.25s;
+            box-shadow:0 2px 6px rgba(0,0,0,0.2);
+        }
+        .toggle.on::after { transform:translateX(22px); }
+
+        /* PANEL (bottom sheet) */
+        .panel-backdrop {
+            position:fixed; inset:0; background:rgba(0,0,0,0.5);
+            z-index:2000; display:none; backdrop-filter:blur(4px);
+        }
+        .panel-backdrop.open { display:block; }
+        .bottom-panel {
+            position:fixed; bottom:0; left:0; right:0; z-index:2001;
+            background:var(--surface); border-radius:28px 28px 0 0;
+            transform:translateY(100%);
+            transition:transform 0.35s cubic-bezier(.4,0,.2,1);
+            max-height:90vh; display:flex; flex-direction:column;
+        }
+        .bottom-panel.open { transform:translateY(0); }
+        .panel-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
+        .panel-header {
+            padding:16px 20px 12px; border-bottom:1px solid var(--border);
+            flex-shrink:0;
+        }
+        .panel-title { font-size:18px; font-weight:800; }
+        .panel-sub { font-size:13px; color:var(--text-muted); margin-top:3px; }
+        .panel-body { flex:1; overflow-y:auto; padding:10px 14px 20px; }
+
+        /* OPTIONS LIST */
+        .opt-item {
+            display:flex; align-items:center; gap:14px;
+            padding:14px 16px; border-radius:16px;
+            cursor:pointer; transition:background 0.15s; margin-bottom:4px;
+        }
+        .opt-item:active { background:var(--surface2); }
+        .opt-item.selected { background:rgba(24,119,242,0.08); }
+        [data-theme="dark"] .opt-item.selected { background:rgba(108,99,255,0.12); }
+        .opt-radio {
+            width:24px; height:24px; border-radius:50%;
+            border:2px solid var(--border); display:flex;
+            align-items:center; justify-content:center;
+            flex-shrink:0; transition:all 0.2s;
+        }
+        .opt-item.selected .opt-radio {
+            border-color:var(--accent); background:var(--accent);
+        }
+        .opt-item.selected .opt-radio::after {
+            content:''; width:8px; height:8px; background:#fff; border-radius:50%;
+        }
+        .opt-icon {
+            width:44px; height:44px; border-radius:14px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:18px; flex-shrink:0;
+        }
+        .opt-info { flex:1; }
+        .opt-label { font-size:15px; font-weight:700; }
+        .opt-desc { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+        /* EXCEPCIONES */
+        .exc-section { margin-top:16px; }
+        .exc-title {
+            font-size:13px; font-weight:700; color:var(--text-muted);
+            margin-bottom:10px; padding:0 4px;
+        }
+        .exc-search-wrap { position:relative; margin-bottom:10px; }
+        .exc-search-wrap i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:13px; }
+        .exc-search {
+            width:100%; background:var(--surface2); border:1px solid var(--border);
+            border-radius:14px; padding:10px 14px 10px 38px;
+            color:var(--text); font-size:14px; font-family:inherit; outline:none;
+        }
+        .exc-search:focus { border-color:var(--accent); }
+        .exc-search::placeholder { color:var(--text-muted); }
+
+        .follower-item {
+            display:flex; align-items:center; gap:12px;
+            padding:10px 14px; border-radius:14px;
+            cursor:pointer; transition:background 0.15s; margin-bottom:4px;
+        }
+        .follower-item:active { background:var(--surface2); }
+        .follower-item img {
+            width:44px; height:44px; border-radius:50%;
+            object-fit:cover; border:2px solid var(--border); flex-shrink:0;
+        }
+        .follower-name { flex:1; font-size:14px; font-weight:700; }
+        .follower-check {
+            width:26px; height:26px; border-radius:50%;
+            border:2px solid var(--border);
+            display:flex; align-items:center; justify-content:center;
+            flex-shrink:0; transition:all 0.2s;
+        }
+        .follower-item.checked .follower-check {
+            background:var(--accent2); border-color:var(--accent2); color:#fff;
+        }
+        .follower-item.checked .follower-check::after {
+            content:'\f00d'; font-family:'Font Awesome 6 Free'; font-weight:900;
+            font-size:11px;
+        }
+
+        .exc-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+        .exc-chip {
+            display:flex; align-items:center; gap:6px;
+            background:rgba(255,101,132,0.1); border:1px solid rgba(255,101,132,0.3);
+            border-radius:20px; padding:5px 10px 5px 6px;
+            font-size:12px; font-weight:700; color:var(--accent2);
+        }
+        .exc-chip img {
+            width:22px; height:22px; border-radius:50%; object-fit:cover;
+        }
+        .exc-chip button {
+            background:none; border:none; color:var(--accent2);
+            cursor:pointer; font-size:14px; padding:0; line-height:1;
+        }
+
+        /* SAVE BUTTON */
+        .save-btn {
+            width:calc(100% - 32px); margin:0 16px 16px;
+            padding:15px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+            border:none; border-radius:16px; color:#fff;
+            font-size:15px; font-weight:800; cursor:pointer;
+            font-family:inherit; transition:transform 0.15s, opacity 0.15s;
+            box-shadow:0 6px 20px rgba(24,119,242,0.35);
+            flex-shrink:0;
+        }
+        .save-btn:active { transform:scale(0.97); opacity:0.9; }
+
+        /* INFO BOX */
+        .info-box {
+            background:rgba(24,119,242,0.07); border:1px solid rgba(24,119,242,0.15);
+            border-radius:16px; padding:14px 16px;
+            display:flex; gap:12px; align-items:flex-start; margin-bottom:16px;
+        }
+        [data-theme="dark"] .info-box { background:rgba(108,99,255,0.08); border-color:rgba(108,99,255,0.2); }
+        .info-box i { color:var(--accent); font-size:16px; flex-shrink:0; margin-top:1px; }
+        .info-box p { font-size:13px; color:var(--text-muted); line-height:1.5; }
+
+        /* TOAST */
+        .toast {
+            position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(20px);
+            background:rgba(0,0,0,0.85); color:#fff; padding:10px 20px;
+            border-radius:20px; font-size:14px; font-weight:600;
+            opacity:0; transition:all 0.3s; z-index:9999; white-space:nowrap;
+            backdrop-filter:blur(10px);
+        }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+        /* NAV */
+        .nav-float {
+            position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+            background:var(--nav-bg); backdrop-filter:blur(24px);
+            border:1px solid var(--border); padding:11px 30px;
+            border-radius:44px; display:flex; gap:30px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.12); z-index:1000;
+        }
+        .tab { color:var(--text-muted); font-size:19px; cursor:pointer; padding:4px 2px; position:relative; transition:color 0.2s; }
+        .tab.active { color:var(--accent); }
+        .tab.active::after { content:''; position:absolute; bottom:-4px; left:50%; transform:translateX(-50%); width:4px; height:4px; background:var(--accent); border-radius:50%; }
+
+        /* EMPTY */
+        .empty-followers { text-align:center; padding:30px; color:var(--text-muted); font-size:14px; }
+        .empty-followers i { font-size:36px; opacity:.2; display:block; margin-bottom:10px; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="sb-header">
+    <div class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></div>
+    <div class="header-title">Privacidad</div>
+    <span class="logo">SB</span>
+</div>
+
+<main class="main-content">
+
+    <!-- PUBLICACIONES -->
+    <div class="section-title">Tus publicaciones</div>
+    <div class="priv-card">
+        <div class="priv-row" onclick="openPanel('publicaciones')">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#1877f2,#0e5fd8)">
+                <i class="fa-solid fa-image"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">¿Quién ve tus publicaciones?</div>
+                <div class="priv-sub">Fotos, videos y estados que compartes</div>
+            </div>
+            <div class="priv-value" id="val-publicaciones">
+                <i class="fa-solid fa-users"></i> Seguidores
+            </div>
+            <i class="fa-solid fa-chevron-right priv-arrow"></i>
+        </div>
+        <div class="priv-row" onclick="openPanel('historias')">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#f5576c,#f093fb)">
+                <i class="fa-solid fa-circle-play"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">¿Quién ve tus historias?</div>
+                <div class="priv-sub">Contenido que desaparece en 24h</div>
+            </div>
+            <div class="priv-value" id="val-historias">
+                <i class="fa-solid fa-users"></i> Seguidores
+            </div>
+            <i class="fa-solid fa-chevron-right priv-arrow"></i>
+        </div>
+        <div class="priv-row" onclick="openPanel('reels')">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#43e97b,#38f9d7)">
+                <i class="fa-solid fa-film"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">¿Quién ve tus shorts?</div>
+                <div class="priv-sub">Tus videos cortos y reels</div>
+            </div>
+            <div class="priv-value" id="val-reels">
+                <i class="fa-solid fa-users"></i> Seguidores
+            </div>
+            <i class="fa-solid fa-chevron-right priv-arrow"></i>
+        </div>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="section-title">Tu perfil</div>
+    <div class="priv-card">
+        <div class="priv-row" onclick="openPanel('seguidores')">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb)">
+                <i class="fa-solid fa-user-group"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">¿Quién ve tus seguidores?</div>
+                <div class="priv-sub">Lista de personas que te siguen</div>
+            </div>
+            <div class="priv-value" id="val-seguidores">
+                <i class="fa-solid fa-users"></i> Seguidores
+            </div>
+            <i class="fa-solid fa-chevron-right priv-arrow"></i>
+        </div>
+        <div class="priv-row" onclick="openPanel('siguiendo')">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+                <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">¿Quién ve a quién sigues?</div>
+                <div class="priv-sub">Lista de personas que tú sigues</div>
+            </div>
+            <div class="priv-value" id="val-siguiendo">
+                <i class="fa-solid fa-users"></i> Seguidores
+            </div>
+            <i class="fa-solid fa-chevron-right priv-arrow"></i>
+        </div>
+    </div>
+
+    <!-- INTERACCIONES -->
+    <div class="section-title">Interacciones</div>
+    <div class="priv-card">
+        <div class="priv-row" onclick="openPanel('comentarios')">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#fa709a,#fee140)">
+                <i class="fa-solid fa-comment"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">¿Quién puede comentar?</div>
+                <div class="priv-sub">En tus publicaciones e historias</div>
+            </div>
+            <div class="priv-value" id="val-comentarios">
+                <i class="fa-solid fa-users"></i> Seguidores
+            </div>
+            <i class="fa-solid fa-chevron-right priv-arrow"></i>
+        </div>
+        <div class="priv-row" onclick="openPanel('mensajes')">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">
+                <i class="fa-solid fa-envelope"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">¿Quién puede enviarte mensajes?</div>
+                <div class="priv-sub">Sin solicitud previa</div>
+            </div>
+            <div class="priv-value" id="val-mensajes">
+                <i class="fa-solid fa-users"></i> Seguidores
+            </div>
+            <i class="fa-solid fa-chevron-right priv-arrow"></i>
+        </div>
+        <div class="priv-row" onclick="openPanel('menciones')">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d)">
+                <i class="fa-solid fa-at"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">¿Quién puede mencionarte?</div>
+                <div class="priv-sub">En comentarios y publicaciones</div>
+            </div>
+            <div class="priv-value" id="val-menciones">
+                <i class="fa-solid fa-users"></i> Seguidores
+            </div>
+            <i class="fa-solid fa-chevron-right priv-arrow"></i>
+        </div>
+    </div>
+
+    <!-- ESTADO -->
+    <div class="section-title">Estado en línea</div>
+    <div class="priv-card">
+        <div class="priv-row">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#31a24c,#43e97b)">
+                <i class="fa-solid fa-circle" style="font-size:14px"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">Mostrar que estás en línea</div>
+                <div class="priv-sub">Otros verán cuándo estás activo</div>
+            </div>
+            <div class="toggle-wrap">
+                <button class="toggle on" id="toggle-online" onclick="toggleSwitch(this)"></button>
+            </div>
+        </div>
+        <div class="priv-row">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200)">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">Mostrar última conexión</div>
+                <div class="priv-sub">Hora en que estuviste activo por última vez</div>
+            </div>
+            <div class="toggle-wrap">
+                <button class="toggle on" id="toggle-lastseen" onclick="toggleSwitch(this)"></button>
+            </div>
+        </div>
+        <div class="priv-row">
+            <div class="priv-icon" style="background:linear-gradient(135deg,#6c63ff,#a18cd1)">
+                <i class="fa-solid fa-check-double"></i>
+            </div>
+            <div class="priv-info">
+                <div class="priv-label">Confirmaciones de lectura</div>
+                <div class="priv-sub">Mostrar cuando lees los mensajes</div>
+            </div>
+            <div class="toggle-wrap">
+                <button class="toggle on" id="toggle-read" onclick="toggleSwitch(this)"></button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- NAV -->
+<nav class="nav-float">
+    <div class="tab" onclick="location.href='Home.html'"><i class="fa-solid fa-house"></i></div>
+    <div class="tab" onclick="location.href='videos.html'"><i class="fa-solid fa-play"></i></div>
+    <div class="tab" onclick="location.href='create-posts.html'"><i class="fa-solid fa-plus"></i></div>
+    <div class="tab" onclick="location.href='chats.html'"><i class="fa-solid fa-comment-dots"></i></div>
+    <div class="tab active" onclick="location.href='Profile.html'"><i class="fa-solid fa-user"></i></div>
+</nav>
+
+<!-- BACKDROP -->
+<div class="panel-backdrop" id="panel-backdrop" onclick="closePanel()"></div>
+
+<!-- BOTTOM PANEL -->
+<div class="bottom-panel" id="bottom-panel">
+    <div class="panel-handle"></div>
+    <div class="panel-header">
+        <div class="panel-title" id="panel-title">¿Quién puede ver esto?</div>
+        <div class="panel-sub" id="panel-sub">Elige quién puede ver este contenido</div>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+    <button class="save-btn" onclick="saveSelection()">
+        <i class="fa-solid fa-check"></i> Guardar
+    </button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+let currentUser = null;
+let allFollowers = []; // personas que me siguen
+let privacySettings = {};
+let currentPanel = null;
+let excludedUsers = {}; // { [panelKey]: Set<uid> }
+
+// ── AUTH ──────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async u => {
+    if (!u) { location.href = 'index.html'; return; }
+    currentUser = u;
+    await loadPrivacySettings();
+    await loadFollowers();
+    renderAllValues();
+});
+
+// ── CARGAR AJUSTES ────────────────────────────────────────────────────────
+async function loadPrivacySettings() {
+    const snap = await get(ref(db, `privacidad/${currentUser.uid}`));
+    if (snap.exists()) {
+        privacySettings = snap.val();
+    } else {
+        // Defaults
+        privacySettings = {
+            publicaciones: 'seguidores',
+            historias: 'seguidores',
+            reels: 'seguidores',
+            seguidores: 'seguidores',
+            siguiendo: 'seguidores',
+            comentarios: 'seguidores',
+            mensajes: 'seguidores',
+            menciones: 'seguidores',
+        };
+    }
+    // Inicializar exclusiones
+    ['publicaciones','historias','reels','seguidores','siguiendo','comentarios','mensajes','menciones'].forEach(k => {
+        const saved = privacySettings[`${k}_excepto`];
+        excludedUsers[k] = saved ? new Set(Object.keys(saved)) : new Set();
+    });
+}
+
+// ── CARGAR SEGUIDORES ─────────────────────────────────────────────────────
+async function loadFollowers() {
+    allFollowers = [];
+    const snap = await get(ref(db, `seguidores/${currentUser.uid}`));
+    if (!snap.exists()) return;
+    const uids = Object.keys(snap.val());
+    const usersSnap = await get(ref(db, 'usuarios'));
+    const presSnap  = await get(ref(db, 'presencia'));
+    const usersData = usersSnap.exists() ? usersSnap.val() : {};
+    const presData  = presSnap.exists()  ? presSnap.val()  : {};
+    uids.forEach(uid => {
+        const u = { uid, ...(usersData[uid]||{}), ...(presData[uid]||{}) };
+        allFollowers.push(u);
+    });
+}
+
+// ── MOSTRAR VALORES ───────────────────────────────────────────────────────
+const LABELS = {
+    seguidores: { icon:'fa-users',      text:'Seguidores' },
+    excepto:    { icon:'fa-user-slash', text:'Excepto...'  },
+    yo:         { icon:'fa-lock',       text:'Solo yo'     },
+};
+
+function renderAllValues() {
+    ['publicaciones','historias','reels','seguidores','siguiendo','comentarios','mensajes','menciones'].forEach(k => {
+        const el = document.getElementById(`val-${k}`);
+        if (!el) return;
+        const val = privacySettings[k] || 'seguidores';
+        const excCount = excludedUsers[k]?.size || 0;
+        const lbl = LABELS[val] || LABELS.seguidores;
+        if (val === 'excepto' && excCount > 0) {
+            el.innerHTML = `<i class="fa-solid ${lbl.icon}"></i> ${excCount} excluido${excCount>1?'s':''}`;
+        } else {
+            el.innerHTML = `<i class="fa-solid ${lbl.icon}"></i> ${lbl.text}`;
+        }
+    });
+}
+
+// ── PANEL ─────────────────────────────────────────────────────────────────
+const PANEL_TITLES = {
+    publicaciones: ['¿Quién puede ver tus publicaciones?','Fotos, videos y estados'],
+    historias:     ['¿Quién puede ver tus historias?','Contenido de 24 horas'],
+    reels:         ['¿Quién puede ver tus shorts?','Videos cortos'],
+    seguidores:    ['¿Quién ve tu lista de seguidores?','Personas que te siguen'],
+    siguiendo:     ['¿Quién ve a quién sigues?','Personas que tú sigues'],
+    comentarios:   ['¿Quién puede comentar?','En tus publicaciones e historias'],
+    mensajes:      ['¿Quién puede enviarte mensajes?','Sin solicitud previa'],
+    menciones:     ['¿Quién puede mencionarte?','En comentarios y publicaciones'],
+};
+
+window.openPanel = function(key) {
+    currentPanel = key;
+    const [title, sub] = PANEL_TITLES[key] || ['Privacidad',''];
+    document.getElementById('panel-title').textContent = title;
+    document.getElementById('panel-sub').textContent = sub;
+    renderPanelBody(key);
+    document.getElementById('panel-backdrop').classList.add('open');
+    document.getElementById('bottom-panel').classList.add('open');
+};
+
+window.closePanel = function() {
+    document.getElementById('panel-backdrop').classList.remove('open');
+    document.getElementById('bottom-panel').classList.remove('open');
+};
+
+function renderPanelBody(key) {
+    const current = privacySettings[key] || 'seguidores';
+    const excluded = excludedUsers[key] || new Set();
+
+    const opts = [
+        {
+            val: 'seguidores',
+            icon: 'fa-users',
+            bg: 'linear-gradient(135deg,#1877f2,#0e5fd8)',
+            label: 'Seguidores',
+            desc: 'Todas las personas que te siguen pueden ver esto',
+        },
+        {
+            val: 'excepto',
+            icon: 'fa-user-slash',
+            bg: 'linear-gradient(135deg,#ff6584,#f5576c)',
+            label: 'Seguidores, excepto...',
+            desc: 'Elige personas específicas que NO podrán ver esto',
+        },
+        {
+            val: 'yo',
+            icon: 'fa-lock',
+            bg: 'linear-gradient(135deg,#2c3e50,#4a5568)',
+            label: 'Solo yo',
+            desc: 'Nadie más puede ver este contenido',
+        },
+    ];
+
+    let html = `<div class="info-box">
+        <i class="fa-solid fa-circle-info"></i>
+        <p>Este ajuste aplica a las nuevas publicaciones. Las publicaciones existentes pueden tener su propio ajuste.</p>
+    </div>`;
+
+    opts.forEach(o => {
+        const sel = current === o.val ? 'selected' : '';
+        html += `
+        <div class="opt-item ${sel}" onclick="selectOption('${key}','${o.val}',this)">
+            <div class="opt-radio"></div>
+            <div class="opt-icon" style="background:${o.bg}; color:#fff">
+                <i class="fa-solid ${o.icon}"></i>
+            </div>
+            <div class="opt-info">
+                <div class="opt-label">${o.label}</div>
+                <div class="opt-desc">${o.desc}</div>
+            </div>
+        </div>`;
+    });
+
+    // Sección excepciones
+    html += `<div class="exc-section" id="exc-section" style="display:${current==='excepto'?'block':'none'}">
+        <div class="exc-title"><i class="fa-solid fa-user-slash" style="color:var(--accent2)"></i> Excluir personas</div>
+        <div class="exc-chips" id="exc-chips"></div>
+        <div class="exc-search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input class="exc-search" type="text" placeholder="Buscar entre tus seguidores..." id="exc-search" oninput="filterFollowerList('${key}',this.value)">
+        </div>
+        <div id="follower-list"></div>
+    </div>`;
+
+    document.getElementById('panel-body').innerHTML = html;
+
+    if (current === 'excepto') {
+        renderChips(key);
+        renderFollowerList(key, '');
+    }
+}
+
+window.selectOption = function(key, val, el) {
+    document.querySelectorAll('.opt-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+    privacySettings[key] = val;
+    const excSec = document.getElementById('exc-section');
+    if (excSec) excSec.style.display = val === 'excepto' ? 'block' : 'none';
+    if (val === 'excepto') {
+        renderChips(key);
+        renderFollowerList(key, '');
+    }
+};
+
+function renderChips(key) {
+    const chips = document.getElementById('exc-chips');
+    if (!chips) return;
+    chips.innerHTML = '';
+    const excluded = excludedUsers[key] || new Set();
+    excluded.forEach(uid => {
+        const u = allFollowers.find(f => f.uid === uid) || { uid, nombre:'Usuario' };
+        const chip = document.createElement('div');
+        chip.className = 'exc-chip';
+        chip.innerHTML = `
+            <img src="${u.photoURL||u.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+            ${u.nombre||u.name||'Usuario'}
+            <button onclick="removeExclusion('${key}','${uid}')">×</button>`;
+        chips.appendChild(chip);
+    });
+}
+
+window.removeExclusion = function(key, uid) {
+    excludedUsers[key]?.delete(uid);
+    renderChips(key);
+    renderFollowerList(key, document.getElementById('exc-search')?.value || '');
+};
+
+function renderFollowerList(key, q) {
+    const list = document.getElementById('follower-list');
+    if (!list) return;
+    const excluded = excludedUsers[key] || new Set();
+    const filtered = allFollowers.filter(u => {
+        const name = (u.nombre||u.name||'').toLowerCase();
+        return !q || name.includes(q.toLowerCase());
+    });
+    if (!filtered.length) {
+        list.innerHTML = `<div class="empty-followers"><i class="fa-solid fa-user-group"></i>No se encontraron seguidores</div>`;
+        return;
+    }
+    list.innerHTML = '';
+    filtered.forEach(u => {
+        const isExcluded = excluded.has(u.uid);
+        const item = document.createElement('div');
+        item.className = 'follower-item' + (isExcluded ? ' checked' : '');
+        item.id = `fi-${u.uid}`;
+        item.innerHTML = `
+            <img src="${u.photoURL||u.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+            <span class="follower-name">${u.nombre||u.name||'Usuario'}</span>
+            <div class="follower-check"></div>`;
+        item.onclick = () => toggleExclusion(key, u.uid);
+        list.appendChild(item);
+    });
+}
+
+window.filterFollowerList = function(key, q) {
+    renderFollowerList(key, q);
+};
+
+function toggleExclusion(key, uid) {
+    if (!excludedUsers[key]) excludedUsers[key] = new Set();
+    if (excludedUsers[key].has(uid)) {
+        excludedUsers[key].delete(uid);
+    } else {
+        excludedUsers[key].add(uid);
+    }
+    const item = document.getElementById(`fi-${uid}`);
+    if (item) item.classList.toggle('checked', excludedUsers[key].has(uid));
+    renderChips(key);
+}
+
+// ── GUARDAR ───────────────────────────────────────────────────────────────
+window.saveSelection = async function() {
+    if (!currentUser || !currentPanel) return;
+    const key = currentPanel;
+    const update = { ...privacySettings };
+
+    // Guardar exclusiones como objeto
+    const exc = excludedUsers[key] || new Set();
+    if (exc.size > 0 && privacySettings[key] === 'excepto') {
+        const excObj = {};
+        exc.forEach(uid => { excObj[uid] = true; });
+        update[`${key}_excepto`] = excObj;
+    } else {
+        update[`${key}_excepto`] = null;
+    }
+
+    await set(ref(db, `privacidad/${currentUser.uid}`), update);
+    privacySettings = update;
+    renderAllValues();
+    closePanel();
+    showToast('✅ Ajuste guardado');
+};
+
+// ── TOGGLE ────────────────────────────────────────────────────────────────
+window.toggleSwitch = async function(btn) {
+    btn.classList.toggle('on');
+    const id = btn.id;
+    const val = btn.classList.contains('on');
+    const keyMap = {
+        'toggle-online': 'mostrarEnLinea',
+        'toggle-lastseen': 'mostrarUltimaConexion',
+        'toggle-read': 'confirmarLectura',
+    };
+    if (!currentUser) return;
+    await set(ref(db, `privacidad/${currentUser.uid}/${keyMap[id]}`), val);
+    showToast(val ? '✅ Activado' : '🔕 Desactivado');
+};
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── DARK MODE ─────────────────────────────────────────────────────────────
+if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.setAttribute('data-theme','dark');
+}
+
+</script>
+</body>
+</html>
