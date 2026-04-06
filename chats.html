@@ -662,6 +662,79 @@
         .req-empty{text-align:center;padding:60px 20px;color:var(--text-muted);}
         .req-empty i{font-size:48px;opacity:.18;display:block;margin-bottom:14px;}
         .req-empty p{font-size:14px;line-height:1.5;}
+        /* ===========================
+           BANNER SOLICITUDES INLINE
+           =========================== */
+        .req-inline-banner{
+            background:var(--surface);border:1px solid var(--border);
+            border-radius:18px;margin-bottom:14px;overflow:hidden;
+            box-shadow:var(--card-shadow);
+        }
+        .req-inline-header{
+            display:flex;align-items:center;gap:10px;
+            padding:13px 16px;cursor:pointer;
+            border-bottom:1px solid transparent;
+            transition:background 0.15s;
+        }
+        .req-inline-banner.expanded .req-inline-header{
+            border-bottom-color:var(--border);
+        }
+        .req-inline-header:active{background:var(--surface2);}
+        .req-inline-icon{
+            width:42px;height:42px;border-radius:50%;
+            background:linear-gradient(135deg,var(--accent),var(--accent2));
+            display:flex;align-items:center;justify-content:center;
+            font-size:17px;color:#fff;flex-shrink:0;
+        }
+        .req-inline-info{flex:1;min-width:0;}
+        .req-inline-title{font-size:15px;font-weight:700;}
+        .req-inline-sub{font-size:12px;color:var(--text-muted);margin-top:1px;}
+        .req-inline-count{
+            min-width:22px;height:22px;background:var(--accent2);
+            border-radius:11px;color:#fff;font-size:11px;font-weight:800;
+            display:flex;align-items:center;justify-content:center;padding:0 6px;
+        }
+        .req-inline-chevron{
+            font-size:12px;color:var(--text-muted);margin-left:4px;
+            transition:transform 0.25s;flex-shrink:0;
+        }
+        .req-inline-banner.expanded .req-inline-chevron{transform:rotate(180deg);}
+        .req-inline-cards{
+            display:none;padding:10px 12px;display:flex;gap:0;flex-direction:column;
+        }
+        .req-inline-banner:not(.expanded) .req-inline-cards{display:none;}
+        .req-inline-banner.expanded .req-inline-cards{display:flex;}
+        .req-card{
+            display:flex;align-items:center;gap:12px;
+            padding:11px 4px;border-bottom:1px solid var(--border);
+        }
+        .req-card:last-child{border-bottom:none;}
+        .req-card img{
+            width:46px;height:46px;border-radius:50%;object-fit:cover;
+            border:2px solid var(--border);flex-shrink:0;
+        }
+        .req-card-info{flex:1;min-width:0;}
+        .req-card-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .req-card-msg{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+        .req-card-actions{display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+        .rc-btn{
+            padding:6px 12px;border-radius:9px;border:none;
+            font-size:11px;font-weight:700;font-family:inherit;
+            cursor:pointer;transition:all 0.2s;white-space:nowrap;
+        }
+        .rc-btn.accept{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+        .rc-btn.accept:active{opacity:.82;transform:scale(0.95);}
+        .rc-btn.follow{background:var(--surface2);border:1.5px solid var(--accent);color:var(--accent);}
+        .rc-btn.follow.following{border-color:var(--border);color:var(--text-muted);}
+        .rc-btn.follow:active{background:var(--surface3);}
+        .rc-btn.decline{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);}
+        .rc-btn.decline:active{background:var(--surface3);}
+        .req-inline-ver-mas{
+            text-align:center;padding:10px;font-size:13px;font-weight:700;
+            color:var(--accent);cursor:pointer;border-top:1px solid var(--border);
+        }
+        .req-inline-ver-mas:active{background:var(--surface2);}
+
         /* badge en el botón de solicitudes del header */
         .req-header-badge{
             position:absolute;top:-4px;right:-4px;
@@ -703,6 +776,20 @@
 
     <!-- Online users -->
     <div class="online-strip" id="online-strip"></div>
+
+    <!-- Solicitudes de mensaje inline (aparece solo cuando hay pendientes) -->
+    <div class="req-inline-banner" id="req-inline-banner" style="display:none">
+        <div class="req-inline-header" onclick="toggleInlineRequests()">
+            <div class="req-inline-icon"><i class="fa-solid fa-inbox"></i></div>
+            <div class="req-inline-info">
+                <div class="req-inline-title">Solicitudes de mensaje</div>
+                <div class="req-inline-sub" id="req-inline-sub">Personas que quieren escribirte</div>
+            </div>
+            <div class="req-inline-count" id="req-inline-count">0</div>
+            <i class="fa-solid fa-chevron-down req-inline-chevron"></i>
+        </div>
+        <div class="req-inline-cards" id="req-inline-cards"></div>
+    </div>
 
     <div class="section-label" id="section-label">Recientes</div>
     <div id="chat-list">
@@ -1515,10 +1602,16 @@ function checkReqBodyEmpty() {
 }
 
 // Escucha en tiempo real las solicitudes entrantes y actualiza el badge
+// ── SOLICITUDES EN TIEMPO REAL ─────────────────────────────────────────────
+let inlineRequestsData = {}; // { fromUid: reqData }
+
 function listenRequestsBadge() {
     onValue(ref(db, `solicitudes_chat/${currentUser.uid}`), snap => {
-        const count = snap.exists() ? snap.size : 0;
+        inlineRequestsData = {};
+        if (snap.exists()) snap.forEach(c => { inlineRequestsData[c.key] = c.val(); });
+        const count = Object.keys(inlineRequestsData).length;
         updateRequestsBadge(count);
+        renderInlineBanner();
     });
 }
 
@@ -1544,6 +1637,116 @@ function updateRequestsBadge(count) {
         if (pendingSpan) pendingSpan.style.display = 'none';
     }
 }
+
+// ── BANNER INLINE DE SOLICITUDES ───────────────────────────────────────────
+function renderInlineBanner() {
+    const banner  = document.getElementById('req-inline-banner');
+    const cards   = document.getElementById('req-inline-cards');
+    const countEl = document.getElementById('req-inline-count');
+    const subEl   = document.getElementById('req-inline-sub');
+    const uids    = Object.keys(inlineRequestsData);
+    const count   = uids.length;
+
+    if (!banner) return;
+
+    if (count === 0) {
+        banner.style.display = 'none';
+        return;
+    }
+    banner.style.display = '';
+    countEl.textContent = count;
+    subEl.textContent = count === 1 ? '1 persona quiere escribirte' : `${count} personas quieren escribirte`;
+
+    // Renderizar tarjetas (máx 3 inline, resto en "Ver todas")
+    const MAX_INLINE = 3;
+    cards.innerHTML = '';
+    uids.slice(0, MAX_INLINE).forEach(fromUid => {
+        const req = inlineRequestsData[fromUid];
+        const user = allUsers[fromUid] || {};
+        const avatar = req.fromAvatar || user.avatar || 'default-avatar.png';
+        const name   = req.fromName  || user.nombre  || 'Usuario';
+        const preview = req.preview  || 'Quiere enviarte un mensaje';
+        const amFollowing = iFollow(fromUid);
+
+        const card = document.createElement('div');
+        card.className = 'req-card';
+        card.id = `rc-${fromUid}`;
+        card.innerHTML = `
+            <img src="${avatar}" onerror="this.src='default-avatar.png'">
+            <div class="req-card-info">
+                <div class="req-card-name">${name}</div>
+                <div class="req-card-msg">${preview}</div>
+            </div>
+            <div class="req-card-actions">
+                <button class="rc-btn accept" onclick="acceptInlineRequest('${fromUid}',event)"><i class="fa-solid fa-check"></i> Aceptar</button>
+                <button class="rc-btn follow ${amFollowing ? 'following' : ''}" id="rcfollow-${fromUid}" onclick="toggleFollowInline('${fromUid}','${name}','${avatar}',event)">
+                    ${amFollowing ? '<i class="fa-solid fa-user-check"></i> Siguiendo' : '<i class="fa-solid fa-user-plus"></i> Seguir'}
+                </button>
+                <button class="rc-btn decline" onclick="declineInlineRequest('${fromUid}',event)">Rechazar</button>
+            </div>`;
+        cards.appendChild(card);
+    });
+
+    // "Ver todas" si hay más de 3
+    if (count > MAX_INLINE) {
+        const more = document.createElement('div');
+        more.className = 'req-inline-ver-mas';
+        more.textContent = `Ver todas (${count})`;
+        more.onclick = () => { openRequestsPanel(); };
+        cards.appendChild(more);
+    }
+}
+
+window.toggleInlineRequests = function() {
+    const banner = document.getElementById('req-inline-banner');
+    banner?.classList.toggle('expanded');
+};
+
+window.acceptInlineRequest = async function(fromUid, e) {
+    e?.stopPropagation();
+    const req = inlineRequestsData[fromUid];
+    if (!req) return;
+    let existing = allChats.find(c => !c.isGroup && c.participants && c.participants[fromUid] && c.participants[currentUser.uid]);
+    if (!existing) {
+        const user = allUsers[fromUid] || {};
+        const chatRef = push(ref(db, 'chats'));
+        const chatData = {
+            name: req.fromName || user.nombre || 'Usuario',
+            avatar: req.fromAvatar || user.avatar || '',
+            isGroup: false,
+            participants: { [currentUser.uid]: true, [fromUid]: true },
+            createdAt: Date.now(),
+            lastMessage: req.preview || '',
+            lastTimestamp: req.timestamp || Date.now()
+        };
+        await set(chatRef, chatData);
+        existing = { id: chatRef.key, ...chatData };
+    }
+    await remove(ref(db, `solicitudes_chat/${currentUser.uid}/${fromUid}`));
+    showToast('✅ Solicitud aceptada');
+    openChat(existing);
+};
+
+window.declineInlineRequest = async function(fromUid, e) {
+    e?.stopPropagation();
+    await remove(ref(db, `solicitudes_chat/${currentUser.uid}/${fromUid}`));
+    showToast('Solicitud rechazada');
+};
+
+window.toggleFollowInline = async function(uid, name, avatar, e) {
+    e?.stopPropagation();
+    const btn = document.getElementById(`rcfollow-${uid}`);
+    if (iFollow(uid)) {
+        await remove(ref(db, `seguidos/${currentUser.uid}/${uid}`));
+        await remove(ref(db, `seguidores/${uid}/${currentUser.uid}`));
+        if (btn) { btn.className = 'rc-btn follow'; btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Seguir'; }
+    } else {
+        await set(ref(db, `seguidos/${currentUser.uid}/${uid}`), true);
+        await set(ref(db, `seguidores/${uid}/${currentUser.uid}`), true);
+        if (btn) { btn.className = 'rc-btn follow following'; btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Siguiendo'; }
+        showToast('Ahora sigues a ' + name);
+    }
+};
 
 // Modificar sendTextMessage para enviar solicitud si no se siguen mutuamente
 async function sendRequestIfNeeded(otherUid, text) {
