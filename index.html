@@ -257,7 +257,7 @@
     </div>
 
     <script type="module">
-        import { auth } from './firebase-config.js';
+        import { auth, db } from './firebase-config.js';
         import {
             onAuthStateChanged,
             signInWithEmailAndPassword,
@@ -265,6 +265,20 @@
             GoogleAuthProvider,
             signInWithPopup
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { ref as dRef, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Guarda perfil de Google en DB solo si es usuario nuevo
+        async function saveGoogleUserToDB(user) {
+            const snap = await get(dRef(db, `usuarios/${user.uid}`));
+            if (!snap.exists()) {
+                await set(dRef(db, `usuarios/${user.uid}`), {
+                    nombre: user.displayName || user.email.split('@')[0],
+                    email: user.email || '',
+                    photoURL: user.photoURL || '',
+                    createdAt: Date.now()
+                });
+            }
+        }
 
         // If already logged in, redirect
         onAuthStateChanged(auth, user => {
@@ -343,7 +357,9 @@
             hideError();
             try {
                 const provider = new GoogleAuthProvider();
-                await signInWithPopup(auth, provider);
+                const result = await signInWithPopup(auth, provider);
+                // Guardar nombre y foto de Google automaticamente si es usuario nuevo
+                await saveGoogleUserToDB(result.user);
                 location.href = 'Home.html';
             } catch(err) {
                 if (err.code !== 'auth/popup-closed-by-user') showError(getErrorMsg(err.code));

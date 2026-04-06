@@ -331,7 +331,7 @@
             GoogleAuthProvider,
             signInWithPopup
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { ref as dRef, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { ref as dRef, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         let registrando = false;
@@ -481,7 +481,15 @@
             try {
                 const provider = new GoogleAuthProvider();
                 const result = await signInWithPopup(auth, provider);
-                await saveUserToDB(result.user, result.user.displayName, result.user.photoURL);
+                const user = result.user;
+                // Nombre de Google; si viene vacío, usar parte del correo antes del @
+                const nombre = user.displayName || user.email.split('@')[0];
+                const photo  = user.photoURL || '';
+                // Solo crear perfil si el usuario no existía antes
+                const snap = await get(dRef(db, `usuarios/${user.uid}`));
+                if (!snap.exists()) {
+                    await saveUserToDB(user, nombre, photo);
+                }
                 location.href = 'Home.html';
             } catch(err) {
                 if (err.code !== 'auth/popup-closed-by-user') showError(getErrorMsg(err.code));
