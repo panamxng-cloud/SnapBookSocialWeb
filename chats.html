@@ -2600,7 +2600,7 @@ window.acceptGroupCall = async function() {
     const snap = await get(ref(db, `llamadas_grupo/${gcCallId}/participantes`));
     if (snap.exists()) {
         snap.forEach(c => {
-            if (c.key !== currentUser.uid && c.val().unido) createGcPeer(c.key, c.val(), true);
+            if (c.key !== currentUser.uid && c.val().unido) createGcPeer(c.key, c.val());
         });
     }
     listenGroupParticipants(gcCallId);
@@ -2710,51 +2710,56 @@ function updateGridLayout() {
     grid.className = `gc-grid p${Math.min(count, 6)}`;
 }
 
-function createGcPeer(remoteUid, userData, isInitiator) {
+// ── Reproducir audio remoto con desbloqueo autoplay ──────────────────────
+function attachRemoteAudio(remoteUid, stream) {
+    let audioEl = document.getElementById(`gc-audio-${remoteUid}`);
+    if (!audioEl) {
+        audioEl = document.createElement('audio');
+        audioEl.id = `gc-audio-${remoteUid}`;
+        audioEl.autoplay = true;
+        audioEl.playsInline = true;
+        audioEl.volume = 1.0;
+        audioEl.muted = false;
+        audioEl.style.display = 'none';
+        document.body.appendChild(audioEl);
+    }
+    // Siempre actualizar srcObject aunque el elemento ya exista
+    audioEl.srcObject = stream;
+
+    const tryPlay = () => {
+        const p = audioEl.play();
+        if (p !== undefined) {
+            p.catch(() => {
+                const unlock = () => {
+                    audioEl.play().catch(() => {});
+                    document.removeEventListener('touchstart', unlock, true);
+                    document.removeEventListener('click',      unlock, true);
+                };
+                document.addEventListener('touchstart', unlock, { once: true, capture: true });
+                document.addEventListener('click',      unlock, { once: true, capture: true });
+            });
+        }
+    };
+    tryPlay();
+}
+
+function createGcPeer(remoteUid, userData) {
     if (gcPeers[remoteUid]) return gcPeers[remoteUid];
     const pc = new RTCPeerConnection(ICE_SERVERS);
     gcPeers[remoteUid] = pc;
-    gcLocalStream?.getTracks().forEach(t => pc.addTrack(t, gcLocalStream));
 
+    // Agregar tracks locales al peer
+    if (gcLocalStream) {
+        gcLocalStream.getTracks().forEach(t => pc.addTrack(t, gcLocalStream));
+    }
+
+    // ── Recibir tracks remotos ─────────────────────────────────────────────
     pc.ontrack = e => {
-        // Usar el stream del evento, o construir uno con el track individual
         const stream = e.streams[0] || new MediaStream([e.track]);
-
         if (e.track.kind === 'audio') {
-            // ── Elemento <audio> dedicado para reproducir el audio remoto ──
-            let audioEl = document.getElementById(`gc-audio-${remoteUid}`);
-            if (!audioEl) {
-                audioEl = document.createElement('audio');
-                audioEl.id = `gc-audio-${remoteUid}`;
-                audioEl.autoplay = true;
-                audioEl.playsInline = true;
-                audioEl.volume = 1.0;
-                audioEl.muted = false;
-                audioEl.style.display = 'none';
-                document.body.appendChild(audioEl);
-            }
-            audioEl.srcObject = stream;
-
-            // Desbloquear AudioContext suspendido (politica autoplay movil)
-            const playAudio = () => {
-                const p = audioEl.play();
-                if (p !== undefined) {
-                    p.catch(() => {
-                        // Esperar primer gesto del usuario
-                        const unlock = () => {
-                            audioEl.play().catch(() => {});
-                            document.removeEventListener('touchstart', unlock, true);
-                            document.removeEventListener('click', unlock, true);
-                        };
-                        document.addEventListener('touchstart', unlock, { once: true, capture: true });
-                        document.addEventListener('click', unlock, { once: true, capture: true });
-                    });
-                }
-            };
-            playAudio();
+            attachRemoteAudio(remoteUid, stream);
             detectSpeaking(stream, remoteUid);
         }
-
         if (e.track.kind === 'video') {
             const vid = document.getElementById(`gc-video-${remoteUid}`);
             if (vid) {
@@ -2767,31 +2772,51 @@ function createGcPeer(remoteUid, userData, isInitiator) {
         }
     };
 
+    // ── ICE candidates ────────────────────────────────────────────────────
     pc.onicecandidate = e => {
-        if (e.candidate) push(ref(db, `llamadas_grupo/${gcCallId}/ice/${currentUser.uid}/${remoteUid}`), e.candidate.toJSON());
+        if (e.candidate) {
+            push(ref(db, `llamadas_grupo/${gcCallId}/ice/${currentUser.uid}/${remoteUid}`), e.candidate.toJSON());
+        }
     };
 
     onChildAdded(ref(db, `llamadas_grupo/${gcCallId}/ice/${remoteUid}/${currentUser.uid}`), snap => {
-        pc.addIceCandidate(new RTCIceCandidate(snap.val())).catch(() => {});
+        if (snap.val()) pc.addIceCandidate(new RTCIceCandidate(snap.val())).catch(() => {});
     });
 
-    if (isInitiator) {
-        pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: gcCallType === 'video' }).then(offer => {
-            pc.setLocalDescription(offer);
-            set(ref(db, `llamadas_grupo/${gcCallId}/sdp/${currentUser.uid}/${remoteUid}`), { type: offer.type, sdp: offer.sdp });
-        }).catch(err => console.warn('createOffer error:', err));
+    // ── Señalización SDP: el de UID mayor siempre es el ofertante ────────
+    // Esto evita la colisión de ofertas (glare) cuando ambos entran al mismo tiempo
+    const iAmOfferer = currentUser.uid > remoteUid;
+
+    if (iAmOfferer) {
+        pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: gcCallType === 'video' })
+          .then(offer => pc.setLocalDescription(offer))
+          .then(() => {
+              set(ref(db, `llamadas_grupo/${gcCallId}/sdp/${currentUser.uid}/${remoteUid}`), {
+                  type: pc.localDescription.type,
+                  sdp:  pc.localDescription.sdp
+              });
+          })
+          .catch(err => console.warn('createOffer error:', err));
     }
 
+    // Escuchar SDP del remoto
     onValue(ref(db, `llamadas_grupo/${gcCallId}/sdp/${remoteUid}/${currentUser.uid}`), async snap => {
         if (!snap.exists()) return;
         const sdp = snap.val();
-        if (sdp.type === 'offer' && pc.signalingState === 'stable') {
-            await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            await set(ref(db, `llamadas_grupo/${gcCallId}/sdp/${currentUser.uid}/${remoteUid}`), { type: answer.type, sdp: answer.sdp });
-        } else if (sdp.type === 'answer' && pc.signalingState === 'have-local-offer') {
-            await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+        try {
+            if (sdp.type === 'offer' && pc.signalingState === 'stable') {
+                await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                await set(ref(db, `llamadas_grupo/${gcCallId}/sdp/${currentUser.uid}/${remoteUid}`), {
+                    type: pc.localDescription.type,
+                    sdp:  pc.localDescription.sdp
+                });
+            } else if (sdp.type === 'answer' && pc.signalingState === 'have-local-offer') {
+                await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+            }
+        } catch(err) {
+            console.warn('SDP error con', remoteUid, err);
         }
     });
 
@@ -2802,16 +2827,23 @@ function listenGroupParticipants(callId) {
     onValue(ref(db, `llamadas_grupo/${callId}/participantes`), snap => {
         if (!snap.exists()) return;
         snap.forEach(c => {
-            const uid = c.key; const data = c.val();
+            const uid  = c.key;
+            const data = c.val();
             if (uid === currentUser.uid) return;
-            if (data.unido && !gcPeers[uid]) {
+
+            if (data.unido) {
+                // Crear tile y peer si aún no existen
                 addRemoteTile(uid, data);
-                createGcPeer(uid, data, true);
+                if (!gcPeers[uid]) createGcPeer(uid, data);
             } else if (!data.unido && gcPeers[uid]) {
-                gcPeers[uid].close(); delete gcPeers[uid];
+                // El remoto colgó
+                gcPeers[uid].close();
+                delete gcPeers[uid];
+                document.getElementById(`gc-audio-${uid}`)?.remove();
                 removeRemoteTile(uid);
             }
-            // Mostrar icono de muteado
+
+            // Icono de silenciado
             const muteEl = document.getElementById(`gc-muted-${uid}`);
             if (muteEl) muteEl.classList.toggle('show', !!data.muteado);
         });
@@ -2832,14 +2864,6 @@ function detectSpeaking(stream, uid) {
         }, 200);
     } catch(e) {}
 }
-
-// ── Desbloquear AudioContext global en primer gesto (movil) ──────────────
-function unlockAllGcAudio() {
-    document.querySelectorAll('audio[id^="gc-audio-"]').forEach(a => {
-        if (a.paused) a.play().catch(() => {});
-    });
-}
-document.getElementById('group-call-screen').addEventListener('touchstart', unlockAllGcAudio, { once: true, capture: true });
 
 window.gcToggleMute = function() {
     gcMuted = !gcMuted;
