@@ -1242,7 +1242,7 @@ async function loadMyFollowing() {
         let done = 0;
         const tryResolve = () => { if (++done === 2) resolve(); };
 
-        onValue(ref(db, `seguidos/${currentUser.uid}`), snap => {
+        onValue(ref(db, `siguiendo/${currentUser.uid}`), snap => {
             myFollowing.clear();
             if (snap.exists()) snap.forEach(c => { if (c.val() === true) myFollowing.add(c.key); });
             tryResolve();
@@ -1609,12 +1609,12 @@ window.toggleFollowFromReq = async function(uid, name, avatar) {
     const btn = document.getElementById(`follow-btn-${uid}`);
     if (iFollow(uid)) {
         // Dejar de seguir
-        await remove(ref(db, `seguidos/${currentUser.uid}/${uid}`));
+        await remove(ref(db, `siguiendo/${currentUser.uid}/${uid}`));
         await remove(ref(db, `seguidores/${uid}/${currentUser.uid}`));
         if (btn) { btn.className = 'req-btn follow'; btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Seguir'; }
     } else {
         // Seguir
-        await set(ref(db, `seguidos/${currentUser.uid}/${uid}`), true);
+        await set(ref(db, `siguiendo/${currentUser.uid}/${uid}`), true);
         await set(ref(db, `seguidores/${uid}/${currentUser.uid}`), true);
         if (btn) { btn.className = 'req-btn follow following'; btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Siguiendo'; }
         showToast('Ahora sigues a ' + name);
@@ -1766,11 +1766,11 @@ window.toggleFollowInline = async function(uid, name, avatar, e) {
     e?.stopPropagation();
     const btn = document.getElementById(`rcfollow-${uid}`);
     if (iFollow(uid)) {
-        await remove(ref(db, `seguidos/${currentUser.uid}/${uid}`));
+        await remove(ref(db, `siguiendo/${currentUser.uid}/${uid}`));
         await remove(ref(db, `seguidores/${uid}/${currentUser.uid}`));
         if (btn) { btn.className = 'rc-btn follow'; btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Seguir'; }
     } else {
-        await set(ref(db, `seguidos/${currentUser.uid}/${uid}`), true);
+        await set(ref(db, `siguiendo/${currentUser.uid}/${uid}`), true);
         await set(ref(db, `seguidores/${uid}/${currentUser.uid}`), true);
         if (btn) { btn.className = 'rc-btn follow following'; btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Siguiendo'; }
         showToast('Ahora sigues a ' + name);
@@ -2574,7 +2574,7 @@ function renderPickUsers(listId, searchId, onSelect) {
     list.innerHTML = '';
     Object.values(allUsers).forEach(u => {
         if (u.uid === currentUser.uid) return;
-        if (!iFollow(u.uid)) return; // solo seguidos
+        if (!iFollow(u.uid) && !myFollowers.has(u.uid)) return; // seguidos o seguidores
         if (q && !(u.nombre||u.name||'').toLowerCase().includes(q)) return;
         const selected = selectedGroupMembers.has(u.uid);
         const item = document.createElement('div');
@@ -2778,7 +2778,7 @@ document.getElementById('search-input')?.addEventListener('input', function() {
 
             item.querySelector('.rq-accept').onclick = async () => {
                 // Marcar que yo sigo a esta persona (para que pueda ver sus chats)
-                await set(ref(db, `seguidos/${currentUser.uid}/${req.fromUid}`), true);
+                await set(ref(db, `siguiendo/${currentUser.uid}/${req.fromUid}`), true);
                 await set(ref(db, `seguidores/${req.fromUid}/${currentUser.uid}`), true);
                 // Crear / abrir chat
                 const chatId = [currentUser.uid, req.fromUid].sort().join('_');

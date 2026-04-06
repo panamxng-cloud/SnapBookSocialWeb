@@ -1481,7 +1481,7 @@ async function runSearch(q) {
                 const avatar = u.photoURL || u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.nombre||'U')}&background=6c63ff&color=fff&size=96`;
                 const btn = isMe
                     ? `<span style="font-size:12px;color:var(--text-muted);font-weight:700;">Tú</span>`
-                    : `<button class="search-follow-btn ${following?'siguiendo':''}" onclick="searchToggleFollow('${u.uid}',this)">${following?'Siguiendo':'Seguir'}</button>`;
+                    : `<button class="search-follow-btn ${following?'siguiendo':''}" onclick="event.stopPropagation();searchToggleFollow('${u.uid}',this,event)">${following?'Siguiendo':'Seguir'}</button>`;
                 return `
                     <div class="search-user-item" onclick="goToProfile('${u.uid}')">
                         <img class="search-user-avatar" src="${avatar}" onerror="this.src='default-avatar.png'">
@@ -1502,22 +1502,29 @@ window.goToProfile = function(uid) {
     location.href = `Profile.html?uid=${uid}`;
 };
 
-window.searchToggleFollow = async function(uid, btn) {
+window.searchToggleFollow = async function(uid, btn, event) {
+    if (event) event.stopPropagation(); // ← evitar que abra el perfil
     if (!currentUser) return;
-    const followRef = ref(db, `siguiendo/${currentUser.uid}/${uid}`);
+    btn.disabled = true;
+    const followRef    = ref(db, `siguiendo/${currentUser.uid}/${uid}`);
+    const seguidorRef  = ref(db, `seguidores/${uid}/${currentUser.uid}`);
     const snap = await get(followRef);
     if (snap.exists()) {
+        // Dejar de seguir
         await remove(followRef);
+        await remove(seguidorRef);
         btn.textContent = 'Seguir';
         btn.classList.remove('siguiendo');
     } else {
+        // Seguir
         await set(followRef, true);
+        await set(seguidorRef, true);
         btn.textContent = 'Siguiendo';
         btn.classList.add('siguiendo');
-        // Notificación de nuevo seguidor
         writeNotif(uid, 'follow');
         showToast('✅ Ahora lo sigues');
     }
+    btn.disabled = false;
 };
 
 // ── NOTIFICACIONES ──────────────────────────────
