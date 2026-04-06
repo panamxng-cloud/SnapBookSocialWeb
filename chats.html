@@ -2616,7 +2616,10 @@ window.hangUpGroupCall = function() {
 function cleanupGroupCall() {
     gcLocalStream?.getTracks().forEach(t => t.stop());
     gcLocalStream = null;
-    Object.values(gcPeers).forEach(p => p.close());
+    Object.keys(gcPeers).forEach(uid => {
+        gcPeers[uid].close();
+        document.getElementById(`gc-audio-${uid}`)?.remove();
+    });
     gcPeers = {};
     clearInterval(gcTimerInt); gcTimerInt = null; gcSeconds = 0;
     document.getElementById('group-call-screen').classList.remove('show');
@@ -2698,15 +2701,33 @@ function createGcPeer(remoteUid, userData, isInitiator) {
     gcLocalStream?.getTracks().forEach(t => pc.addTrack(t, gcLocalStream));
 
     pc.ontrack = e => {
-        const vid = document.getElementById(`gc-video-${remoteUid}`);
-        if (vid) {
-            vid.srcObject = e.streams[0];
-            vid.classList.add('active');
-            vid.play().catch(() => {});
-            const avEl = document.getElementById(`gc-av-${remoteUid}`);
-            if (avEl) avEl.style.display = 'none';
+        const stream = e.streams[0];
+
+        // Siempre reproducir audio con elemento dedicado
+        let audioEl = document.getElementById(`gc-audio-${remoteUid}`);
+        if (!audioEl) {
+            audioEl = document.createElement('audio');
+            audioEl.id = `gc-audio-${remoteUid}`;
+            audioEl.autoplay = true;
+            audioEl.style.display = 'none';
+            document.body.appendChild(audioEl);
         }
-        detectSpeaking(e.streams[0], remoteUid);
+        audioEl.srcObject = stream;
+        audioEl.play().catch(() => {});
+
+        // Si hay video, mostrarlo en el tile
+        if (e.track.kind === 'video') {
+            const vid = document.getElementById(`gc-video-${remoteUid}`);
+            if (vid) {
+                vid.srcObject = stream;
+                vid.classList.add('active');
+                vid.play().catch(() => {});
+                const avEl = document.getElementById(`gc-av-${remoteUid}`);
+                if (avEl) avEl.style.display = 'none';
+            }
+        }
+
+        detectSpeaking(stream, remoteUid);
     };
 
     pc.onicecandidate = e => {
