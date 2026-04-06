@@ -2618,6 +2618,21 @@ document.getElementById('search-toggle-btn').onclick = () => {
 };
 document.getElementById('search-input')?.addEventListener('input', () => renderChats(filterChats(allChats)));
 
+// Configurar el botón de archivo del buscador cuando esté disponible
+document.addEventListener('DOMContentLoaded', () => {
+    const fileBtn = document.getElementById('requests-file-btn');
+    if (fileBtn) {
+        fileBtn.onclick = () => {
+            document.getElementById('req-backdrop').classList.add('open');
+            document.getElementById('req-sheet').classList.add('open');
+            // Esperar a que setupRequestsPanel esté listo
+            setTimeout(() => {
+                if (typeof loadRequests === 'function') loadRequests();
+            }, 100);
+        };
+    }
+});
+
 // ── REQUESTS ───────────────────────────────────────────────────────────────
 (function setupRequestsPanel() {
     // Inyectar CSS + HTML del panel
@@ -2687,9 +2702,14 @@ document.getElementById('search-input')?.addEventListener('input', () => renderC
     }
 
     reqBtn.onclick = openPanel;
-    document.getElementById('requests-file-btn').onclick = openPanel;
     document.getElementById('req-close').onclick = closePanel;
     document.getElementById('req-backdrop').onclick = closePanel;
+    
+    // Configurar el botón de archivo del buscador
+    const fileBtn = document.getElementById('requests-file-btn');
+    if (fileBtn) {
+        fileBtn.onclick = openPanel;
+    }
 
     // Escuchar solicitudes en tiempo real
     function listenRequests() {
@@ -2701,7 +2721,7 @@ document.getElementById('search-input')?.addEventListener('input', () => renderC
         });
     }
 
-    async function loadRequests() {
+    window.loadRequests = async function() {
         const list = document.getElementById('req-list');
         list.innerHTML = '<div class="req-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando...</p></div>';
         if (!currentUser) return;
