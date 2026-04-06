@@ -754,8 +754,11 @@
 <header class="sb-header">
     <div class="logo">Mensajes</div>
     <div class="header-right">
-        <div class="icon-btn" id="search-toggle-btn"><i class="fa-solid fa-magnifying-glass"></i></div>
-        <div class="icon-btn" id="requests-btn" title="Solicitudes de mensaje"><i class="fa-solid fa-inbox"></i></div>
+        <div class="icon-btn" id="search-toggle-btn" title="Buscar seguidores"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <div class="icon-btn" id="requests-btn" title="Solicitudes de mensaje" style="position:relative">
+            <i class="fa-solid fa-inbox"></i>
+            <span class="req-header-badge" id="req-header-badge" style="display:none">0</span>
+        </div>
     </div>
 </header>
 
@@ -769,17 +772,13 @@
 
 <!-- ===== MAIN ===== -->
 <main class="main-content" id="main-content">
+    <!-- Buscador de seguidores (botón 1) -->
     <div class="search-wrap" id="search-wrap" style="display:none">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <div style="position:relative; flex:1;">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input class="search-input" type="text" placeholder="Buscar amigos seguidos..." id="search-input">
-            </div>
-            <div class="icon-btn" id="requests-file-btn" title="Solicitudes de mensaje" style="border-radius:12px; background:var(--surface); box-shadow:var(--card-shadow);">
-                <i class="fa-solid fa-file-invoice"></i>
-            </div>
-        </div>
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="search-input" type="text" placeholder="Buscar entre tus seguidores..." id="search-input">
     </div>
+    <!-- Panel de resultados de búsqueda de seguidores -->
+    <div id="followers-search-results" style="display:none;margin-bottom:10px"></div>
 
     <!-- Online users -->
     <div class="online-strip" id="online-strip"></div>
@@ -1207,6 +1206,7 @@ let voiceChunks = [];
 let selectedGroupMembers = new Set();
 let allUsers = {};
 let myFollowing = new Set(); // UIDs que yo sigo
+let myFollowers = new Set(); // UIDs que me siguen a mí
 let fabOpen = false;
 let pollOptCount = 2;
 
@@ -1235,15 +1235,26 @@ function setupPresence() {
 
 // ── FOLLOWING ─────────────────────────────────────────────────────────────
 async function loadMyFollowing() {
-    // Carga en tiempo real la lista de seguidos del usuario actual.
-    // Se espera que en Firebase exista: seguidos/{myUid}/{otherUid} = true
+    // Carga seguidos: seguidos/{myUid}/{otherUid} = true
+    // Carga seguidores: seguidores/{myUid}/{otherUid} = true
+    //   (o bien se puede inferir de seguidos/{otherUid}/{myUid})
     return new Promise(resolve => {
+        let done = 0;
+        const tryResolve = () => { if (++done === 2) resolve(); };
+
         onValue(ref(db, `seguidos/${currentUser.uid}`), snap => {
             myFollowing.clear();
-            if (snap.exists()) {
-                snap.forEach(c => { if (c.val() === true) myFollowing.add(c.key); });
-            }
-            resolve();
+            if (snap.exists()) snap.forEach(c => { if (c.val() === true) myFollowing.add(c.key); });
+            tryResolve();
+        });
+
+        // Seguidores: quién me sigue a mí
+        // Estructura: seguidores/{myUid}/{followerUid} = true
+        // Si no tienes esa rama, también se puede leer de seguidos/{otherUid}/{myUid}
+        onValue(ref(db, `seguidores/${currentUser.uid}`), snap => {
+            myFollowers.clear();
+            if (snap.exists()) snap.forEach(c => { if (c.val() === true) myFollowers.add(c.key); });
+            tryResolve();
         });
     });
 }
@@ -2610,125 +2621,128 @@ document.querySelectorAll('.ctab').forEach(tab => {
     };
 });
 
-// ── SEARCH ─────────────────────────────────────────────────────────────────
+// ── SEARCH (botón 1 = lupa) ────────────────────────────────────────────────
 document.getElementById('search-toggle-btn').onclick = () => {
     const wrap = document.getElementById('search-wrap');
-    wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
-    if (wrap.style.display !== 'none') document.getElementById('search-input').focus();
-};
-document.getElementById('search-input')?.addEventListener('input', () => renderChats(filterChats(allChats)));
-
-// Configurar el botón de archivo del buscador cuando esté disponible
-document.addEventListener('DOMContentLoaded', () => {
-    const fileBtn = document.getElementById('requests-file-btn');
-    if (fileBtn) {
-        fileBtn.onclick = () => {
-            document.getElementById('req-backdrop').classList.add('open');
-            document.getElementById('req-sheet').classList.add('open');
-            // Esperar a que setupRequestsPanel esté listo
-            setTimeout(() => {
-                if (typeof loadRequests === 'function') loadRequests();
-            }, 100);
-        };
+    const resultsEl = document.getElementById('followers-search-results');
+    const isOpen = wrap.style.display !== 'none';
+    if (isOpen) {
+        wrap.style.display = 'none';
+        resultsEl.style.display = 'none';
+        resultsEl.innerHTML = '';
+    } else {
+        wrap.style.display = 'block';
+        document.getElementById('search-input').focus();
     }
+};
+
+document.getElementById('search-input')?.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    const resultsEl = document.getElementById('followers-search-results');
+    if (!q) {
+        resultsEl.style.display = 'none';
+        resultsEl.innerHTML = '';
+        return;
+    }
+    // Buscar entre seguidores (myFollowers) y seguidos (myFollowing)
+    const matches = Object.values(allUsers).filter(u => {
+        if (u.uid === currentUser.uid) return false;
+        if (!myFollowers.has(u.uid) && !myFollowing.has(u.uid)) return false;
+        return (u.nombre||u.name||'').toLowerCase().includes(q);
+    });
+    if (!matches.length) {
+        resultsEl.innerHTML = '<div style="padding:14px 4px;font-size:13px;color:var(--text-muted);text-align:center">No se encontraron seguidores</div>';
+        resultsEl.style.display = 'block';
+        return;
+    }
+    resultsEl.innerHTML = '';
+    matches.forEach(u => {
+        const item = document.createElement('div');
+        item.style.cssText = 'display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:11px 14px;margin-bottom:8px;cursor:pointer;box-shadow:var(--card-shadow);';
+        const isFollower = myFollowers.has(u.uid);
+        const isFollowing = myFollowing.has(u.uid);
+        const tag = isFollowing && isFollower ? '🤝 Amigos' : isFollower ? '👤 Te sigue' : '➡️ Sigues';
+        item.innerHTML = `
+            <img src="${u.photoURL||u.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'"
+                 style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--border);flex-shrink:0">
+            <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.nombre||u.name||'Usuario'}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${tag}</div>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:var(--accent);background:rgba(108,99,255,0.1);padding:5px 10px;border-radius:10px">Mensaje</div>`;
+        item.onclick = () => {
+            // cerrar buscador
+            document.getElementById('search-wrap').style.display = 'none';
+            resultsEl.style.display = 'none';
+            resultsEl.innerHTML = '';
+            document.getElementById('search-input').value = '';
+            openDirectChat(u.uid, u);
+        };
+        resultsEl.appendChild(item);
+    });
+    resultsEl.style.display = 'block';
 });
 
-// ── REQUESTS ───────────────────────────────────────────────────────────────
+// ── REQUESTS (botón 2 = inbox) ─────────────────────────────────────────────
 (function setupRequestsPanel() {
-    // Inyectar CSS + HTML del panel
-    const style = document.createElement('style');
-    style.textContent = `
-        .req-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;backdrop-filter:blur(4px);}
-        .req-backdrop.open{display:block;}
-        .req-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:24px 24px 0 0;z-index:3001;
-            max-height:80vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.35s cubic-bezier(.4,0,.2,1);}
-        .req-sheet.open{transform:translateY(0);}
-        .req-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;}
-        .req-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
-        .req-title{font-size:17px;font-weight:800;}
-        .req-close{color:var(--text-muted);font-size:18px;cursor:pointer;padding:4px;}
-        .req-list{flex:1;overflow-y:auto;padding:10px 14px 20px;}
-        .req-empty{text-align:center;padding:40px 20px;color:var(--text-muted);}
-        .req-empty i{font-size:40px;display:block;margin-bottom:12px;opacity:0.3;}
-        .req-empty p{font-size:14px;}
-        .req-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
-        .req-item:last-child{border-bottom:none;}
-        .req-av{width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;}
-        .req-info{flex:1;min-width:0;}
-        .req-name{font-size:15px;font-weight:700;}
-        .req-preview{font-size:13px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
-        .req-actions{display:flex;gap:8px;flex-shrink:0;}
-        .req-btn{padding:7px 14px;border-radius:12px;border:none;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
-        .req-btn.accept{background:var(--accent);color:#fff;}
-        .req-btn.deny{background:var(--surface2);color:var(--text-muted);}
-        .req-badge{position:absolute;top:-4px;right:-4px;background:var(--accent2);color:#fff;font-size:10px;font-weight:800;
-            min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;
-            padding:0 4px;border:2px solid var(--surface);}
-        #requests-btn{position:relative;}
-    `;
-    document.head.appendChild(style);
-
-    // Crear panel HTML
+    // Inyectar bottom sheet HTML
     const panel = document.createElement('div');
     panel.innerHTML = `
-        <div class="req-backdrop" id="req-backdrop"></div>
-        <div class="req-sheet" id="req-sheet">
-            <div class="req-handle"></div>
-            <div class="req-header">
-                <span class="req-title">📬 Solicitudes de mensaje</span>
-                <i class="fa-solid fa-xmark req-close" id="req-close"></i>
+        <div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:4000;backdrop-filter:blur(4px)" id="req-backdrop"></div>
+        <div style="position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:24px 24px 0 0;
+                    z-index:4001;max-height:82vh;display:flex;flex-direction:column;
+                    transform:translateY(100%);transition:transform 0.35s cubic-bezier(.4,0,.2,1)" id="req-sheet">
+            <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
+                <span style="font-size:17px;font-weight:800">📬 Solicitudes de mensaje</span>
+                <i class="fa-solid fa-xmark" id="req-close" style="color:var(--text-muted);font-size:18px;cursor:pointer;padding:6px"></i>
             </div>
-            <div class="req-list" id="req-list">
-                <div class="req-empty"><i class="fa-solid fa-inbox"></i><p>No tienes solicitudes pendientes</p></div>
+            <div style="flex:1;overflow-y:auto;padding:12px 14px 24px" id="req-list">
+                <div style="text-align:center;padding:50px 20px;color:var(--text-muted)">
+                    <i class="fa-solid fa-inbox" style="font-size:44px;opacity:.18;display:block;margin-bottom:14px"></i>
+                    <p style="font-size:14px">No tienes solicitudes pendientes</p>
+                </div>
             </div>
         </div>`;
     document.body.appendChild(panel);
 
-    // Badge en el botón
-    const reqBtn = document.getElementById('requests-btn');
-    const badge = document.createElement('span');
-    badge.className = 'req-badge';
-    badge.id = 'req-badge';
-    reqBtn.appendChild(badge);
-
     function openPanel() {
-        document.getElementById('req-backdrop').classList.add('open');
-        document.getElementById('req-sheet').classList.add('open');
+        document.getElementById('req-backdrop').style.display = 'block';
+        document.getElementById('req-sheet').style.transform = 'translateY(0)';
         loadRequests();
     }
     function closePanel() {
-        document.getElementById('req-backdrop').classList.remove('open');
-        document.getElementById('req-sheet').classList.remove('open');
+        document.getElementById('req-backdrop').style.display = 'none';
+        document.getElementById('req-sheet').style.transform = 'translateY(100%)';
     }
 
-    reqBtn.onclick = openPanel;
+    document.getElementById('requests-btn').onclick = openPanel;
     document.getElementById('req-close').onclick = closePanel;
     document.getElementById('req-backdrop').onclick = closePanel;
-    
-    // Configurar el botón de archivo del buscador
-    const fileBtn = document.getElementById('requests-file-btn');
-    if (fileBtn) {
-        fileBtn.onclick = openPanel;
-    }
 
-    // Escuchar solicitudes en tiempo real
+    // Badge en tiempo real
     function listenRequests() {
         if (!currentUser) return;
         onValue(ref(db, `solicitudes_chat/${currentUser.uid}`), snap => {
             const count = snap.exists() ? Object.keys(snap.val()).length : 0;
-            badge.style.display = count > 0 ? 'flex' : 'none';
-            badge.textContent = count > 9 ? '9+' : count;
+            const badge = document.getElementById('req-header-badge');
+            if (badge) {
+                badge.style.display = count > 0 ? 'flex' : 'none';
+                badge.textContent = count > 9 ? '9+' : count;
+            }
         });
     }
 
     window.loadRequests = async function() {
         const list = document.getElementById('req-list');
-        list.innerHTML = '<div class="req-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Cargando...</p></div>';
+        list.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin" style="font-size:28px"></i></div>`;
         if (!currentUser) return;
 
         const snap = await get(ref(db, `solicitudes_chat/${currentUser.uid}`));
         if (!snap.exists()) {
-            list.innerHTML = '<div class="req-empty"><i class="fa-solid fa-inbox"></i><p>No tienes solicitudes pendientes</p></div>';
+            list.innerHTML = `<div style="text-align:center;padding:50px 20px;color:var(--text-muted)">
+                <i class="fa-solid fa-inbox" style="font-size:44px;opacity:.18;display:block;margin-bottom:14px"></i>
+                <p style="font-size:14px">No tienes solicitudes pendientes</p></div>`;
             return;
         }
 
@@ -2739,43 +2753,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
         requests.forEach(req => {
             const item = document.createElement('div');
-            item.className = 'req-item';
+            item.style.cssText = 'display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:var(--card-shadow)';
             item.innerHTML = `
-                <img class="req-av" src="${req.fromAvatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
-                <div class="req-info">
-                    <div class="req-name">${req.fromName||'Usuario'}</div>
-                    <div class="req-preview">${req.preview||'Quiere enviarte un mensaje'}</div>
+                <img src="${req.fromAvatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'"
+                     style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--border);flex-shrink:0">
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${req.fromName||'Usuario'}</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${req.preview||'Quiere enviarte un mensaje'}</div>
                 </div>
-                <div class="req-actions">
-                    <button class="req-btn accept" data-id="${req.id}" data-uid="${req.fromUid}">Aceptar</button>
-                    <button class="req-btn deny"   data-id="${req.id}">Rechazar</button>
+                <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0">
+                    <button class="rq-accept" style="padding:8px 14px;border-radius:10px;border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff">Aceptar</button>
+                    <button class="rq-deny"   style="padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--text-muted)">Rechazar</button>
                 </div>`;
 
-            item.querySelector('.accept').onclick = async () => {
-                // Crear chat entre ambos usuarios
-                const chatId = [currentUser.uid, req.fromUid].sort().join('_');
-                await update(ref(db, `chats/${chatId}`), {
-                    participants: { [currentUser.uid]: true, [req.fromUid]: true },
-                    isGroup: false, lastMessage: '', lastTimestamp: Date.now()
-                });
-                // Eliminar solicitud
-                await update(ref(db, `solicitudes_chat/${currentUser.uid}`), { [req.id]: null });
+            const removeItem = () => {
                 item.remove();
-                if (!document.querySelectorAll('.req-item').length)
-                    list.innerHTML = '<div class="req-empty"><i class="fa-solid fa-inbox"></i><p>No tienes solicitudes pendientes</p></div>';
+                if (!list.querySelector('[style*="border-radius:18px"]'))
+                    list.innerHTML = `<div style="text-align:center;padding:50px 20px;color:var(--text-muted)">
+                        <i class="fa-solid fa-inbox" style="font-size:44px;opacity:.18;display:block;margin-bottom:14px"></i>
+                        <p style="font-size:14px">No tienes solicitudes pendientes</p></div>`;
             };
-            item.querySelector('.deny').onclick = async () => {
-                await update(ref(db, `solicitudes_chat/${currentUser.uid}`), { [req.id]: null });
-                item.remove();
-                if (!document.querySelectorAll('.req-item').length)
-                    list.innerHTML = '<div class="req-empty"><i class="fa-solid fa-inbox"></i><p>No tienes solicitudes pendientes</p></div>';
+
+            item.querySelector('.rq-accept').onclick = async () => {
+                // Marcar que yo sigo a esta persona (para que pueda ver sus chats)
+                await set(ref(db, `seguidos/${currentUser.uid}/${req.fromUid}`), true);
+                await set(ref(db, `seguidores/${req.fromUid}/${currentUser.uid}`), true);
+                // Crear / abrir chat
+                const chatId = [currentUser.uid, req.fromUid].sort().join('_');
+                const u = allUsers[req.fromUid] || {};
+                await update(ref(db, `chats/${chatId}`), {
+                    name: req.fromName || 'Usuario',
+                    avatar: req.fromAvatar || u.photoURL || u.avatar || '',
+                    isGroup: false,
+                    participants: { [currentUser.uid]: true, [req.fromUid]: true },
+                    lastMessage: '', lastTimestamp: Date.now()
+                });
+                await set(ref(db, `solicitudes_chat/${currentUser.uid}/${req.id}`), null);
+                removeItem();
+                closePanel();
+                showToast('✅ Solicitud aceptada');
+            };
+            item.querySelector('.rq-deny').onclick = async () => {
+                await set(ref(db, `solicitudes_chat/${currentUser.uid}/${req.id}`), null);
+                removeItem();
             };
 
             list.appendChild(item);
         });
-    }
+    };
 
-    // Esperar a que currentUser esté listo
+    // Esperar currentUser
     const waitUser = setInterval(() => {
         if (typeof currentUser !== 'undefined' && currentUser) {
             clearInterval(waitUser);
