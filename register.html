@@ -494,6 +494,9 @@
                 await updateProfile(cred.user, { displayName: name, photoURL: photoURL || null });
                 await saveUserToDB(cred.user, name, photoURL);
 
+                // Registrar en Google Sheets vía SheetDB
+                logNuevoUsuario(cred.user.uid, name, email);
+
                 showSuccess('¡Cuenta creada! Redirigiendo...');
                 setTimeout(() => location.href = 'Home.html', 1200);
             } catch (err) {
