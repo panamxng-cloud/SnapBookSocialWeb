@@ -693,14 +693,37 @@
 </nav>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js';
+// ── Firebase: Auth + Realtime Database ─────────
+import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
     ref, onValue, get, set, remove, push, query, orderByChild
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import {
-    ref as sRef, uploadBytesResumable, getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+// ── Supabase: Storage de fotos y videos ────────
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const supabase = createClient(
+    'https://ihefracdvmyuqgzzqjpf.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloZWZyYWNkdm15dXFnenpxanBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjIyNTAsImV4cCI6MjA5MTA5ODI1MH0.iVczrV0sCrYoUE-kGuvtRiguCiQI13m_wLYZn1kS5C8'
+);
+const BUCKET = 'Avatares';
+
+// Sube un archivo a Supabase y devuelve la URL pública
+async function supabaseUpload(file, carpeta, onProgress) {
+    const ext  = file.name.split('.').pop();
+    const path = `${carpeta}/${Date.now()}.${ext}`;
+
+    // Simular progreso (Supabase JS v2 no tiene progreso nativo en upload simple)
+    if (onProgress) onProgress(30);
+    const { data, error } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, { upsert: true });
+    if (error) throw new Error('Error subiendo archivo: ' + error.message);
+    if (onProgress) onProgress(100);
+
+    const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
+    return urlData.publicUrl;
+}
 
 let currentUser = null;
 let followingSet = new Set();   // UIDs que sigo
@@ -1212,40 +1235,37 @@ window.storyPublish = async function() {
     btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Subiendo...";
     document.getElementById('story-upload-bar').style.display = 'block';
 
-    const ext = _storyFile.name.split('.').pop();
-    const path = `stories/${currentUser.uid}/${Date.now()}.${ext}`;
-    const storageRef = sRef(storage, path);
-    const task = uploadBytesResumable(storageRef, _storyFile);
+    try {
+        // Subir a Supabase Storage
+        const downloadURL = await supabaseUpload(
+            _storyFile,
+            `stories/${currentUser.uid}`,
+            pct => {
+                document.getElementById('story-upload-fill').style.width = pct + '%';
+                document.getElementById('story-upload-pct').textContent = `Subiendo... ${pct}%`;
+            }
+        );
 
-    task.on('state_changed',
-        snap => {
-            const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-            document.getElementById('story-upload-fill').style.width = pct + '%';
-            document.getElementById('story-upload-pct').textContent = `Subiendo... ${pct}%`;
-        },
-        err => {
-            showToast('❌ Error al subir: ' + err.message);
-            btn.disabled = false;
-            btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> Publicar historia";
-        },
-        async () => {
-            const downloadURL = await getDownloadURL(task.snapshot.ref);
-            const data = {
-                uid: currentUser.uid,
-                autor: currentUser.displayName || 'Usuario',
-                avatar: currentUser.photoURL || '',
-                timestamp: Date.now(),
-                expira: Date.now() + 24 * 60 * 60 * 1000, // 24h
-            };
-            if (_storyType === 'imagen') data.imagenUrl = downloadURL;
-            else data.videoUrl = downloadURL;
+        const data = {
+            uid: currentUser.uid,
+            autor: currentUser.displayName || 'Usuario',
+            avatar: currentUser.photoURL || '',
+            timestamp: Date.now(),
+            expira: Date.now() + 24 * 60 * 60 * 1000, // 24h
+        };
+        if (_storyType === 'imagen') data.imagenUrl = downloadURL;
+        else data.videoUrl = downloadURL;
 
-            await push(ref(db, 'historias'), data);
-            showToast('✅ Historia publicada');
-            document.querySelector('.comment-sheet-overlay')?.remove();
-            loadStories();
-        }
-    );
+        // Guardar metadata en Firebase Realtime Database
+        await push(ref(db, 'historias'), data);
+        showToast('✅ Historia publicada');
+        document.querySelector('.comment-sheet-overlay')?.remove();
+        loadStories();
+    } catch (err) {
+        showToast('❌ Error al subir: ' + err.message);
+        btn.disabled = false;
+        btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> Publicar historia";
+    }
 };
 
 window.storyPublishText = async function() {

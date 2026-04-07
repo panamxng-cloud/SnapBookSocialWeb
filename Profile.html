@@ -222,10 +222,11 @@
     </nav>
 
     <script type="module">
-        import { auth, db, storage } from './firebase-config.js';
+        import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        // ── Supabase Storage ──
+        import { uploadAvatar, uploadCover } from './supabase-config.js';
         import { updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         let currentUser = null;
@@ -515,8 +516,8 @@
         document.getElementById('avatar-input').onchange = async (e) => {
             if (!currentUser || !e.target.files[0]) return;
             try {
-                const snap = await uploadBytes(sRef(storage,`avatars/${currentUser.uid}/profile`), e.target.files[0]);
-                document.getElementById('profile-avatar').src = await getDownloadURL(snap.ref);
+                const avatarUrl = await uploadAvatar(currentUser.uid, e.target.files[0]);
+                document.getElementById('profile-avatar').src = avatarUrl;
             } catch(err) { alert('Error: '+err.message); }
         };
 
@@ -524,8 +525,7 @@
         document.getElementById('cover-input').onchange = async (e) => {
             if (!currentUser || !e.target.files[0]) return;
             try {
-                const snap = await uploadBytes(sRef(storage,`covers/${currentUser.uid}/cover`), e.target.files[0]);
-                const url = await getDownloadURL(snap.ref);
+                const url = await uploadCover(currentUser.uid, e.target.files[0]);
                 const wrap = document.getElementById('cover-wrap');
                 wrap.style.background = 'none';
                 let img = wrap.querySelector('img.cover-img');

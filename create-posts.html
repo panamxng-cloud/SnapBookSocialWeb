@@ -502,7 +502,9 @@
 import { initializeApp }                                    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged }                      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getDatabase, ref, push, get }                      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+// ── Supabase Storage ──
+import { uploadPostImage, uploadPostVideo, uploadShort, uploadPostAudio } from './supabase-config.js';
+import { logNuevaPublicacion } from './sheetdb-config.js';
 
 /* ── CONFIG FIREBASE ── */
 const app  = initializeApp({
@@ -516,7 +518,7 @@ const app  = initializeApp({
 });
 const auth    = getAuth(app);
 const db      = getDatabase(app);
-const storage = getStorage(app);
+// storage ahora es Supabase (supabase-config.js)
 
 /* ── ESTADO ── */
 let usuario    = null;
@@ -875,16 +877,15 @@ btnPub.addEventListener('click', async () => {
         /* — Subir archivo — */
         let mediaUrl = '';
         if (archivo) {
-            const carpeta = tipoArch === 'imagen' ? 'post_images' : tipoArch === 'short' ? 'shorts' : 'post_videos';
             ovLabel.textContent = tipoArch === 'imagen' ? 'Subiendo imagen...' : 'Subiendo video...';
-            const storRef = sRef(storage, `${carpeta}/${Date.now()}_${usuario.uid}`);
-            const task    = uploadBytesResumable(storRef, archivo);
-            await new Promise((res, rej) => {
-                task.on('state_changed',
-                    s => { ovFill.style.width = (s.bytesTransferred/s.totalBytes*100)+'%'; },
-                    rej, res);
-            });
-            mediaUrl = await getDownloadURL(task.snapshot.ref);
+            const onProgress = pct => { ovFill.style.width = pct + '%'; };
+            if (tipoArch === 'imagen') {
+                mediaUrl = await uploadPostImage(usuario.uid, archivo, onProgress);
+            } else if (tipoArch === 'short') {
+                mediaUrl = await uploadShort(usuario.uid, archivo, onProgress);
+            } else {
+                mediaUrl = await uploadPostVideo(usuario.uid, archivo, onProgress);
+            }
         }
 
         ovLabel.textContent = 'Guardando...';
@@ -900,6 +901,7 @@ btnPub.addEventListener('click', async () => {
 
         if (tabActiva === 'short') {
             await push(ref(db, 'shorts'), {...base, videoUrl:mediaUrl, descripcion:textarea.value.trim()});
+            logNuevaPublicacion(usuario.uid, base.autor, 'short', textarea.value.trim(), mediaUrl);
 
         } else if (tabActiva === 'anonimo') {
             const d = {autor:'🎭 Anónimo', avatar:'', uid:'anon_'+Date.now(), timestamp:Date.now(), likes:{}, esAnonimo:true, contenido:textarea.value.trim()};
@@ -923,13 +925,9 @@ btnPub.addEventListener('click', async () => {
 
         } else if (tabActiva === 'voz') {
             ovLabel.textContent = 'Subiendo nota de voz...';
-            const vRef  = sRef(storage, `post_audio/${Date.now()}_${usuario.uid}.webm`);
-            const vTask = uploadBytesResumable(vRef, vozBlob);
-            await new Promise((res,rej) => {
-                vTask.on('state_changed', s => { ovFill.style.width=(s.bytesTransferred/s.totalBytes*100)+'%'; }, rej, res);
-            });
-            const vUrl = await getDownloadURL(vTask.snapshot.ref);
+            const vUrl = await uploadPostAudio(usuario.uid, vozBlob, pct => { ovFill.style.width = pct + '%'; });
             await push(ref(db,'publicaciones'), {...base, contenido:textarea.value.trim(), audioUrl:vUrl, duracionAudio:vozSeg, esVoz:true});
+            logNuevaPublicacion(usuario.uid, base.autor, 'voz', textarea.value.trim(), vUrl);
 
         } else if (tabActiva === 'encuesta') {
             const preg = document.getElementById('enc-pregunta').value.trim();

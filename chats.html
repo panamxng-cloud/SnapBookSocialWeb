@@ -1181,12 +1181,14 @@
 </div>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
     ref, onValue, push, set, get, update, remove, serverTimestamp, query, orderByChild, limitToLast, onChildAdded, off
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+// ── Supabase Storage (reemplaza Firebase Storage) ──
+import { uploadChatMedia, uploadChatAudio } from './supabase-config.js';
+import { logEvento } from './sheetdb-config.js';
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 let currentUser = null;
@@ -2065,8 +2067,7 @@ document.getElementById('attach-img').onchange = async e => {
     const files = Array.from(e.target.files);
     for (let file of files) {
         file = await compressChatImage(file);  // comprimir antes de subir
-        const snap = await uploadBytes(sRef(storage, `chat_media/${activeChatId}/${Date.now()}`), file);
-        const url = await getDownloadURL(snap.ref);
+        const url = await uploadChatMedia(activeChatId, file);
         const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', url, type: 'image', text: '📷 Foto', timestamp: Date.now(), read: false };
         await push(ref(db, `mensajes/${activeChatId}`), msg);
         await updateChatMeta(activeChatId, '📷 Foto', 'image');
@@ -2078,8 +2079,7 @@ document.getElementById('attach-img').onchange = async e => {
 document.getElementById('attach-video').onchange = async e => {
     closeAttachMenu();
     const file = e.target.files[0]; if (!file) return;
-    const snap = await uploadBytes(sRef(storage, `chat_media/${activeChatId}/${Date.now()}`), file);
-    const url = await getDownloadURL(snap.ref);
+    const url = await uploadChatMedia(activeChatId, file);
     const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', url, type: 'video', text: '🎥 Video', timestamp: Date.now(), read: false };
     await push(ref(db, `mensajes/${activeChatId}`), msg);
     await updateChatMeta(activeChatId, '🎥 Video', 'video');
@@ -2090,8 +2090,7 @@ document.getElementById('attach-video').onchange = async e => {
 document.getElementById('attach-file').onchange = async e => {
     closeAttachMenu();
     const file = e.target.files[0]; if (!file) return;
-    const snap = await uploadBytes(sRef(storage, `chat_media/${activeChatId}/${Date.now()}`), file);
-    const url = await getDownloadURL(snap.ref);
+    const url = await uploadChatMedia(activeChatId, file);
     const size = file.size > 1048576 ? (file.size/1048576).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
     const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', url, type: 'file', fileName: file.name, fileSize: size, text: '📎 Archivo', timestamp: Date.now(), read: false };
     await push(ref(db, `mensajes/${activeChatId}`), msg);
@@ -2237,8 +2236,7 @@ window.sendVoice = async function() {
         const blob = new Blob(voiceChunks, { type: 'audio/webm' });
         const dur = `${Math.floor(voiceSeconds/60)}:${(voiceSeconds%60).toString().padStart(2,'0')}`;
         try {
-            const snap = await uploadBytes(sRef(storage, `chat_audio/${activeChatId}/${Date.now()}.webm`), blob);
-            const url = await getDownloadURL(snap.ref);
+            const url = await uploadChatAudio(activeChatId, blob);
             const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', type: 'audio', url, duration: dur, text: '🎤 Audio', timestamp: Date.now(), read: false };
             await push(ref(db, `mensajes/${activeChatId}`), msg);
             await updateChatMeta(activeChatId, '🎤 Audio', 'audio');

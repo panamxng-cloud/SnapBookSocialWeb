@@ -336,7 +336,7 @@
     </div>
 
     <script type="module">
-        import { auth, db, storage } from './firebase-config.js';
+        import { auth, db } from './firebase-config.js';
         import {
             onAuthStateChanged,
             createUserWithEmailAndPassword,
@@ -345,7 +345,9 @@
             signInWithPopup
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { ref as dRef, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        // ── Supabase Storage ──
+        import { uploadAvatar } from './supabase-config.js';
+        import { logNuevoUsuario } from './sheetdb-config.js';
 
         let registrando = false;
         onAuthStateChanged(auth, u => { if (u && !registrando) location.href = 'Home.html'; });
@@ -483,8 +485,7 @@
                 // Subir avatar si seleccionó uno
                 if (avatarFile) {
                     try {
-                        const storageSnap = await uploadBytes(sRef(storage, `avatars/${cred.user.uid}/profile`), avatarFile);
-                        photoURL = await getDownloadURL(storageSnap.ref);
+                        photoURL = await uploadAvatar(cred.user.uid, avatarFile);
                     } catch(e) {
                         console.error('Error subiendo avatar:', e.message);
                     }
