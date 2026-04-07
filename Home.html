@@ -725,6 +725,28 @@ async function supabaseUpload(file, carpeta, onProgress) {
     return urlData.publicUrl;
 }
 
+// Sube video a Cloudinary (25GB gratis)
+async function cloudinaryUpload(file, onProgress) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'snapbook');
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://api.cloudinary.com/v1_1/defhc9kz6/video/upload');
+        if (onProgress) {
+            xhr.upload.onprogress = e => {
+                if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100));
+            };
+        }
+        xhr.onload = () => {
+            if (xhr.status === 200) resolve(JSON.parse(xhr.responseText).secure_url);
+            else reject(new Error('Cloudinary error: ' + xhr.responseText));
+        };
+        xhr.onerror = () => reject(new Error('Error de red al subir video'));
+        xhr.send(formData);
+    });
+}
+
 let currentUser = null;
 let followingSet = new Set();   // UIDs que sigo
 let postsUnsubscribe = null;
@@ -1235,16 +1257,20 @@ window.storyPublish = async function() {
     btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Subiendo...";
     document.getElementById('story-upload-bar').style.display = 'block';
 
+    const onProgress = pct => {
+        document.getElementById('story-upload-fill').style.width = pct + '%';
+        document.getElementById('story-upload-pct').textContent = `Subiendo... ${pct}%`;
+    };
+
     try {
-        // Subir a Supabase Storage
-        const downloadURL = await supabaseUpload(
-            _storyFile,
-            `stories/${currentUser.uid}`,
-            pct => {
-                document.getElementById('story-upload-fill').style.width = pct + '%';
-                document.getElementById('story-upload-pct').textContent = `Subiendo... ${pct}%`;
-            }
-        );
+        let downloadURL;
+        if (_storyType === 'video') {
+            // Videos → Cloudinary (25GB gratis)
+            downloadURL = await cloudinaryUpload(_storyFile, onProgress);
+        } else {
+            // Fotos → Supabase
+            downloadURL = await supabaseUpload(_storyFile, `stories/${currentUser.uid}`, onProgress);
+        }
 
         const data = {
             uid: currentUser.uid,

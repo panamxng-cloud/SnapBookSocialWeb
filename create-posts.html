@@ -503,7 +503,8 @@ import { initializeApp }                                    from "https://www.gs
 import { getAuth, onAuthStateChanged }                      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getDatabase, ref, push, get }                      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 // ── Supabase Storage ──
-import { uploadPostImage, uploadPostVideo, uploadShort, uploadPostAudio } from './supabase-config.js';
+import { uploadPostImage } from './supabase-config.js';
+import { uploadPostVideo, uploadShort, uploadPostAudio } from './cloudinary-config.js';
 import { logNuevaPublicacion } from './sheetdb-config.js';
 
 /* ── CONFIG FIREBASE ── */
