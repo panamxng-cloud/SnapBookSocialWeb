@@ -390,3 +390,26 @@ export async function contarVisitas30Dias(uid) {
   const r = await exec("SELECT COUNT(*) as total FROM visitas_perfil WHERE uid = ? AND timestamp >= ?", [uid, desde]);
   return Number(r[0]?.total ?? 0);
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// REACCIONES Y ELIMINACIÓN DE MENSAJES
+// ═══════════════════════════════════════════════════════════════════
+export async function toggleReaccion(msgId, uid, emoji) {
+  try {
+    const r = await exec("SELECT reactions FROM mensajes WHERE id = ?", [msgId]);
+    if (!r.length) return;
+    const reactions = JSON.parse(r[0].reactions || '{}');
+    if (reactions[uid] === emoji) {
+      delete reactions[uid];
+    } else {
+      reactions[uid] = emoji;
+    }
+    await exec("UPDATE mensajes SET reactions = ? WHERE id = ?", [JSON.stringify(reactions), msgId]);
+  } catch(e) { console.warn('toggleReaccion:', e); }
+}
+
+export async function eliminarMensaje(msgId, uid) {
+  try {
+    await exec("UPDATE mensajes SET eliminado = 1 WHERE id = ? AND sender_uid = ?", [msgId, uid]);
+  } catch(e) { console.warn('eliminarMensaje:', e); }
+}
