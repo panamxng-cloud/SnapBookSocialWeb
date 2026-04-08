@@ -337,34 +337,64 @@ import {
                 animateCount(document.getElementById('stat-following'), fwingSnap.exists() ? Object.values(fwingSnap.val()).filter(Boolean).length : 0);
             } catch(e) {}
 
-            // Cargar publicaciones Y shorts — Turso primero, Firebase fallback
+            // Cargar publicaciones Y shorts — Turso + Firebase combinados sin duplicados
             try {
-                let tursoOk = false;
+                const seenPostIds = new Set();
+                const seenPostFp  = new Set();
+                const seenShortIds = new Set();
+                const seenShortFp  = new Set();
+                const fp = (uid, ts) => `${uid}_${Math.round(Number(ts)/1000)}`;
+
+                // Turso primero
                 try {
                     const [tPosts, tShorts] = await Promise.all([
                         obtenerPostsPorUid(user.uid),
                         obtenerShortsPorUid(user.uid)
                     ]);
-                    tPosts.forEach(p => allPosts.push({
-                        id: p.id, uid: p.uid, autor: p.nombre, avatar: p.avatar,
-                        contenido: p.texto, imagenPost: p.imagen_url,
-                        videoUrl: p.video_url, timestamp: Number(p.timestamp)
-                    }));
-                    tShorts.forEach(s => allShorts.push({
-                        id: s.id, uid: s.uid, autor: s.autor, avatar: s.avatar,
-                        videoUrl: s.video_url, descripcion: s.descripcion, timestamp: Number(s.timestamp)
-                    }));
-                    tursoOk = true;
-                } catch(e) { console.warn('Turso perfil fallback Firebase:', e); }
+                    tPosts.forEach(p => {
+                        const f = fp(p.uid, p.timestamp);
+                        if (seenPostIds.has(p.id) || seenPostFp.has(f)) return;
+                        seenPostIds.add(p.id); seenPostFp.add(f);
+                        allPosts.push({
+                            id: p.id, uid: p.uid, autor: p.nombre, avatar: p.avatar,
+                            contenido: p.texto, imagenPost: p.imagen_url,
+                            videoUrl: p.video_url, timestamp: Number(p.timestamp)
+                        });
+                    });
+                    tShorts.forEach(s => {
+                        const f = fp(s.uid, s.timestamp);
+                        if (seenShortIds.has(s.id) || seenShortFp.has(f)) return;
+                        seenShortIds.add(s.id); seenShortFp.add(f);
+                        allShorts.push({
+                            id: s.id, uid: s.uid, autor: s.autor, avatar: s.avatar,
+                            videoUrl: s.video_url, descripcion: s.descripcion, timestamp: Number(s.timestamp)
+                        });
+                    });
+                } catch(e) { console.warn('Turso perfil error:', e); }
 
-                if (!tursoOk) {
+                // Firebase — agrega los que no están en Turso
+                try {
                     const [postsSnap, shortsSnap] = await Promise.all([
                         get(ref(db, 'publicaciones')),
                         get(ref(db, 'shorts'))
                     ]);
-                    if (postsSnap.exists()) postsSnap.forEach(c => { if (c.val().uid === user.uid) allPosts.push({id: c.key, ...c.val()}); });
-                    if (shortsSnap.exists()) shortsSnap.forEach(c => { if (c.val().uid === user.uid) allShorts.push({id: c.key, ...c.val()}); });
-                }
+                    if (postsSnap.exists()) postsSnap.forEach(c => {
+                        const v = c.val();
+                        if (v.uid !== user.uid) return;
+                        const f = fp(v.uid, v.timestamp);
+                        if (seenPostIds.has(c.key) || seenPostFp.has(f)) return;
+                        seenPostIds.add(c.key); seenPostFp.add(f);
+                        allPosts.push({ id: c.key, ...v });
+                    });
+                    if (shortsSnap.exists()) shortsSnap.forEach(c => {
+                        const v = c.val();
+                        if (v.uid !== user.uid) return;
+                        const f = fp(v.uid, v.timestamp);
+                        if (seenShortIds.has(c.key) || seenShortFp.has(f)) return;
+                        seenShortIds.add(c.key); seenShortFp.add(f);
+                        allShorts.push({ id: c.key, ...v });
+                    });
+                } catch(e) { console.warn('Firebase perfil error:', e); }
 
                 allPosts.sort((a,b)  => (b.timestamp||0) - (a.timestamp||0));
                 allShorts.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));

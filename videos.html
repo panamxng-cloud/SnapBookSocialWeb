@@ -264,38 +264,51 @@ import {
         loadVideos();
     });
 
-    // ── Carga de videos ───────────────────────────────────────────
+    // ── Carga de videos (Firebase + Turso combinados) ─────────────
     async function loadVideos() {
         const feed = document.getElementById('video-feed');
         feed.innerHTML = `<div class="video-item" style="display:flex;align-items:center;justify-content:center;">
             <p style="color:rgba(255,255,255,0.4)">Cargando...</p></div>`;
 
         allVideos = [];
-        let tursoOk = false;
+        const seenIds = new Set();
+        // uid+timestamp redondeado → detecta mismo video con IDs distintos
+        const seenFp  = new Set();
+        const fp = (uid, ts) => `${uid}_${Math.round(Number(ts)/1000)}`;
+
+        // 1. Turso
         try {
             const rows = await obtenerShorts(100);
-            if (rows.length > 0) {
-                rows.forEach(r => allVideos.push({
+            rows.forEach(r => {
+                const f = fp(r.uid, r.timestamp);
+                if (seenIds.has(r.id) || seenFp.has(f)) return;
+                seenIds.add(r.id); seenFp.add(f);
+                allVideos.push({
                     id: r.id, uid: r.uid,
                     autor: r.autor, avatar: r.avatar,
                     videoUrl: r.video_url, descripcion: r.descripcion,
                     timestamp: Number(r.timestamp),
                     totalLikes: Number(r.total_likes || 0)
-                }));
-                tursoOk = true;
+                });
+            });
+        } catch(e) { console.warn('Turso shorts error:', e); }
+
+        // 2. Firebase — agrega los que no están en Turso
+        try {
+            const snap = await get(ref(db, 'shorts'));
+            if (snap.exists()) {
+                snap.forEach(c => {
+                    const v = c.val();
+                    if (!v.videoUrl) return;
+                    const f = fp(v.uid, v.timestamp);
+                    if (seenIds.has(c.key) || seenFp.has(f)) return;
+                    seenIds.add(c.key); seenFp.add(f);
+                    allVideos.push({ id: c.key, ...v });
+                });
             }
-        } catch(e) { console.warn('Turso shorts fallback Firebase:', e); }
+        } catch(e) { console.warn('Firebase shorts error:', e); }
 
-        if (!tursoOk) {
-            try {
-                const snap = await get(ref(db, 'shorts'));
-                if (snap.exists()) {
-                    snap.forEach(c => { const v = c.val(); if (v.videoUrl) allVideos.push({ id: c.key, ...v }); });
-                    allVideos.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                }
-            } catch(e) { console.error(e); }
-        }
-
+        allVideos.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         renderFeed();
     }
 
