@@ -62,52 +62,109 @@ async function batch(statements) {
 
 // ─────────────────────────────────────────────────────────────────
 // INICIALIZAR TABLAS
+// Usa DROP + CREATE para garantizar que el esquema siempre
+// esté actualizado, sin importar versiones anteriores.
 // ─────────────────────────────────────────────────────────────────
 async function initTables() {
+  // 1. Borrar tablas en orden (primero las que dependen de otras)
   await batch([
-    { sql: `CREATE TABLE IF NOT EXISTS usuarios (uid TEXT PRIMARY KEY, nombre TEXT, avatar TEXT, email TEXT, updated_at INTEGER)` },
-    { sql: `CREATE TABLE IF NOT EXISTS mensajes (
-              id INTEGER PRIMARY KEY AUTOINCREMENT, chat_id TEXT NOT NULL, sender_uid TEXT NOT NULL,
-              sender_nombre TEXT, sender_avatar TEXT, texto TEXT, tipo TEXT DEFAULT 'text',
-              media_url TEXT, leido INTEGER DEFAULT 0, eliminado INTEGER DEFAULT 0,
-              forwarded INTEGER DEFAULT 0, reply_to_id INTEGER, reply_nombre TEXT, reply_texto TEXT,
-              reactions TEXT DEFAULT '{}', timestamp INTEGER NOT NULL, firebase_id TEXT UNIQUE)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_msg_chat ON mensajes(chat_id)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_msg_ts   ON mensajes(timestamp)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_msg_uid  ON mensajes(sender_uid)` },
-    { sql: `CREATE TABLE IF NOT EXISTS posts (
-              id TEXT PRIMARY KEY, uid TEXT NOT NULL, nombre TEXT, avatar TEXT, texto TEXT,
-              imagen_url TEXT, video_url TEXT, audio_url TEXT, es_anonimo INTEGER DEFAULT 0,
-              timestamp INTEGER NOT NULL, total_likes INTEGER DEFAULT 0,
-              total_comentarios INTEGER DEFAULT 0, firebase_id TEXT UNIQUE)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_posts_uid ON posts(uid)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_posts_ts  ON posts(timestamp)` },
-    { sql: `CREATE TABLE IF NOT EXISTS likes (post_id TEXT NOT NULL, uid TEXT NOT NULL, PRIMARY KEY (post_id, uid))` },
-    { sql: `CREATE TABLE IF NOT EXISTS comentarios (
-              id TEXT PRIMARY KEY, post_id TEXT NOT NULL, uid TEXT NOT NULL,
-              nombre TEXT, avatar TEXT, texto TEXT, timestamp INTEGER NOT NULL)` },
-    { sql: `CREATE TABLE IF NOT EXISTS shorts (
-              id TEXT PRIMARY KEY, uid TEXT NOT NULL, autor TEXT, avatar TEXT,
-              video_url TEXT NOT NULL, descripcion TEXT, timestamp INTEGER NOT NULL,
-              total_likes INTEGER DEFAULT 0, total_comentarios INTEGER DEFAULT 0, firebase_id TEXT UNIQUE)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_shorts_uid ON shorts(uid)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_shorts_ts  ON shorts(timestamp)` },
-    { sql: `CREATE TABLE IF NOT EXISTS likes_shorts (short_id TEXT NOT NULL, uid TEXT NOT NULL, PRIMARY KEY (short_id, uid))` },
-    { sql: `CREATE TABLE IF NOT EXISTS comentarios_shorts (
-              id TEXT PRIMARY KEY, short_id TEXT NOT NULL, uid TEXT NOT NULL,
-              nombre TEXT, avatar TEXT, texto TEXT, timestamp INTEGER NOT NULL)` },
-    { sql: `CREATE TABLE IF NOT EXISTS historias (
-              id TEXT PRIMARY KEY, uid TEXT NOT NULL, autor TEXT, avatar TEXT,
-              imagen_url TEXT, video_url TEXT, texto_historia TEXT, bg_gradient TEXT,
-              timestamp INTEGER NOT NULL, expira INTEGER NOT NULL)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_historias_uid    ON historias(uid)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_historias_expira ON historias(expira)` },
-    { sql: `CREATE TABLE IF NOT EXISTS seguidores (uid TEXT NOT NULL, seguidor_uid TEXT NOT NULL, timestamp INTEGER NOT NULL, PRIMARY KEY (uid, seguidor_uid))` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_seg_uid      ON seguidores(uid)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_seg_seguidor ON seguidores(seguidor_uid)` },
-    { sql: `CREATE TABLE IF NOT EXISTS visitas_perfil (id INTEGER PRIMARY KEY AUTOINCREMENT, uid TEXT NOT NULL, visitor_uid TEXT NOT NULL, timestamp INTEGER NOT NULL)` },
-    { sql: `CREATE INDEX IF NOT EXISTS idx_vis_uid ON visitas_perfil(uid)` },
+    { sql: `DROP TABLE IF EXISTS visitas_perfil` },
+    { sql: `DROP TABLE IF EXISTS seguidores` },
+    { sql: `DROP TABLE IF EXISTS historias` },
+    { sql: `DROP TABLE IF EXISTS comentarios_shorts` },
+    { sql: `DROP TABLE IF EXISTS likes_shorts` },
+    { sql: `DROP TABLE IF EXISTS shorts` },
+    { sql: `DROP TABLE IF EXISTS comentarios` },
+    { sql: `DROP TABLE IF EXISTS likes` },
+    { sql: `DROP TABLE IF EXISTS posts` },
+    { sql: `DROP TABLE IF EXISTS mensajes` },
+    { sql: `DROP TABLE IF EXISTS usuarios` },
   ]);
+
+  // 2. Crear todas las tablas limpias
+  await batch([
+    { sql: `CREATE TABLE usuarios (
+              uid TEXT PRIMARY KEY, nombre TEXT, avatar TEXT,
+              email TEXT, updated_at INTEGER)` },
+
+    { sql: `CREATE TABLE mensajes (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              chat_id TEXT NOT NULL, sender_uid TEXT NOT NULL,
+              sender_nombre TEXT, sender_avatar TEXT, texto TEXT,
+              tipo TEXT DEFAULT 'text', media_url TEXT,
+              leido INTEGER DEFAULT 0, eliminado INTEGER DEFAULT 0,
+              forwarded INTEGER DEFAULT 0, reply_to_id INTEGER,
+              reply_nombre TEXT, reply_texto TEXT,
+              reactions TEXT DEFAULT '{}',
+              timestamp INTEGER NOT NULL, firebase_id TEXT UNIQUE)` },
+    { sql: `CREATE INDEX idx_msg_chat ON mensajes(chat_id)` },
+    { sql: `CREATE INDEX idx_msg_ts   ON mensajes(timestamp)` },
+    { sql: `CREATE INDEX idx_msg_uid  ON mensajes(sender_uid)` },
+
+    { sql: `CREATE TABLE posts (
+              id TEXT PRIMARY KEY, uid TEXT NOT NULL,
+              nombre TEXT, avatar TEXT, texto TEXT,
+              imagen_url TEXT, video_url TEXT, audio_url TEXT,
+              es_anonimo INTEGER DEFAULT 0,
+              timestamp INTEGER NOT NULL,
+              total_likes INTEGER DEFAULT 0,
+              total_comentarios INTEGER DEFAULT 0,
+              firebase_id TEXT UNIQUE)` },
+    { sql: `CREATE INDEX idx_posts_uid ON posts(uid)` },
+    { sql: `CREATE INDEX idx_posts_ts  ON posts(timestamp)` },
+
+    { sql: `CREATE TABLE likes (
+              post_id TEXT NOT NULL, uid TEXT NOT NULL,
+              PRIMARY KEY (post_id, uid))` },
+
+    { sql: `CREATE TABLE comentarios (
+              id TEXT PRIMARY KEY, post_id TEXT NOT NULL,
+              uid TEXT NOT NULL, nombre TEXT, avatar TEXT,
+              texto TEXT, timestamp INTEGER NOT NULL)` },
+
+    { sql: `CREATE TABLE shorts (
+              id TEXT PRIMARY KEY, uid TEXT NOT NULL,
+              autor TEXT, avatar TEXT,
+              video_url TEXT NOT NULL, descripcion TEXT,
+              timestamp INTEGER NOT NULL,
+              total_likes INTEGER DEFAULT 0,
+              total_comentarios INTEGER DEFAULT 0,
+              firebase_id TEXT UNIQUE)` },
+    { sql: `CREATE INDEX idx_shorts_uid ON shorts(uid)` },
+    { sql: `CREATE INDEX idx_shorts_ts  ON shorts(timestamp)` },
+
+    { sql: `CREATE TABLE likes_shorts (
+              short_id TEXT NOT NULL, uid TEXT NOT NULL,
+              PRIMARY KEY (short_id, uid))` },
+
+    { sql: `CREATE TABLE comentarios_shorts (
+              id TEXT PRIMARY KEY, short_id TEXT NOT NULL,
+              uid TEXT NOT NULL, nombre TEXT, avatar TEXT,
+              texto TEXT, timestamp INTEGER NOT NULL)` },
+
+    { sql: `CREATE TABLE historias (
+              id TEXT PRIMARY KEY, uid TEXT NOT NULL,
+              autor TEXT, avatar TEXT,
+              imagen_url TEXT, video_url TEXT,
+              texto_historia TEXT, bg_gradient TEXT,
+              timestamp INTEGER NOT NULL, expira INTEGER NOT NULL)` },
+    { sql: `CREATE INDEX idx_historias_uid    ON historias(uid)` },
+    { sql: `CREATE INDEX idx_historias_expira ON historias(expira)` },
+
+    { sql: `CREATE TABLE seguidores (
+              uid TEXT NOT NULL, seguidor_uid TEXT NOT NULL,
+              timestamp INTEGER NOT NULL,
+              PRIMARY KEY (uid, seguidor_uid))` },
+    { sql: `CREATE INDEX idx_seg_uid      ON seguidores(uid)` },
+    { sql: `CREATE INDEX idx_seg_seguidor ON seguidores(seguidor_uid)` },
+
+    { sql: `CREATE TABLE visitas_perfil (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              uid TEXT NOT NULL, visitor_uid TEXT NOT NULL,
+              timestamp INTEGER NOT NULL)` },
+    { sql: `CREATE INDEX idx_vis_uid ON visitas_perfil(uid)` },
+  ]);
+
   console.log("✅ Turso: tablas listas");
 }
 initTables().catch(e => console.error("❌ Turso initTables:", e));
@@ -162,59 +219,25 @@ export async function contarNoLeidos(miUid) {
   return Number(r[0]?.total ?? 0);
 }
 
-export async function toggleReaccion(msgId, uid, emoji) {
-  const r = await exec("SELECT reactions FROM mensajes WHERE id = ?", [msgId]);
-  if (!r.length) return;
-  let reacts = {};
-  try { reacts = JSON.parse(r[0].reactions ?? "{}"); } catch (_) {}
-  if (reacts[uid] === emoji) delete reacts[uid]; else reacts[uid] = emoji;
-  await exec("UPDATE mensajes SET reactions = ? WHERE id = ?", [JSON.stringify(reacts), msgId]);
-  return reacts;
-}
-
-export async function eliminarMensaje(msgId, uid) {
-  await exec("UPDATE mensajes SET eliminado = 1 WHERE id = ? AND sender_uid = ?", [msgId, uid]);
-}
-
 // ═══════════════════════════════════════════════════════════════════
 // POSTS
 // ═══════════════════════════════════════════════════════════════════
-
-/**
- * Guarda un post en Turso.
- * Comprueba firebase_id ANTES de insertar para evitar errores
- * de UNIQUE constraint cuando se reintenta una publicación.
- */
 export async function crearPost(user, { texto, imagenUrl = null, videoUrl = null, audioUrl = null, esAnonimo = false, firebaseId = null }) {
-  const uid = user?.uid;
+  const uid  = user?.uid;
   if (!uid) throw new Error("crearPost: user.uid es undefined");
-
-  // El ID en Turso ES el firebaseId — misma clave en ambas bases de datos.
-  // Si no hay firebaseId (caso raro), generamos un UUID como fallback.
-  const id = firebaseId ?? crypto.randomUUID();
-
-  // Deduplicación: INSERT OR IGNORE evita duplicados si se reintenta
+  const id   = firebaseId ?? crypto.randomUUID();
   await exec(
     `INSERT OR IGNORE INTO posts (id, uid, nombre, avatar, texto, imagen_url, video_url, audio_url, es_anonimo, timestamp, firebase_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, uid, user.displayName ?? "Usuario", user.photoURL ?? "",
      texto ?? "", imagenUrl, videoUrl, audioUrl, esAnonimo ? 1 : 0, Date.now(), firebaseId]
   );
-
-  console.log("✅ crearPost guardado con id =", id, "| imagen:", imagenUrl ?? "—", "| video:", videoUrl ?? "—");
+  console.log("✅ crearPost guardado con id =", id);
   return id;
 }
 
-export async function obtenerFeed(uids, limite = 20, beforeTs = null) {
-  if (!uids?.length) return [];
-  const ph = uids.map(() => "?").join(",");
-  const ts = beforeTs ?? Date.now() + 1;
-  return exec(`SELECT * FROM posts WHERE uid IN (${ph}) AND timestamp < ? ORDER BY timestamp DESC LIMIT ?`, [...uids, ts, limite]);
-}
-
-export async function obtenerTodosLosPosts(limite = 50, beforeTs = null) {
-  const ts = beforeTs ?? Date.now() + 1;
-  return exec("SELECT * FROM posts WHERE timestamp < ? ORDER BY timestamp DESC LIMIT ?", [ts, limite]);
+export async function obtenerPosts(limite = 50) {
+  return exec("SELECT * FROM posts ORDER BY timestamp DESC LIMIT ?", [limite]);
 }
 
 export async function obtenerPostsPorUid(uid) {
@@ -222,13 +245,13 @@ export async function obtenerPostsPorUid(uid) {
 }
 
 export async function eliminarPost(postId, uid) {
-  // postId puede ser el firebaseId (que ahora ES el id en Turso)
-  await exec("DELETE FROM posts       WHERE id = ? AND uid = ?", [postId, uid]);
-  await exec("DELETE FROM likes       WHERE post_id = ?",        [postId]);
-  await exec("DELETE FROM comentarios WHERE post_id = ?",        [postId]);
+  const r = await exec("SELECT id FROM posts WHERE id = ? AND uid = ?", [postId, uid]);
+  if (!r.length) return;
+  await exec("DELETE FROM posts WHERE id = ?",       [postId]);
+  await exec("DELETE FROM likes WHERE post_id = ?",  [postId]);
+  await exec("DELETE FROM comentarios WHERE post_id = ?", [postId]);
 }
 
-// Likes de posts
 export async function toggleLike(postId, uid) {
   const existe = await exec("SELECT 1 FROM likes WHERE post_id = ? AND uid = ?", [postId, uid]);
   if (existe.length) {
@@ -249,7 +272,6 @@ export async function misLikes(uid, postIds) {
   return new Set(r.map(row => row.post_id));
 }
 
-// Comentarios de posts
 export async function agregarComentario(postId, user, texto) {
   const id = crypto.randomUUID();
   await exec(
@@ -274,24 +296,15 @@ export async function eliminarComentario(commentId, uid) {
 // ═══════════════════════════════════════════════════════════════════
 // SHORTS
 // ═══════════════════════════════════════════════════════════════════
-
-/**
- * Guarda un short en Turso.
- * Misma estrategia de deduplicación que crearPost.
- */
 export async function crearShort(user, { videoUrl, descripcion = "", firebaseId = null }) {
   const uid = user?.uid;
   if (!uid) throw new Error("crearShort: user.uid es undefined");
-
-  // El ID en Turso ES el firebaseId — misma clave en ambas bases de datos.
   const id = firebaseId ?? crypto.randomUUID();
-
   await exec(
     `INSERT OR IGNORE INTO shorts (id, uid, autor, avatar, video_url, descripcion, timestamp, firebase_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, uid, user.displayName ?? "Usuario", user.photoURL ?? "", videoUrl, descripcion, Date.now(), firebaseId]
   );
-
   console.log("✅ crearShort guardado con id =", id);
   return id;
 }
@@ -307,12 +320,12 @@ export async function obtenerShortsPorUid(uid) {
 export async function toggleLikeShort(shortId, uid) {
   const existe = await exec("SELECT 1 FROM likes_shorts WHERE short_id = ? AND uid = ?", [shortId, uid]);
   if (existe.length) {
-    await exec("DELETE FROM likes_shorts WHERE short_id = ? AND uid = ?",                  [shortId, uid]);
-    await exec("UPDATE shorts SET total_likes = MAX(0, total_likes - 1) WHERE id = ?",     [shortId]);
+    await exec("DELETE FROM likes_shorts WHERE short_id = ? AND uid = ?",               [shortId, uid]);
+    await exec("UPDATE shorts SET total_likes = MAX(0, total_likes - 1) WHERE id = ?",  [shortId]);
     return false;
   } else {
-    await exec("INSERT INTO likes_shorts (short_id, uid) VALUES (?, ?)",   [shortId, uid]);
-    await exec("UPDATE shorts SET total_likes = total_likes + 1 WHERE id = ?",             [shortId]);
+    await exec("INSERT INTO likes_shorts (short_id, uid) VALUES (?, ?)",                [shortId, uid]);
+    await exec("UPDATE shorts SET total_likes = total_likes + 1 WHERE id = ?",          [shortId]);
     return true;
   }
 }
