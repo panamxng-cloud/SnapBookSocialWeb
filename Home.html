@@ -700,6 +700,19 @@ import {
     ref, onValue, get, set, remove, push, query, orderByChild
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+// ── Turso: Posts, Likes, Comentarios ───────────
+import {
+    sincronizarUsuario,
+    crearPost,
+    obtenerFeed,
+    toggleLike as tursoToggleLike,
+    misLikes,
+    agregarComentario,
+    obtenerComentarios,
+    eliminarComentario,
+    eliminarPost
+} from './db.js';
+
 // ── Supabase: Storage de fotos y videos ────────
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 const supabase = createClient(
@@ -1006,78 +1019,99 @@ window.goComments = function(id) { location.href = `comments.html?id=${id}`; };
 
 window.toggleLike = async function(id) {
     if (!currentUser) return;
-    const likeRef = ref(db, `publicaciones/${id}/likes/${currentUser.uid}`);
-    const snap    = await get(likeRef);
-    const btn     = document.getElementById(`like-btn-${id}`);
-    const iconEl  = btn.querySelector('i');
+    const btn    = document.getElementById(`like-btn-${id}`);
+    const iconEl = btn?.querySelector('i');
+    if (!btn) return;
 
-    if (snap.exists()) {
-        await remove(likeRef);
-        btn.classList.remove('liked');
-        iconEl.className = 'fa-regular fa-thumbs-up';
-    } else {
-        await set(likeRef, true);
-        btn.classList.add('liked');
-        iconEl.className = 'fa-solid fa-thumbs-up';
+    // ── Optimistic UI: actualizar antes de la llamada ──
+    const wasLiked = btn.classList.contains('liked');
+    const nowLiked = !wasLiked;
+    btn.classList.toggle('liked', nowLiked);
+    if (iconEl) iconEl.className = `fa-${nowLiked ? 'solid' : 'regular'} fa-thumbs-up`;
 
-        // ── Notificación al dueño del post ──
-        const postSnap = await get(ref(db, `publicaciones/${id}`));
-        if (postSnap.exists()) {
-            const post = postSnap.val();
-            if (post.uid) writeNotif(post.uid, 'like', { postId: id, postImagen: post.imagenPost || '' });
+    try {
+        // ── Turso: toggle like ─────────────────────
+        await tursoToggleLike(id, currentUser.uid);
+
+        if (nowLiked) {
+            // Animación pop
+            if (iconEl) {
+                iconEl.classList.remove('like-anim');
+                void iconEl.offsetWidth;
+                iconEl.classList.add('like-anim');
+                iconEl.addEventListener('animationend', () => iconEl.classList.remove('like-anim'), { once: true });
+            }
+            // Anillo + partículas
+            const ring = document.createElement('div');
+            ring.className = 'like-ring';
+            ring.style.cssText = 'left:50%;top:50%;';
+            btn.appendChild(ring);
+            ring.addEventListener('animationend', () => ring.remove());
+            const colors = ['#1877f2','#ff6584','#ffcc00','#43e97b','#f093fb'];
+            for (let k = 0; k < 6; k++) {
+                const dot = document.createElement('div');
+                dot.className = 'like-dot';
+                const angle = (k / 6) * Math.PI * 2;
+                const dist  = 28 + Math.random() * 14;
+                dot.style.cssText = `left:50%;top:50%;background:${colors[k%colors.length]};--tx:${Math.round(Math.cos(angle)*dist)}px;--ty:${Math.round(Math.sin(angle)*dist)}px;animation-delay:${k*0.03}s;`;
+                btn.appendChild(dot);
+                dot.addEventListener('animationend', () => dot.remove());
+            }
+            // Notif via Firebase
+            const postSnap = await get(ref(db, `publicaciones/${id}`));
+            if (postSnap.exists() && postSnap.val().uid) {
+                writeNotif(postSnap.val().uid, 'like', { postId: id, postImagen: postSnap.val().imagenPost || '' });
+            }
         }
 
-        // ── Animación pop ──
-        iconEl.classList.remove('like-anim');
-        void iconEl.offsetWidth; // reflow
-        iconEl.classList.add('like-anim');
-        iconEl.addEventListener('animationend', () => iconEl.classList.remove('like-anim'), { once: true });
+        // Actualizar conteo con query Turso
+        const { tursoQuery } = await import('./turso-config.js');
+        const res = await tursoQuery('SELECT COUNT(*) as total FROM likes WHERE post_id = ?', [id]);
+        const count = Number(res[0]?.total || 0);
+        const bar = document.getElementById(`likes-count-${id}`);
+        if (bar) bar.innerHTML = count > 0 ? `<div class="like-bubble">👍</div> <span>${count} Me gusta</span>` : '';
 
-        // ── Anillo explosión ──
-        const ring = document.createElement('div');
-        ring.className = 'like-ring';
-        ring.style.cssText = 'left:50%;top:50%;';
-        btn.appendChild(ring);
-        ring.addEventListener('animationend', () => ring.remove());
-
-        // ── Partículas ──
-        const colors = ['#1877f2','#ff6584','#ffcc00','#43e97b','#f093fb'];
-        for (let k = 0; k < 6; k++) {
-            const dot = document.createElement('div');
-            dot.className = 'like-dot';
-            const angle = (k / 6) * Math.PI * 2;
-            const dist  = 28 + Math.random() * 14;
-            dot.style.cssText = `
-                left:50%;top:50%;
-                background:${colors[k % colors.length]};
-                --tx:${Math.round(Math.cos(angle)*dist)}px;
-                --ty:${Math.round(Math.sin(angle)*dist)}px;
-                animation-delay:${k*0.03}s;
-            `;
-            btn.appendChild(dot);
-            dot.addEventListener('animationend', () => dot.remove());
+    } catch (err) {
+        console.warn('Turso like falló, usando Firebase fallback:', err);
+        // Revertir UI y usar Firebase
+        btn.classList.toggle('liked', wasLiked);
+        if (iconEl) iconEl.className = `fa-${wasLiked ? 'solid' : 'regular'} fa-thumbs-up`;
+        const likeRef = ref(db, `publicaciones/${id}/likes/${currentUser.uid}`);
+        const snap = await get(likeRef);
+        if (snap.exists()) await remove(likeRef);
+        else {
+            await set(likeRef, true);
+            const postSnap = await get(ref(db, `publicaciones/${id}`));
+            if (postSnap.exists() && postSnap.val().uid) {
+                writeNotif(postSnap.val().uid, 'like', { postId: id, postImagen: postSnap.val().imagenPost || '' });
+            }
         }
-    }
-
-    // ── Actualizar conteo de likes en stats bar ──
-    const allSnap = await get(ref(db, `publicaciones/${id}/likes`));
-    const count   = allSnap.exists() ? Object.keys(allSnap.val()).length : 0;
-    const bar     = document.getElementById(`likes-count-${id}`);
-    if (bar) {
-        bar.innerHTML = count > 0
-            ? `<div class="like-bubble">👍</div> <span>${count} Me gusta</span>`
-            : '';
+        const allSnap = await get(ref(db, `publicaciones/${id}/likes`));
+        const count = allSnap.exists() ? Object.keys(allSnap.val()).length : 0;
+        const bar = document.getElementById(`likes-count-${id}`);
+        if (bar) bar.innerHTML = count > 0 ? `<div class="like-bubble">👍</div> <span>${count} Me gusta</span>` : '';
     }
 };
 
-// ── Live comment count per post ────────────────
-function watchCommentCount(postId) {
-    onValue(ref(db, `comentarios/${postId}`), (snap) => {
-        const el = document.getElementById(`comments-count-${postId}`);
-        if (!el) return;
-        const n = snap.exists() ? Object.keys(snap.val()).length : 0;
+// ── Comment count per post (Turso) ────────────
+async function watchCommentCount(postId) {
+    const el = document.getElementById(`comments-count-${postId}`);
+    if (!el) return;
+    try {
+        const rows = await obtenerComentarios(postId, 1);
+        // Solo necesitamos el conteo, usamos total_comentarios del feed si está
+        const card = document.querySelector(`.post-card[data-id="${postId}"]`);
+        // Query ligera: solo contar
+        const { tursoQuery } = await import('./turso-config.js');
+        const res = await tursoQuery('SELECT COUNT(*) as n FROM comentarios WHERE post_id = ?', [postId]);
+        const n = Number(res[0]?.n || 0);
         el.textContent = n > 0 ? `${n} comentario${n !== 1 ? 's' : ''}` : 'Ver comentarios';
-    });
+    } catch {
+        onValue(ref(db, `comentarios/${postId}`), (snap) => {
+            const n = snap.exists() ? Object.keys(snap.val()).length : 0;
+            el.textContent = n > 0 ? `${n} comentario${n !== 1 ? 's' : ''}` : 'Ver comentarios';
+        });
+    }
 }
 
 window.votarEncuesta = async function(postId, idx, el) {
@@ -1313,7 +1347,6 @@ window.storyPublishText = async function() {
 };
 
 window.openCommentSheet = async function(postId) {
-    // Crear overlay
     const overlay = document.createElement('div');
     overlay.className = 'comment-sheet-overlay';
     overlay.innerHTML = `
@@ -1326,7 +1359,7 @@ window.openCommentSheet = async function(postId) {
                 </button>
             </div>
             <div class="comment-sheet-list" id="cs-list-${postId}">
-                <div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>
+                <div class="cs-empty"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:20px;margin-bottom:8px;display:block;"></i>Cargando...</div>
             </div>
             <div class="comment-sheet-input-row">
                 <img class="cs-input-avatar" src="${currentUser.photoURL||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
@@ -1339,37 +1372,58 @@ window.openCommentSheet = async function(postId) {
     `;
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
-
-    // Foco en input
     setTimeout(() => document.getElementById(`cs-input-${postId}`)?.focus(), 300);
-
-    // Enviar con Enter
     document.getElementById(`cs-input-${postId}`)?.addEventListener('keydown', e => {
         if (e.key === 'Enter') sendSheetComment(postId);
     });
 
-    // Cargar comentarios en tiempo real
-    const listEl = document.getElementById(`cs-list-${postId}`);
-    onValue(ref(db, `comentarios/${postId}`), (snap) => {
-        if (!snap.exists()) {
-            listEl.innerHTML = `<div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>`;
-            return;
-        }
-        const comments = [];
-        snap.forEach(c => comments.push(c.val()));
-        comments.sort((a,b) => a.timestamp - b.timestamp);
-        listEl.innerHTML = comments.map(c => `
-            <div class="cs-comment">
-                <img class="cs-avatar" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
-                <div class="cs-bubble">
-                    <div class="cs-author">${c.autor||'Usuario'}</div>
-                    <div class="cs-text">${c.texto}</div>
-                    <div class="cs-time">${timeAgo(c.timestamp)}</div>
+    // ── Cargar comentarios desde Turso ─────────
+    async function renderComments() {
+        const listEl = document.getElementById(`cs-list-${postId}`);
+        if (!listEl) return;
+        try {
+            const comments = await obtenerComentarios(postId, 100);
+            if (!comments.length) {
+                listEl.innerHTML = `<div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>`;
+                return;
+            }
+            listEl.innerHTML = comments.map(c => `
+                <div class="cs-comment" data-cid="${c.id}">
+                    <img class="cs-avatar" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+                    <div class="cs-bubble">
+                        <div class="cs-author">${c.nombre||'Usuario'}</div>
+                        <div class="cs-text">${c.texto}</div>
+                        <div class="cs-time">${timeAgo(Number(c.timestamp))}</div>
+                        ${c.uid === currentUser.uid ? `<div class="cs-del" onclick="deleteSheetComment('${postId}','${c.id}')"><i class="fa-solid fa-trash"></i></div>` : ''}
+                    </div>
                 </div>
-            </div>
-        `).join('');
-        listEl.scrollTop = listEl.scrollHeight;
-    });
+            `).join('');
+            listEl.scrollTop = listEl.scrollHeight;
+        } catch {
+            // Fallback Firebase
+            onValue(ref(db, `comentarios/${postId}`), (snap) => {
+                if (!snap.exists()) { listEl.innerHTML = `<div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>`; return; }
+                const arr = [];
+                snap.forEach(c => arr.push(c.val()));
+                arr.sort((a,b)=>a.timestamp-b.timestamp);
+                listEl.innerHTML = arr.map(c=>`<div class="cs-comment"><img class="cs-avatar" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'"><div class="cs-bubble"><div class="cs-author">${c.autor||'Usuario'}</div><div class="cs-text">${c.texto}</div><div class="cs-time">${timeAgo(c.timestamp)}</div></div></div>`).join('');
+                listEl.scrollTop = listEl.scrollHeight;
+            });
+        }
+    }
+    renderComments();
+    // Guardar función de refresh en el overlay para usarla al enviar
+    overlay._refreshComments = renderComments;
+};
+
+window.deleteSheetComment = async function(postId, commentId) {
+    if (!confirm('¿Eliminar comentario?')) return;
+    try {
+        await eliminarComentario(commentId, currentUser.uid);
+        document.querySelector(`.cs-comment[data-cid="${commentId}"]`)?.remove();
+        watchCommentCount(postId);
+        showToast('Comentario eliminado');
+    } catch(e) { showToast('Error al eliminar'); }
 };
 
 window.sendSheetComment = async function(postId) {
@@ -1377,18 +1431,27 @@ window.sendSheetComment = async function(postId) {
     const txt = inp?.value.trim();
     if (!txt || !currentUser) return;
     inp.value = '';
-    await push(ref(db, `comentarios/${postId}`), {
-        autor: currentUser.displayName || 'Usuario',
-        avatar: currentUser.photoURL || '',
-        uid: currentUser.uid,
-        texto: txt,
-        timestamp: Date.now()
-    });
-    // ── Notificación al dueño del post ──
+    try {
+        // ── Turso: guardar comentario ──────────────
+        await agregarComentario(postId, currentUser, txt);
+        // Refrescar lista
+        const overlay = document.querySelector('.comment-sheet-overlay');
+        if (overlay?._refreshComments) await overlay._refreshComments();
+        watchCommentCount(postId);
+    } catch {
+        // Fallback Firebase
+        await push(ref(db, `comentarios/${postId}`), {
+            autor: currentUser.displayName || 'Usuario',
+            avatar: currentUser.photoURL || '',
+            uid: currentUser.uid,
+            texto: txt,
+            timestamp: Date.now()
+        });
+    }
+    // Notificación via Firebase (siempre)
     const postSnap = await get(ref(db, `publicaciones/${postId}`));
-    if (postSnap.exists()) {
-        const post = postSnap.val();
-        if (post.uid) writeNotif(post.uid, 'comment', { postId, comentario: txt, postImagen: post.imagenPost || '' });
+    if (postSnap.exists() && postSnap.val().uid) {
+        writeNotif(postSnap.val().uid, 'comment', { postId, comentario: txt, postImagen: postSnap.val().imagenPost || '' });
     }
 };
 
@@ -1398,14 +1461,18 @@ window.quickComment = async function(e, postId) {
     const txt = inp.value.trim();
     if (!txt || !currentUser) return;
     inp.value = '';
-    await push(ref(db, `comentarios/${postId}`), {
-        autor: currentUser.displayName || 'Usuario',
-        avatar: currentUser.photoURL || '',
-        uid: currentUser.uid,
-        texto: txt,
-        timestamp: Date.now()
-    });
-    // Notificación
+    try {
+        await agregarComentario(postId, currentUser, txt);
+        watchCommentCount(postId);
+    } catch {
+        await push(ref(db, `comentarios/${postId}`), {
+            autor: currentUser.displayName || 'Usuario',
+            avatar: currentUser.photoURL || '',
+            uid: currentUser.uid,
+            texto: txt,
+            timestamp: Date.now()
+        });
+    }
     const qSnap = await get(ref(db, `publicaciones/${postId}`));
     if (qSnap.exists() && qSnap.val().uid) writeNotif(qSnap.val().uid, 'comment', { postId, comentario: txt });
     showToast('💬 Comentario publicado');
@@ -1431,7 +1498,11 @@ window.postMenu = function(id, uid) {
 };
 
 window.deletePost = async function(id) {
-    await remove(ref(db, `publicaciones/${id}`));
+    try {
+        await eliminarPost(id, currentUser.uid);
+    } catch {
+        await remove(ref(db, `publicaciones/${id}`));
+    }
     document.querySelector(`.post-card[data-id="${id}"]`)?.remove();
     showToast('🗑️ Publicación eliminada');
 };
@@ -1720,48 +1791,33 @@ window.writeNotif = async function(toUid, tipo, extra = {}) {
     await push(ref(db, `notificaciones/${toUid}`), n);
 };
 
-async function loadFeed() {
+// ── Paginación del feed ────────────────────────
+let feedLastTs = Date.now();
+let feedLoading = false;
+let feedDone = false;
+
+async function loadFeed(append = false) {
+    if (feedLoading || feedDone) return;
+    feedLoading = true;
     const feed = document.getElementById('feed');
 
-    // Load my "siguiendo" list
+    // Cargar lista de seguidos desde Firebase
     const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
     followingSet = new Set();
     if (sigSnap.exists()) {
         Object.keys(sigSnap.val()).forEach(uid => followingSet.add(uid));
     }
-    // always show own posts
     followingSet.add(currentUser.uid);
 
-    // Load my likes
-    let myLikes = {};
-    const likesSnap = await get(ref(db, `publicaciones`));
-    // We'll resolve per-post below
+    try {
+        // ── Turso: cargar posts paginados ──────────
+        const uids = Array.from(followingSet);
+        const posts = await obtenerFeed(uids, 20, feedLastTs);
 
-    // Listen for posts
-    const postsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'));
-    onValue(postsRef, (snap) => {
         removeSkeletons();
-        // Collect posts
-        const allPosts = [];
-        snap.forEach(child => {
-            allPosts.push({ id: child.key, ...child.val() });
-        });
+        if (!append) feed.querySelectorAll('.post-card').forEach(c => c.remove());
 
-        // Filter: show own posts + posts from people I follow
-        // Anonymous posts: show from everyone (social feature)
-        const filtered = allPosts.filter(p => {
-            if (p.esAnonimo) return true;
-            return followingSet.has(p.uid);
-        });
-
-        // Reverse for newest first
-        filtered.reverse();
-
-        // Re-render
-        // Remove existing post cards
-        feed.querySelectorAll('.post-card').forEach(c => c.remove());
-
-        if (filtered.length === 0) {
+        if (posts.length === 0 && !append) {
             const empty = document.createElement('div');
             empty.className = 'empty-state';
             empty.innerHTML = `
@@ -1770,18 +1826,82 @@ async function loadFeed() {
                 <p>Cuando sigas a usuarios, sus publicaciones aparecerán aquí.</p>
             `;
             feed.appendChild(empty);
+            feedDone = true;
+            feedLoading = false;
             return;
         }
 
-        // Remove empty state if any
+        if (posts.length < 20) feedDone = true;
+
         feed.querySelector('.empty-state')?.remove();
 
-        filtered.forEach(p => {
-            const card = buildPost(p.id, p, p.likes);
+        // Obtener mis likes de estos posts de una vez (eficiente)
+        const postIds = posts.map(p => p.id);
+        const likedSet = await misLikes(currentUser.uid, postIds);
+
+        posts.forEach(p => {
+            // Adaptar estructura Turso → buildPost espera formato Firebase
+            const postData = {
+                uid:        p.uid,
+                autor:      p.nombre,
+                avatar:     p.avatar,
+                contenido:  p.texto,
+                imagenPost: p.imagen_url,
+                videoUrl:   p.video_url,
+                esAnonimo:  p.es_anonimo == 1,
+                timestamp:  Number(p.timestamp),
+                // likes como objeto { uid: true } para compatibilidad con buildPost
+                likes: likedSet.has(p.id) ? { [currentUser.uid]: true } : {},
+                _tursoLikes: Number(p.total_likes || 0),
+                _tursoComments: Number(p.total_comentarios || 0)
+            };
+            const card = buildPost(p.id, postData, postData.likes);
+            // Actualizar conteo desde Turso directamente
+            const likesEl = document.getElementById(`likes-count-${p.id}`);
+            if (likesEl && postData._tursoLikes > 0) {
+                likesEl.innerHTML = `<div class="like-bubble">👍</div> <span>${postData._tursoLikes} Me gusta</span>`;
+            }
+            const commEl = document.getElementById(`comments-count-${p.id}`);
+            if (commEl && postData._tursoComments > 0) {
+                commEl.textContent = `${postData._tursoComments} comentario${postData._tursoComments !== 1 ? 's' : ''}`;
+            }
             feed.appendChild(card);
-            watchCommentCount(p.id);
         });
-    });
+
+        if (posts.length > 0) feedLastTs = Number(posts[posts.length - 1].timestamp);
+
+        // Scroll infinito: detectar cuando llega al final
+        if (!append) setupInfiniteScroll();
+
+    } catch (err) {
+        console.error('Turso feed error:', err);
+        // ── Fallback a Firebase si Turso falla ────
+        console.warn('⚠️ Turso no disponible, usando Firebase como fallback');
+        const postsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'));
+        onValue(postsRef, (snap) => {
+            removeSkeletons();
+            const allPosts = [];
+            snap.forEach(child => allPosts.push({ id: child.key, ...child.val() }));
+            const filtered = allPosts.filter(p => p.esAnonimo || followingSet.has(p.uid)).reverse();
+            feed.querySelectorAll('.post-card').forEach(c => c.remove());
+            filtered.forEach(p => { feed.appendChild(buildPost(p.id, p, p.likes)); watchCommentCount(p.id); });
+        });
+    }
+
+    feedLoading = false;
+}
+
+function setupInfiniteScroll() {
+    // Evitar múltiples listeners
+    window.removeEventListener('scroll', _onFeedScroll);
+    window.addEventListener('scroll', _onFeedScroll, { passive: true });
+}
+
+function _onFeedScroll() {
+    if (feedDone || feedLoading) return;
+    const scrolled = window.scrollY + window.innerHeight;
+    const total = document.body.scrollHeight;
+    if (scrolled >= total - 300) loadFeed(true);
 }
 
 // ── Stories ────────────────────────────────────
@@ -1791,11 +1911,13 @@ async function loadStories() {
 }
 
 // ── Auth ───────────────────────────────────────
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (!user) { location.href = 'index.html'; return; }
     currentUser = user;
 
-    // Set avatar in compose box
+    // Sync user profile to Turso
+    try { await sincronizarUsuario(user); } catch(e) { console.warn('Turso sync:', e); }
+
     document.getElementById('compose-avatar').src = user.photoURL || 'default-avatar.png';
 
     loadFeed();

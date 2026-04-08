@@ -506,6 +506,7 @@ import { getDatabase, ref, push, get }                      from "https://www.gs
 import { uploadPostImage } from './supabase-config.js';
 import { uploadPostVideo, uploadShort, uploadPostAudio } from './cloudinary-config.js';
 import { logNuevaPublicacion } from './sheetdb-config.js';
+import { crearPost } from './db.js';
 
 /* ── CONFIG FIREBASE ── */
 const app  = initializeApp({
@@ -909,6 +910,11 @@ btnPub.addEventListener('click', async () => {
             if (mediaUrl && tipoArch==='imagen') d.imagenPost = mediaUrl;
             if (mediaUrl && tipoArch==='video')  d.videoUrl   = mediaUrl;
             await push(ref(db, 'publicaciones'), d);
+            // Guardar en Turso
+            await crearPost({ uid: d.uid, displayName: '🎭 Anónimo', photoURL: '' }, {
+                texto: d.contenido, imagenUrl: d.imagenPost || null,
+                videoUrl: d.videoUrl || null, esAnonimo: true
+            });
 
         } else if (tabActiva === 'momento') {
             const d = {...base, contenido:textarea.value.trim(), esMomento:true};
@@ -916,6 +922,11 @@ btnPub.addEventListener('click', async () => {
             if (mediaUrl && tipoArch==='imagen') d.imagenPost = mediaUrl;
             if (mediaUrl && tipoArch==='video')  d.videoUrl   = mediaUrl;
             await push(ref(db, 'publicaciones'), d);
+            // Guardar en Turso
+            await crearPost(usuario, {
+                texto: d.contenido, imagenUrl: d.imagenPost || null,
+                videoUrl: d.videoUrl || null, esAnonimo: false
+            });
 
         } else if (tabActiva === 'futuro') {
             await push(ref(db, `cartasFuturo/${usuario.uid}`), {
@@ -929,12 +940,18 @@ btnPub.addEventListener('click', async () => {
             const vUrl = await uploadPostAudio(usuario.uid, vozBlob, pct => { ovFill.style.width = pct + '%'; });
             await push(ref(db,'publicaciones'), {...base, contenido:textarea.value.trim(), audioUrl:vUrl, duracionAudio:vozSeg, esVoz:true});
             logNuevaPublicacion(usuario.uid, base.autor, 'voz', textarea.value.trim(), vUrl);
+            // Guardar en Turso
+            await crearPost(usuario, {
+                texto: textarea.value.trim(), audioUrl: vUrl, esAnonimo: false
+            });
 
         } else if (tabActiva === 'encuesta') {
             const preg = document.getElementById('enc-pregunta').value.trim();
             const dur  = parseInt(document.getElementById('enc-dur').value);
             const opts = [...document.querySelectorAll('.opcion-input')].map(i=>i.value.trim()).filter(v=>v).map(texto=>({texto,votos:{}}));
             await push(ref(db,'publicaciones'), {...base, esEncuesta:true, pregunta:preg, opciones:opts, expiraEn:Date.now()+dur*86400000});
+            // Guardar en Turso (texto de la pregunta como contenido)
+            await crearPost(usuario, { texto: preg, esAnonimo: false });
 
         } else {
             /* publicación normal */
@@ -946,6 +963,11 @@ btnPub.addEventListener('click', async () => {
             if (mediaUrl && tipoArch==='video') {
                 await push(ref(db,'videos'), {...base, videoUrl:mediaUrl, descripcion:textarea.value.trim()});
             }
+            // Guardar en Turso
+            await crearPost(usuario, {
+                texto: d.contenido, imagenUrl: d.imagenPost || null,
+                videoUrl: d.videoUrl || null, esAnonimo: false
+            });
         }
 
         ovFill.style.width = '100%';

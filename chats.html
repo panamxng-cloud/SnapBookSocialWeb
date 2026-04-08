@@ -1189,6 +1189,16 @@ import {
 // ── Supabase Storage (reemplaza Firebase Storage) ──
 import { uploadChatMedia, uploadChatAudio } from './cloudinary-config.js';
 import { logEvento } from './sheetdb-config.js';
+// ── Turso: historial de mensajes persistente ───
+import {
+    sincronizarUsuario,
+    enviarMensaje as tursoEnviarMensaje,
+    obtenerMensajes as tursoObtenerMensajes,
+    marcarLeidos as tursoMarcarLeidos,
+    contarNoLeidos as tursoContarNoLeidos,
+    toggleReaccion as tursoToggleReaccion,
+    eliminarMensaje as tursoEliminarMensaje
+} from './db.js';
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 let currentUser = null;
@@ -1218,6 +1228,8 @@ const EMOJIS = ['😀','😂','😍','🥰','😎','🤔','😢','😭','😡','
 onAuthStateChanged(auth, async u => {
     if (!u) { location.href = 'index.html'; return; }
     currentUser = u;
+    // Sync to Turso
+    try { await sincronizarUsuario(u); } catch(e) { console.warn('Turso sync:', e); }
     initEmojis();
     await loadMyFollowing();
     loadAllUsers();
@@ -1811,37 +1823,74 @@ function closeChatView() {
 document.getElementById('cv-back').onclick = closeChatView;
 
 // ── MESSAGES ───────────────────────────────────────────────────────────────
-function loadMessages(chatId) {
+// Ids de mensajes ya renderizados (evitar duplicados entre Turso + Firebase)
+const _renderedMsgIds = new Set();
+
+function _appendMsg(msg, container) {
+    if (_renderedMsgIds.has(msg.id)) return;
+    _renderedMsgIds.add(msg.id);
+    const d = new Date(msg.timestamp);
+    const dateStr = d.toLocaleDateString('es', { day: 'numeric', month: 'long' });
+    // Insertar separador de fecha si cambió
+    const lastDivider = container.querySelector('.date-divider:last-of-type');
+    if (!lastDivider || lastDivider.dataset.date !== dateStr) {
+        const div = document.createElement('div');
+        div.className = 'date-divider';
+        div.dataset.date = dateStr;
+        div.innerHTML = `<span>${dateStr}</span>`;
+        container.appendChild(div);
+    }
+    // Consecutivo si el anterior es del mismo sender
+    const lastRow = container.querySelector('.msg-row:last-of-type');
+    const consecutive = lastRow?.dataset.sender === msg.senderUid;
+    renderMessage(msg, container, consecutive);
+    if (lastRow) lastRow.dataset.sender = lastRow.dataset.sender || msg.senderUid;
+    container.lastElementChild.dataset.sender = msg.senderUid;
+}
+
+async function loadMessages(chatId) {
     const container = document.getElementById('cv-messages');
     container.innerHTML = '';
-    if (msgsUnsubscribe) off(ref(db, `mensajes/${activeChatId}`));
+    _renderedMsgIds.clear();
+    if (msgsUnsubscribe) { off(ref(db, `mensajes/${activeChatId}`)); msgsUnsubscribe = null; }
 
-    const msgsRef = query(ref(db, `mensajes/${chatId}`), orderByChild('timestamp'), limitToLast(60));
-    let prevDate = null;
-    let prevSender = null;
+    // ── 1. Cargar historial desde Turso (persistente) ──
+    try {
+        const history = await tursoObtenerMensajes(chatId, 60);
+        history.forEach(m => {
+            // Normalizar campo: Turso usa texto/tipo, Firebase usa text/type
+            const msg = {
+                id:           m.id,
+                senderUid:    m.sender_uid,
+                senderName:   m.sender_nombre,
+                senderAvatar: m.sender_avatar,
+                text:         m.texto,
+                type:         m.tipo || 'text',
+                url:          m.media_url,
+                timestamp:    Number(m.timestamp),
+                read:         m.leido == 1,
+                forwarded:    m.forwarded == 1,
+                replyTo:      m.reply_to_id ? { senderName: m.reply_nombre || '', text: m.reply_texto || '' } : null
+            };
+            _appendMsg(msg, container);
+        });
+        container.scrollTop = container.scrollHeight;
+    } catch(e) {
+        console.warn('Turso historial error, cargando de Firebase:', e);
+    }
 
+    // ── 2. Escuchar mensajes nuevos en Firebase (realtime) ──
+    // limitToLast(1) = solo mensajes nuevos que lleguen después del historial
+    const msgsRef = query(ref(db, `mensajes/${chatId}`), orderByChild('timestamp'), limitToLast(30));
     onValue(msgsRef, snap => {
-        container.innerHTML = '';
-        prevDate = null; prevSender = null;
         if (!snap.exists()) return;
         snap.forEach(c => {
             const msg = { id: c.key, ...c.val() };
-            const d = new Date(msg.timestamp);
-            const dateStr = d.toLocaleDateString('es', { day:'numeric', month:'long' });
-            if (dateStr !== prevDate) {
-                const div = document.createElement('div');
-                div.className = 'date-divider';
-                div.innerHTML = `<span>${dateStr}</span>`;
-                container.appendChild(div);
-                prevDate = dateStr;
-                prevSender = null;
-            }
-            const consecutive = msg.senderUid === prevSender;
-            renderMessage(msg, container, consecutive);
-            prevSender = msg.senderUid;
+            _appendMsg(msg, container);
         });
         container.scrollTop = container.scrollHeight;
     });
+    msgsUnsubscribe = msgsRef;
 }
 
 function renderMessage(msg, container, consecutive) {
@@ -1931,7 +1980,6 @@ function renderMessage(msg, container, consecutive) {
 // ── SEND MESSAGE ───────────────────────────────────────────────────────────
 async function sendTextMessage(text) {
     if (!text.trim() || !activeChatId) return;
-    // Verificar seguimiento en chats privados: si no sigo al otro, envío solicitud
     if (activeChatData && !activeChatData.isGroup) {
         const otherUid = Object.keys(activeChatData.participants||{}).find(u => u !== currentUser.uid);
         if (otherUid && !iFollow(otherUid)) {
@@ -1940,17 +1988,30 @@ async function sendTextMessage(text) {
         }
     }
     const msgData = {
-        senderUid: currentUser.uid,
-        senderName: currentUser.displayName || 'Usuario',
+        senderUid:    currentUser.uid,
+        senderName:   currentUser.displayName || 'Usuario',
         senderAvatar: currentUser.photoURL || '',
-        text: text.trim(),
-        type: 'text',
-        timestamp: Date.now(),
-        read: false
+        text:         text.trim(),
+        type:         'text',
+        timestamp:    Date.now(),
+        read:         false
     };
     if (replyingTo) {
         msgData.replyTo = { senderName: replyingTo.senderName, text: replyingTo.text || replyingTo.type };
     }
+
+    // ── Turso: persistir mensaje (historial) ──────
+    try {
+        await tursoEnviarMensaje(activeChatId, currentUser, {
+            texto:     text.trim(),
+            tipo:      'text',
+            replyToId: replyingTo?.id || null
+        });
+    } catch(e) {
+        console.warn('Turso enviarMensaje error:', e);
+    }
+
+    // ── Firebase: entrega en tiempo real (siempre) ─
     await push(ref(db, `mensajes/${activeChatId}`), msgData);
     await updateChatMeta(activeChatId, text.trim(), 'text');
     cancelReply();
@@ -1975,6 +2036,8 @@ async function updateChatMeta(chatId, lastMsg, type) {
 
 async function markRead(chatId) {
     await update(ref(db, `chats/${chatId}`), { [`unread/${currentUser.uid}`]: 0 });
+    // Turso: marcar como leídos en historial
+    try { await tursoMarcarLeidos(chatId, currentUser.uid); } catch(e) {}
 }
 
 // ── TYPING ─────────────────────────────────────────────────────────────────
@@ -2062,15 +2125,23 @@ function compressChatImage(file, maxWidth = 1080, quality = 0.80) {
     });
 }
 
+// Helper: enviar media a Turso + Firebase
+async function _sendMediaMsg(url, tipo, texto, extra = {}) {
+    try {
+        await tursoEnviarMensaje(activeChatId, currentUser, { mediaUrl: url, tipo, texto });
+    } catch(e) { console.warn('Turso media persist error:', e); }
+    const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', url, type: tipo, text: texto, timestamp: Date.now(), read: false, ...extra };
+    await push(ref(db, `mensajes/${activeChatId}`), msg);
+    await updateChatMeta(activeChatId, texto, tipo);
+}
+
 document.getElementById('attach-img').onchange = async e => {
     closeAttachMenu();
     const files = Array.from(e.target.files);
     for (let file of files) {
-        file = await compressChatImage(file);  // comprimir antes de subir
+        file = await compressChatImage(file);
         const url = await uploadChatMedia(activeChatId, file);
-        const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', url, type: 'image', text: '📷 Foto', timestamp: Date.now(), read: false };
-        await push(ref(db, `mensajes/${activeChatId}`), msg);
-        await updateChatMeta(activeChatId, '📷 Foto', 'image');
+        await _sendMediaMsg(url, 'image', '📷 Foto');
     }
     e.target.value = '';
 };
@@ -2080,9 +2151,7 @@ document.getElementById('attach-video').onchange = async e => {
     closeAttachMenu();
     const file = e.target.files[0]; if (!file) return;
     const url = await uploadChatMedia(activeChatId, file);
-    const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', url, type: 'video', text: '🎥 Video', timestamp: Date.now(), read: false };
-    await push(ref(db, `mensajes/${activeChatId}`), msg);
-    await updateChatMeta(activeChatId, '🎥 Video', 'video');
+    await _sendMediaMsg(url, 'video', '🎥 Video');
     e.target.value = '';
 };
 
@@ -2092,9 +2161,7 @@ document.getElementById('attach-file').onchange = async e => {
     const file = e.target.files[0]; if (!file) return;
     const url = await uploadChatMedia(activeChatId, file);
     const size = file.size > 1048576 ? (file.size/1048576).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
-    const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', url, type: 'file', fileName: file.name, fileSize: size, text: '📎 Archivo', timestamp: Date.now(), read: false };
-    await push(ref(db, `mensajes/${activeChatId}`), msg);
-    await updateChatMeta(activeChatId, '📎 '+file.name, 'file');
+    await _sendMediaMsg(url, 'file', '📎 Archivo', { fileName: file.name, fileSize: size });
     e.target.value = '';
 };
 
