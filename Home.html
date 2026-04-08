@@ -1815,17 +1815,18 @@ window.writeNotif = async function(toUid, tipo, extra = {}) {
     await push(ref(db, `notificaciones/${toUid}`), n);
 };
 
-// ── Paginación del feed ────────────────────────
-let feedLastTs = Date.now();
+// ── Feed (Firebase + Turso combinados) ────────
 let feedLoading = false;
 let feedDone = false;
+let feedLastTs = Date.now();
+const feedPostIds = new Set(); // evitar duplicados entre fuentes
 
 async function loadFeed(append = false) {
     if (feedLoading || feedDone) return;
     feedLoading = true;
     const feed = document.getElementById('feed');
 
-    // Cargar lista de seguidos desde Firebase
+    // Cargar seguidos desde Firebase
     const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
     followingSet = new Set();
     if (sigSnap.exists()) {
@@ -1833,91 +1834,110 @@ async function loadFeed(append = false) {
     }
     followingSet.add(currentUser.uid);
 
-    try {
-        if (!tursoDisponible) throw new Error('Turso no disponible');
-        // ── Turso: cargar posts paginados ──────────
-        const uids = Array.from(followingSet);
-        const posts = await obtenerFeed(uids, 20, feedLastTs);
-
-        removeSkeletons();
-        if (!append) feed.querySelectorAll('.post-card').forEach(c => c.remove());
-
-        if (posts.length === 0 && !append) {
-            const empty = document.createElement('div');
-            empty.className = 'empty-state';
-            empty.innerHTML = `
-                <i class="fa-solid fa-users"></i>
-                <h3>Sigue a alguien para ver posts</h3>
-                <p>Cuando sigas a usuarios, sus publicaciones aparecerán aquí.</p>
-            `;
-            feed.appendChild(empty);
-            feedDone = true;
-            feedLoading = false;
-            return;
-        }
-
-        if (posts.length < 20) feedDone = true;
-
+    if (!append) {
+        feedPostIds.clear();
+        feed.querySelectorAll('.post-card').forEach(c => c.remove());
         feed.querySelector('.empty-state')?.remove();
+    }
 
-        // Obtener mis likes de estos posts de una vez (eficiente)
-        const postIds = posts.map(p => p.id);
-        const likedSet = await misLikes(currentUser.uid, postIds);
+    // ── 1. Cargar desde Turso ──────────────────
+    let tursoPostIds = [];
+    if (tursoDisponible) {
+        try {
+            const uids = Array.from(followingSet);
+            const posts = await obtenerFeed(uids, 20, feedLastTs);
 
-        posts.forEach(p => {
-            // Adaptar estructura Turso → buildPost espera formato Firebase
-            const postData = {
-                uid:        p.uid,
-                autor:      p.nombre,
-                avatar:     p.avatar,
-                contenido:  p.texto,
-                imagenPost: p.imagen_url,
-                videoUrl:   p.video_url,
-                esAnonimo:  p.es_anonimo == 1,
-                timestamp:  Number(p.timestamp),
-                // likes como objeto { uid: true } para compatibilidad con buildPost
-                likes: likedSet.has(p.id) ? { [currentUser.uid]: true } : {},
-                _tursoLikes: Number(p.total_likes || 0),
-                _tursoComments: Number(p.total_comentarios || 0)
-            };
-            const card = buildPost(p.id, postData, postData.likes);
-            // Actualizar conteo desde Turso directamente
-            const likesEl = document.getElementById(`likes-count-${p.id}`);
-            if (likesEl && postData._tursoLikes > 0) {
-                likesEl.innerHTML = `<div class="like-bubble">👍</div> <span>${postData._tursoLikes} Me gusta</span>`;
-            }
-            const commEl = document.getElementById(`comments-count-${p.id}`);
-            if (commEl && postData._tursoComments > 0) {
-                commEl.textContent = `${postData._tursoComments} comentario${postData._tursoComments !== 1 ? 's' : ''}`;
-            }
-            feed.appendChild(card);
-        });
+            if (posts.length < 20) feedDone = true;
+            if (posts.length > 0) feedLastTs = Number(posts[posts.length - 1].timestamp);
 
-        if (posts.length > 0) feedLastTs = Number(posts[posts.length - 1].timestamp);
+            const postIds = posts.map(p => p.id);
+            const likedSet = await misLikes(currentUser.uid, postIds);
+            tursoPostIds = postIds;
 
-        // Scroll infinito: detectar cuando llega al final
-        if (!append) setupInfiniteScroll();
+            posts.forEach(p => {
+                if (feedPostIds.has(p.id)) return;
+                feedPostIds.add(p.id);
+                const postData = {
+                    uid:        p.uid,
+                    autor:      p.nombre,
+                    avatar:     p.avatar,
+                    contenido:  p.texto,
+                    imagenPost: p.imagen_url,
+                    videoUrl:   p.video_url,
+                    esAnonimo:  p.es_anonimo == 1,
+                    timestamp:  Number(p.timestamp),
+                    likes: likedSet.has(p.id) ? { [currentUser.uid]: true } : {},
+                    _tursoLikes: Number(p.total_likes || 0),
+                    _tursoComments: Number(p.total_comentarios || 0)
+                };
+                const card = buildPost(p.id, postData, postData.likes);
+                const likesEl = document.getElementById(`likes-count-${p.id}`);
+                if (likesEl && postData._tursoLikes > 0) {
+                    likesEl.innerHTML = `<div class="like-bubble">👍</div> <span>${postData._tursoLikes} Me gusta</span>`;
+                }
+                const commEl = document.getElementById(`comments-count-${p.id}`);
+                if (commEl && postData._tursoComments > 0) {
+                    commEl.textContent = `${postData._tursoComments} comentario${postData._tursoComments !== 1 ? 's' : ''}`;
+                }
+                feed.appendChild(card);
+            });
+        } catch(err) {
+            console.warn('⚠️ Turso feed error:', err);
+        }
+    }
 
-    } catch (err) {
-        console.error('Turso feed error:', err);
-        // ── Fallback a Firebase si Turso falla ────
-        console.warn('⚠️ Turso no disponible, usando Firebase como fallback');
+    // ── 2. Cargar desde Firebase (tiempo real) ─
+    // Escuchar nuevos posts en Firebase que no vengan de Turso
+    if (!append) {
         const postsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'));
         onValue(postsRef, (snap) => {
-            removeSkeletons();
             const allPosts = [];
             snap.forEach(child => allPosts.push({ id: child.key, ...child.val() }));
-            const filtered = allPosts.filter(p => p.esAnonimo || followingSet.has(p.uid)).reverse();
-            feed.querySelectorAll('.post-card').forEach(c => c.remove());
-            filtered.forEach(p => { feed.appendChild(buildPost(p.id, p, p.likes)); watchCommentCount(p.id); });
+            const filtered = allPosts
+                .filter(p => (p.esAnonimo || followingSet.has(p.uid)) && !feedPostIds.has(p.id))
+                .reverse();
+
+            filtered.forEach(p => {
+                feedPostIds.add(p.id);
+                const card = buildPost(p.id, p, p.likes);
+                // Insertar al inicio si es más reciente que el primer post de Turso
+                const firstCard = feed.querySelector('.post-card');
+                if (firstCard && Number(p.timestamp) > feedLastTs) {
+                    feed.insertBefore(card, firstCard);
+                } else {
+                    feed.appendChild(card);
+                }
+                watchCommentCount(p.id);
+            });
+
+            removeSkeletons();
+
+            // Estado vacío solo si ninguna fuente tiene posts
+            if (feedPostIds.size === 0) {
+                if (!feed.querySelector('.empty-state')) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-state';
+                    empty.innerHTML = `
+                        <i class="fa-solid fa-users"></i>
+                        <h3>Sigue a alguien para ver posts</h3>
+                        <p>Cuando sigas a usuarios, sus publicaciones aparecerán aquí.</p>
+                    `;
+                    feed.appendChild(empty);
+                }
+            } else {
+                feed.querySelector('.empty-state')?.remove();
+            }
         });
     }
 
+    removeSkeletons();
     feedLoading = false;
+
+    // Scroll infinito solo con Turso
+    if (!append && tursoDisponible) setupInfiniteScroll();
 }
 
 function setupInfiniteScroll() {
-    // Evitar múltiples listeners
     window.removeEventListener('scroll', _onFeedScroll);
     window.addEventListener('scroll', _onFeedScroll, { passive: true });
 }
@@ -1925,23 +1945,33 @@ function setupInfiniteScroll() {
 function _onFeedScroll() {
     if (feedDone || feedLoading) return;
     const scrolled = window.scrollY + window.innerHeight;
-    const total = document.body.scrollHeight;
-    if (scrolled >= total - 300) loadFeed(true);
+    if (scrolled >= document.body.scrollHeight - 300) loadFeed(true);
 }
 
-// ── Stories ────────────────────────────────────
+// ── Stories (Firebase + Turso combinados) ─────
 async function loadStories() {
-    // Limpiar expiradas en Turso
-    if (tursoDisponible) {
-        try { await eliminarHistoriasExpiradas(); } catch(e) {}
-    }
+    const storiesObj = {};
+
+    // 1. Cargar desde Firebase
+    try {
+        const snap = await get(ref(db, 'historias'));
+        if (snap.exists()) {
+            const now = Date.now();
+            snap.forEach(child => {
+                const s = child.val();
+                // Filtrar expiradas (24h)
+                if (!s.expira || s.expira > now) {
+                    storiesObj[child.key] = s;
+                }
+            });
+        }
+    } catch(e) { console.warn('Firebase historias error:', e); }
+
+    // 2. Combinar con Turso (sus historias tienen prioridad si el id coincide)
     if (tursoDisponible) {
         try {
-            // Intentar cargar desde Turso
+            await eliminarHistoriasExpiradas();
             const rows = await obtenerHistorias();
-        if (rows.length > 0) {
-            // Convertir formato Turso → formato Firebase que espera buildStories
-            const storiesObj = {};
             rows.forEach(r => {
                 storiesObj[r.id] = {
                     uid:           r.uid,
@@ -1955,13 +1985,10 @@ async function loadStories() {
                     expira:        Number(r.expira),
                 };
             });
-            buildStories(storiesObj);
-            return;
-        }
-    } catch(e) { console.warn('Turso historias fallback Firebase:', e); }
-    // Fallback: Firebase
-    const snap = await get(ref(db, 'historias'));
-    if (snap.exists()) buildStories(snap.val());
+        } catch(e) { console.warn('Turso historias error:', e); }
+    }
+
+    if (Object.keys(storiesObj).length > 0) buildStories(storiesObj);
 }
 
 // ── Auth ───────────────────────────────────────
