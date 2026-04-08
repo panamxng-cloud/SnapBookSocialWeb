@@ -700,24 +700,34 @@ import {
     ref, onValue, get, set, remove, push, query, orderByChild
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// ── Turso: Posts, Likes, Comentarios, Historias ─
-import {
-    sincronizarUsuario,
-    crearPost,
-    obtenerFeed,
-    toggleLike as tursoToggleLike,
-    misLikes,
-    agregarComentario,
-    obtenerComentarios,
-    eliminarComentario,
-    eliminarPost,
-    crearHistoria,
-    obtenerHistorias,
-    eliminarHistoriasExpiradas
-} from './db.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+// ── Turso: dynamic import con fallback seguro ───
+let sincronizarUsuario, crearPost, obtenerFeed, tursoToggleLike, misLikes;
+let agregarComentario, obtenerComentarios, eliminarComentario, eliminarPost;
+let crearHistoria, obtenerHistorias, eliminarHistoriasExpiradas;
+let tursoDisponible = false;
+
+try {
+    const db_mod = await import('./db.js');
+    sincronizarUsuario       = db_mod.sincronizarUsuario;
+    crearPost                = db_mod.crearPost;
+    obtenerFeed              = db_mod.obtenerFeed;
+    tursoToggleLike          = db_mod.toggleLike;
+    misLikes                 = db_mod.misLikes;
+    agregarComentario        = db_mod.agregarComentario;
+    obtenerComentarios       = db_mod.obtenerComentarios;
+    eliminarComentario       = db_mod.eliminarComentario;
+    eliminarPost             = db_mod.eliminarPost;
+    crearHistoria            = db_mod.crearHistoria;
+    obtenerHistorias         = db_mod.obtenerHistorias;
+    eliminarHistoriasExpiradas = db_mod.eliminarHistoriasExpiradas;
+    tursoDisponible = true;
+    console.log('✅ Turso cargado correctamente');
+} catch(e) {
+    console.warn('⚠️ db.js no disponible, usando Firebase:', e.message);
+}
 
 // ── Supabase: Storage de fotos y videos ────────
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 const supabase = createClient(
     'https://ihefracdvmyuqgzzqjpf.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloZWZyYWNkdm15dXFnenpxanBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjIyNTAsImV4cCI6MjA5MTA5ODI1MH0.iVczrV0sCrYoUE-kGuvtRiguCiQI13m_wLYZn1kS5C8'
@@ -1824,6 +1834,7 @@ async function loadFeed(append = false) {
     followingSet.add(currentUser.uid);
 
     try {
+        if (!tursoDisponible) throw new Error('Turso no disponible');
         // ── Turso: cargar posts paginados ──────────
         const uids = Array.from(followingSet);
         const posts = await obtenerFeed(uids, 20, feedLastTs);
@@ -1921,10 +1932,13 @@ function _onFeedScroll() {
 // ── Stories ────────────────────────────────────
 async function loadStories() {
     // Limpiar expiradas en Turso
-    try { await eliminarHistoriasExpiradas(); } catch(e) {}
-    try {
-        // Intentar cargar desde Turso
-        const rows = await obtenerHistorias();
+    if (tursoDisponible) {
+        try { await eliminarHistoriasExpiradas(); } catch(e) {}
+    }
+    if (tursoDisponible) {
+        try {
+            // Intentar cargar desde Turso
+            const rows = await obtenerHistorias();
         if (rows.length > 0) {
             // Convertir formato Turso → formato Firebase que espera buildStories
             const storiesObj = {};
@@ -1956,7 +1970,9 @@ onAuthStateChanged(auth, async (user) => {
     currentUser = user;
 
     // Sync user profile to Turso
-    try { await sincronizarUsuario(user); } catch(e) { console.warn('Turso sync:', e); }
+    if (tursoDisponible) {
+        try { await sincronizarUsuario(user); } catch(e) { console.warn('Turso sync:', e); }
+    }
 
     document.getElementById('compose-avatar').src = user.photoURL || 'default-avatar.png';
 
