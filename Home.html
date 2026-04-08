@@ -700,7 +700,7 @@ import {
     ref, onValue, get, set, remove, push, query, orderByChild
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// ── Turso: Posts, Likes, Comentarios ───────────
+// ── Turso: Posts, Likes, Comentarios, Historias ─
 import {
     sincronizarUsuario,
     crearPost,
@@ -710,7 +710,10 @@ import {
     agregarComentario,
     obtenerComentarios,
     eliminarComentario,
-    eliminarPost
+    eliminarPost,
+    crearHistoria,
+    obtenerHistorias,
+    eliminarHistoriasExpiradas
 } from './db.js';
 
 // ── Supabase: Storage de fotos y videos ────────
@@ -1316,8 +1319,15 @@ window.storyPublish = async function() {
         if (_storyType === 'imagen') data.imagenUrl = downloadURL;
         else data.videoUrl = downloadURL;
 
-        // Guardar metadata en Firebase Realtime Database
+        // Guardar en Firebase
         await push(ref(db, 'historias'), data);
+        // Guardar en Turso (si falla no cancela)
+        try {
+            await crearHistoria(currentUser, {
+                imagenUrl: data.imagenUrl || null,
+                videoUrl:  data.videoUrl  || null,
+            });
+        } catch(e) { console.warn('Turso historia:', e); }
         showToast('✅ Historia publicada');
         document.querySelector('.comment-sheet-overlay')?.remove();
         loadStories();
@@ -1341,6 +1351,10 @@ window.storyPublishText = async function() {
         textoHistoria: texto,
         bgGradient: bg,
     });
+    // Guardar en Turso (si falla no cancela)
+    try {
+        await crearHistoria(currentUser, { textoHistoria: texto, bgGradient: bg });
+    } catch(e) { console.warn('Turso historia texto:', e); }
     showToast('✅ Historia publicada');
     document.querySelector('.comment-sheet-overlay')?.remove();
     loadStories();
@@ -1906,6 +1920,32 @@ function _onFeedScroll() {
 
 // ── Stories ────────────────────────────────────
 async function loadStories() {
+    // Limpiar expiradas en Turso
+    try { await eliminarHistoriasExpiradas(); } catch(e) {}
+    try {
+        // Intentar cargar desde Turso
+        const rows = await obtenerHistorias();
+        if (rows.length > 0) {
+            // Convertir formato Turso → formato Firebase que espera buildStories
+            const storiesObj = {};
+            rows.forEach(r => {
+                storiesObj[r.id] = {
+                    uid:           r.uid,
+                    autor:         r.autor,
+                    avatar:        r.avatar,
+                    imagenUrl:     r.imagen_url,
+                    videoUrl:      r.video_url,
+                    textoHistoria: r.texto_historia,
+                    bgGradient:    r.bg_gradient,
+                    timestamp:     Number(r.timestamp),
+                    expira:        Number(r.expira),
+                };
+            });
+            buildStories(storiesObj);
+            return;
+        }
+    } catch(e) { console.warn('Turso historias fallback Firebase:', e); }
+    // Fallback: Firebase
     const snap = await get(ref(db, 'historias'));
     if (snap.exists()) buildStories(snap.val());
 }

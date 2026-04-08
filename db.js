@@ -335,3 +335,72 @@ export async function eliminarPost(postId, uid) {
   await turso.execute({ sql: "DELETE FROM likes WHERE post_id = ?", args: [postId] });
   await turso.execute({ sql: "DELETE FROM comentarios WHERE post_id = ?", args: [postId] });
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── HISTORIAS ──────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function initHistoriasDB() {
+  await turso.batch([
+    `CREATE TABLE IF NOT EXISTS historias (
+      id             TEXT    PRIMARY KEY,
+      uid            TEXT    NOT NULL,
+      autor          TEXT,
+      avatar         TEXT,
+      imagen_url     TEXT,
+      video_url      TEXT,
+      texto_historia TEXT,
+      bg_gradient    TEXT,
+      timestamp      INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+      expira         INTEGER NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_historias_uid    ON historias(uid)`,
+    `CREATE INDEX IF NOT EXISTS idx_historias_expira ON historias(expira)`,
+  ], "write");
+}
+initHistoriasDB().catch(e => console.warn("initHistoriasDB:", e));
+
+// ── crearHistoria ─────────────────────────────────────────────────────────────
+export async function crearHistoria(user, { imagenUrl, videoUrl, textoHistoria, bgGradient }) {
+  const id     = crypto.randomUUID();
+  const ahora  = Date.now();
+  const expira = ahora + 24 * 60 * 60 * 1000; // 24 horas
+  await turso.execute({
+    sql: `INSERT INTO historias
+            (id, uid, autor, avatar, imagen_url, video_url, texto_historia, bg_gradient, timestamp, expira)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      id,
+      user.uid,
+      user.displayName || "Usuario",
+      user.photoURL    || "",
+      imagenUrl        || null,
+      videoUrl         || null,
+      textoHistoria    || null,
+      bgGradient       || null,
+      ahora,
+      expira,
+    ],
+  });
+  return id;
+}
+
+// ── obtenerHistorias ──────────────────────────────────────────────────────────
+// Devuelve todas las historias vigentes (no expiradas), más recientes primero
+export async function obtenerHistorias() {
+  const result = await turso.execute({
+    sql: `SELECT * FROM historias
+          WHERE expira > ?
+          ORDER BY timestamp DESC`,
+    args: [Date.now()],
+  });
+  return result.rows;
+}
+
+// ── eliminarHistoriasExpiradas ────────────────────────────────────────────────
+export async function eliminarHistoriasExpiradas() {
+  await turso.execute({
+    sql: "DELETE FROM historias WHERE expira <= ?",
+    args: [Date.now()],
+  });
+}
