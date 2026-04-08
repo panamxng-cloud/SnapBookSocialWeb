@@ -340,7 +340,7 @@
 // ── Imports Firebase ──────────────────────────────────────────────
 import { initializeApp }           from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDatabase, ref, push, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, push, get, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 // ── Imports externos ──────────────────────────────────────────────
 import { uploadPostImage }                          from './supabase-config.js';
@@ -762,31 +762,40 @@ btnPub.addEventListener('click', async () => {
         ovLabel.textContent  = 'Guardando...';
         ovFill.style.width   = '80%';
 
-        // ── 2. Guardar en Firebase + Turso según el tab activo ─────
+        // ── 2. Guardar en Firebase + Turso con el MISMO ID ──────────
+        // Estrategia: Turso genera el ID primero (Firebase key),
+        // Firebase usa set() con ese ID fijo en lugar de push().
+        // Así ambas bases de datos usan exactamente el mismo key.
+        // Resultado: renderedIds en Home.html siempre coincide → sin duplicados.
+
+        // Genera un ID único que usarán AMBAS bases de datos
+        const sharedId = crypto.randomUUID();
 
         if (tabActiva === 'short') {
             // ── SHORT ──────────────────────────────────────────────
-            const fbRef = await push(ref(db, 'shorts'), {
-                ...base,
-                videoUrl   : mediaUrl,
-                descripcion: textarea.value.trim()
-            });
-            logNuevaPublicacion(usuario.uid, base.autor, 'short', textarea.value.trim(), mediaUrl);
+            const datos = { ...base, videoUrl: mediaUrl, descripcion: textarea.value.trim() };
 
-            try {
-                await crearShort(usuario, {
-                    videoUrl   : mediaUrl,
-                    descripcion: textarea.value.trim(),
-                    firebaseId : fbRef.key
-                });
-            } catch(e) { logTurso('short', e); }
+            // Turso primero con el ID compartido
+            if (tursoOK) {
+                try {
+                    await crearShort(usuario, {
+                        videoUrl   : mediaUrl,
+                        descripcion: textarea.value.trim(),
+                        firebaseId : sharedId
+                    });
+                } catch(e) { logTurso('short', e); }
+            }
+
+            // Firebase con el mismo ID
+            await set(ref(db, `shorts/${sharedId}`), datos);
+            logNuevaPublicacion(usuario.uid, base.autor, 'short', textarea.value.trim(), mediaUrl);
 
         } else if (tabActiva === 'anonimo') {
             // ── ANÓNIMO ────────────────────────────────────────────
             const d = {
                 autor    : '🎭 Anónimo',
                 avatar   : '',
-                uid      : usuario.uid,  // uid real para filtros de feed; esAnonimo:true oculta la identidad
+                uid      : usuario.uid,
                 timestamp: Date.now(),
                 likes    : {},
                 esAnonimo: true,
@@ -795,43 +804,42 @@ btnPub.addEventListener('click', async () => {
             if (mediaUrl && tipoArch === 'imagen') d.imagenPost = mediaUrl;
             if (mediaUrl && tipoArch === 'video')  d.videoUrl   = mediaUrl;
 
-            const fbRef = await push(ref(db, 'publicaciones'), d);
+            // Turso primero
+            if (tursoOK) {
+                try {
+                    await crearPost(
+                        { uid: usuario.uid, displayName: '🎭 Anónimo', photoURL: '' },
+                        { texto: d.contenido, imagenUrl: d.imagenPost ?? null, videoUrl: d.videoUrl ?? null, esAnonimo: true, firebaseId: sharedId }
+                    );
+                } catch(e) { logTurso('anonimo', e); }
+            }
 
-            try {
-                await crearPost(
-                    { uid: usuario.uid, displayName: '🎭 Anónimo', photoURL: '' },
-                    {
-                        texto     : d.contenido,
-                        imagenUrl : d.imagenPost ?? null,
-                        videoUrl  : d.videoUrl   ?? null,
-                        esAnonimo : true,
-                        firebaseId: fbRef.key
-                    }
-                );
-            } catch(e) { logTurso('anonimo', e); }
+            // Firebase con el mismo ID
+            await set(ref(db, `publicaciones/${sharedId}`), d);
 
         } else if (tabActiva === 'momento') {
             // ── MOMENTO ────────────────────────────────────────────
             const d = { ...base, contenido: textarea.value.trim(), esMomento: true };
-            if (momento)                          d.tipoMomento = momento;
-            if (mediaUrl && tipoArch === 'imagen') d.imagenPost = mediaUrl;
-            if (mediaUrl && tipoArch === 'video')  d.videoUrl   = mediaUrl;
+            if (momento)                           d.tipoMomento = momento;
+            if (mediaUrl && tipoArch === 'imagen') d.imagenPost  = mediaUrl;
+            if (mediaUrl && tipoArch === 'video')  d.videoUrl    = mediaUrl;
 
-            const fbRef = await push(ref(db, 'publicaciones'), d);
+            // Turso primero
+            if (tursoOK) {
+                try {
+                    await crearPost(usuario, {
+                        texto: d.contenido, imagenUrl: d.imagenPost ?? null,
+                        videoUrl: d.videoUrl ?? null, esAnonimo: false, firebaseId: sharedId
+                    });
+                } catch(e) { logTurso('momento', e); }
+            }
 
-            try {
-                await crearPost(usuario, {
-                    texto     : d.contenido,
-                    imagenUrl : d.imagenPost ?? null,
-                    videoUrl  : d.videoUrl   ?? null,
-                    esAnonimo : false,
-                    firebaseId: fbRef.key
-                });
-            } catch(e) { logTurso('momento', e); }
+            // Firebase con el mismo ID
+            await set(ref(db, `publicaciones/${sharedId}`), d);
 
         } else if (tabActiva === 'futuro') {
-            // ── CARTA AL FUTURO (solo Firebase, son privadas) ──────
-            await push(ref(db, `cartasFuturo/${usuario.uid}`), {
+            // ── CARTA AL FUTURO (privada, solo Firebase) ───────────
+            await set(ref(db, `cartasFuturo/${usuario.uid}/${sharedId}`), {
                 contenido: textarea.value.trim(),
                 uid      : usuario.uid,
                 createdAt: Date.now(),
@@ -845,7 +853,18 @@ btnPub.addEventListener('click', async () => {
             ovLabel.textContent = 'Subiendo nota de voz...';
             const vUrl = await uploadPostAudio(usuario.uid, vozBlob, pct => { ovFill.style.width = pct + '%'; });
 
-            const fbRef = await push(ref(db, 'publicaciones'), {
+            // Turso primero
+            if (tursoOK) {
+                try {
+                    await crearPost(usuario, {
+                        texto: textarea.value.trim(), audioUrl: vUrl,
+                        esAnonimo: false, firebaseId: sharedId
+                    });
+                } catch(e) { logTurso('voz', e); }
+            }
+
+            // Firebase con el mismo ID
+            await set(ref(db, `publicaciones/${sharedId}`), {
                 ...base,
                 contenido    : textarea.value.trim(),
                 audioUrl     : vUrl,
@@ -853,15 +872,6 @@ btnPub.addEventListener('click', async () => {
                 esVoz        : true
             });
             logNuevaPublicacion(usuario.uid, base.autor, 'voz', textarea.value.trim(), vUrl);
-
-            try {
-                await crearPost(usuario, {
-                    texto     : textarea.value.trim(),
-                    audioUrl  : vUrl,
-                    esAnonimo : false,
-                    firebaseId: fbRef.key
-                });
-            } catch(e) { logTurso('voz', e); }
 
         } else if (tabActiva === 'encuesta') {
             // ── ENCUESTA ───────────────────────────────────────────
@@ -871,21 +881,23 @@ btnPub.addEventListener('click', async () => {
                             .map(i => i.value.trim()).filter(Boolean)
                             .map(texto => ({ texto, votos: {} }));
 
-            const fbRef = await push(ref(db, 'publicaciones'), {
+            // Turso primero
+            if (tursoOK) {
+                try {
+                    await crearPost(usuario, {
+                        texto: preg, esAnonimo: false, firebaseId: sharedId
+                    });
+                } catch(e) { logTurso('encuesta', e); }
+            }
+
+            // Firebase con el mismo ID
+            await set(ref(db, `publicaciones/${sharedId}`), {
                 ...base,
                 esEncuesta: true,
                 pregunta  : preg,
                 opciones  : opts,
                 expiraEn  : Date.now() + dur * 86400000
             });
-
-            try {
-                await crearPost(usuario, {
-                    texto     : preg,
-                    esAnonimo : false,
-                    firebaseId: fbRef.key
-                });
-            } catch(e) { logTurso('encuesta', e); }
 
         } else {
             // ── PUBLICACIÓN NORMAL ─────────────────────────────────
@@ -894,11 +906,25 @@ btnPub.addEventListener('click', async () => {
             if (mediaUrl && tipoArch === 'imagen') d.imagenPost = mediaUrl;
             if (mediaUrl && tipoArch === 'video')  d.videoUrl   = mediaUrl;
 
-            const fbRef = await push(ref(db, 'publicaciones'), d);
+            // Turso primero
+            if (tursoOK) {
+                try {
+                    await crearPost(usuario, {
+                        texto     : d.contenido,
+                        imagenUrl : d.imagenPost ?? null,
+                        videoUrl  : d.videoUrl   ?? null,
+                        esAnonimo : false,
+                        firebaseId: sharedId
+                    });
+                } catch(e) { logTurso('publicacion', e); }
+            }
+
+            // Firebase con el mismo ID
+            await set(ref(db, `publicaciones/${sharedId}`), d);
 
             // También guarda en /videos si hay video
             if (mediaUrl && tipoArch === 'video') {
-                await push(ref(db, 'videos'), {
+                await set(ref(db, `videos/${sharedId}`), {
                     ...base,
                     videoUrl   : mediaUrl,
                     descripcion: textarea.value.trim()
@@ -906,17 +932,6 @@ btnPub.addEventListener('click', async () => {
             }
 
             logNuevaPublicacion(usuario.uid, base.autor, 'publicacion', d.contenido, mediaUrl || '');
-
-            // ✅ Turso: guarda texto + imagen/video correctamente
-            try {
-                await crearPost(usuario, {
-                    texto     : d.contenido,
-                    imagenUrl : d.imagenPost ?? null,   // <-- imagen
-                    videoUrl  : d.videoUrl   ?? null,   // <-- video
-                    esAnonimo : false,
-                    firebaseId: fbRef.key
-                });
-            } catch(e) { logTurso('publicacion', e); }
         }
 
         // ── 3. Éxito ───────────────────────────────────────────────
