@@ -13,7 +13,6 @@
             --text:#050505;--text-muted:#65676b;
             --card-shadow:0 2px 12px rgba(0,0,0,0.08);
             --header-bg:rgba(255,255,255,0.97);
-            --nav-bg:rgba(255,255,255,0.97);
         }
         [data-theme="dark"]{
             --bg:#0f0f13;--surface:#1a1a24;--surface2:#22222e;--surface3:#2a2a38;
@@ -21,128 +20,45 @@
             --text:#f0f0f5;--text-muted:#7a7a9a;
             --card-shadow:0 4px 24px rgba(0,0,0,0.4);
             --header-bg:rgba(15,15,19,0.97);
-            --nav-bg:rgba(15,15,19,0.97);
         }
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
         body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);min-height:100vh;padding-bottom:96px;}
 
-        /* ── HEADER ── */
-        .header{
-            position:sticky;top:0;z-index:100;
-            background:var(--header-bg);
-            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-            border-bottom:1px solid var(--border);
-            padding:12px 16px;
-            display:flex;align-items:center;justify-content:space-between;
-        }
+        /* HEADER */
+        .header{position:sticky;top:0;z-index:100;background:var(--header-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
         .logo{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
         .header-actions{display:flex;gap:8px;}
-        .hbtn{
-            width:38px;height:38px;border-radius:50%;
-            background:var(--surface2);border:1px solid var(--border);
-            display:flex;align-items:center;justify-content:center;
-            color:var(--text);font-size:16px;cursor:pointer;
-            transition:all 0.2s;text-decoration:none;
-        }
+        .hbtn{position:relative;width:38px;height:38px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text);font-size:16px;cursor:pointer;transition:all 0.2s;text-decoration:none;}
         .hbtn:active{background:var(--accent);color:#fff;}
-        .hbtn.notif-dot::after{
-            content:'';position:absolute;top:6px;right:6px;
-            width:8px;height:8px;background:#e74c3c;border-radius:50%;
-            border:2px solid var(--header-bg);
-        }
-        .hbtn{position:relative;}
 
-        /* ── STORIES ── */
-        .stories-wrap{
-            background:var(--surface);
-            border-radius:18px;
-            border:1px solid var(--border);
-            margin:10px 10px 0;
-            padding:12px 0 12px 12px;
-            display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;
-            box-shadow:var(--card-shadow);
-        }
+        /* STORIES */
+        .stories-wrap{background:var(--surface);border-radius:18px;border:1px solid var(--border);margin:10px 10px 0;padding:12px 0 12px 12px;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;box-shadow:var(--card-shadow);}
         .stories-wrap::-webkit-scrollbar{display:none;}
-        .story-item{
-            flex-shrink:0;width:100px;height:160px;
-            border-radius:18px;overflow:hidden;
-            position:relative;cursor:pointer;
-            border:3px solid var(--accent);
-            background:var(--surface3);
-        }
-        .story-item .story-bg{
-            position:absolute;inset:0;
-            background-size:cover;background-position:center;
-            width:100%;height:100%;
-        }
-        .story-item .story-overlay{
-            position:absolute;inset:0;
-            background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,transparent 40%,rgba(0,0,0,0.55) 75%);
-        }
-        .story-item .story-user-badge{
-            position:absolute;top:8px;left:8px;
-            width:32px;height:32px;border-radius:50%;overflow:hidden;
-            border:2px solid var(--accent);background:var(--surface3);
-        }
+        .story-item{flex-shrink:0;width:100px;height:160px;border-radius:18px;overflow:hidden;position:relative;cursor:pointer;border:3px solid var(--accent);background:var(--surface3);}
+        .story-item .story-bg{position:absolute;inset:0;background-size:cover;background-position:center;width:100%;height:100%;}
+        .story-item .story-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,transparent 40%,rgba(0,0,0,0.55) 75%);}
+        .story-item .story-user-badge{position:absolute;top:8px;left:8px;width:32px;height:32px;border-radius:50%;overflow:hidden;border:2px solid var(--accent);background:var(--surface3);}
         .story-item .story-user-badge img{width:100%;height:100%;object-fit:cover;}
-        .story-item .story-name{
-            position:absolute;bottom:8px;left:6px;right:6px;
-            font-size:11px;font-weight:700;color:#fff;
-            text-shadow:0 1px 4px rgba(0,0,0,0.8);
-            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-        }
-        /* VIEJO - ocultar */
-        .story-add-box{
-            flex-shrink:0;width:100px;height:160px;border-radius:18px;
-            border:2px dashed var(--border);
-            display:flex;align-items:center;justify-content:center;
-            flex-direction:column;gap:8px;cursor:pointer;
-            transition:border-color 0.2s;background:var(--surface);
-        }
-        .story-add-circle{
-            width:44px;height:44px;border-radius:50%;
-            background:linear-gradient(135deg,var(--accent),var(--accent2));
-            display:flex;align-items:center;justify-content:center;
-            color:#fff;font-size:20px;
-        }
+        .story-item .story-name{position:absolute;bottom:8px;left:6px;right:6px;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .story-add-box{flex-shrink:0;width:100px;height:160px;border-radius:18px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:pointer;background:var(--surface);}
+        .story-add-circle{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;}
         .story-add-box span{font-size:11px;font-weight:700;color:var(--text-muted);}
-        .story-label{display:none;}
 
-        /* ── COMPOSE BOX ── */
-        .compose-box{
-            background:var(--surface);
-            margin:10px 10px 0;
-            padding:14px 16px;
-            border-radius:18px;
-            border:1px solid var(--border);
-            box-shadow:var(--card-shadow);
-        }
+        /* COMPOSE */
+        .compose-box{background:var(--surface);margin:10px 10px 0;padding:14px 16px;border-radius:18px;border:1px solid var(--border);box-shadow:var(--card-shadow);}
         .compose-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-        .compose-avatar{
-            width:44px;height:44px;border-radius:50%;object-fit:cover;
-            border:2px solid var(--accent);flex-shrink:0;
-        }
-        .compose-input{
-            flex:1;background:var(--surface2);border:1px solid var(--border);
-            border-radius:22px;padding:10px 16px;
-            color:var(--text-muted);font-size:15px;font-family:inherit;
-            cursor:pointer;user-select:none;
-        }
+        .compose-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
+        .compose-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:22px;padding:10px 16px;color:var(--text-muted);font-size:15px;font-family:inherit;cursor:pointer;user-select:none;}
         .compose-actions{display:flex;border-top:1px solid var(--border);padding-top:12px;gap:4px;}
-        .compose-action{
-            flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
-            padding:8px 4px;border-radius:10px;cursor:pointer;
-            font-size:13px;font-weight:700;color:var(--text-muted);
-            transition:background 0.15s;
-        }
+        .compose-action{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);transition:background 0.15s;}
         .compose-action:active{background:var(--surface2);}
         .compose-action .ic-photo{color:#43e97b;}
         .compose-action .ic-video{color:var(--accent2);}
 
-        /* ── FEED ── */
+        /* FEED */
         .feed{display:flex;flex-direction:column;gap:10px;padding:10px 10px 0;}
 
-        /* ── POST CARD ── */
+        /* POST CARD */
         .post-card{background:var(--surface);border-radius:18px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--card-shadow);}
         .post-header{display:flex;align-items:center;gap:10px;padding:12px 14px 8px;}
         .post-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
@@ -152,59 +68,34 @@
         .post-time i{font-size:10px;}
         .post-menu{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:18px;cursor:pointer;transition:background 0.2s;}
         .post-menu:active{background:var(--surface2);}
-
         .post-mood{padding:0 14px 8px;font-size:13px;color:var(--text-muted);font-weight:600;}
         .post-content{padding:0 14px 10px;font-size:16px;line-height:1.55;color:var(--text);}
         .post-content.big{font-size:22px;font-weight:700;}
-
         .post-img{width:100%;max-height:400px;object-fit:cover;display:block;cursor:pointer;}
         .post-video{width:100%;max-height:400px;object-fit:contain;background:#000;display:block;}
-
-        /* audio player */
         .post-audio{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);margin:0 14px 10px;border-radius:14px;}
         .audio-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0;}
         .audio-info{flex:1;font-size:13px;font-weight:600;color:var(--text-muted);}
-
-        /* encuesta */
         .post-encuesta{padding:10px 14px;}
         .encuesta-pregunta-txt{font-size:15px;font-weight:700;margin-bottom:10px;}
-        .encuesta-opcion{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;font-size:14px;font-weight:600;position:relative;overflow:hidden;}
-        .encuesta-opcion:active{border-color:var(--accent);}
+        .encuesta-opcion{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:14px;font-weight:600;position:relative;overflow:hidden;}
         .encuesta-bar{position:absolute;left:0;top:0;height:100%;background:rgba(108,99,255,0.1);border-radius:11px;transition:width 0.6s;}
-
-        /* tags */
         .post-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(108,99,255,0.1);border-radius:10px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--accent);margin:0 14px 8px;}
-
-        /* stats bar */
         .post-stats{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
         .likes-count{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:5px;}
         .like-bubble{width:18px;height:18px;border-radius:50%;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;}
         .comments-count{font-size:13px;color:var(--text-muted);}
-
-        /* action bar */
         .post-actions{display:flex;border-top:1px solid var(--border);}
-        .action-btn{
-            flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
-            padding:10px 4px;cursor:pointer;font-size:14px;font-weight:700;
-            color:var(--text-muted);transition:background 0.15s;
-        }
+        .action-btn{position:relative;overflow:visible;flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 4px;cursor:pointer;font-size:14px;font-weight:700;color:var(--text-muted);transition:background 0.15s;}
         .action-btn:active{background:var(--surface2);}
         .action-btn.liked{color:var(--accent);}
         .action-btn.liked i{color:var(--accent);}
 
-        /* comment quick row */
-        .post-comment-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--border);}
-        .comment-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;}
-        .comment-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:8px 14px;font-size:14px;color:var(--text);font-family:inherit;outline:none;}
-        .comment-input::placeholder{color:var(--text-muted);}
-
-        /* ── EMPTY STATE ── */
+        /* EMPTY / SKELETON */
         .empty-state{padding:48px 24px;text-align:center;color:var(--text-muted);}
         .empty-state i{font-size:48px;margin-bottom:16px;color:var(--border);}
         .empty-state h3{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;}
         .empty-state p{font-size:14px;line-height:1.6;}
-
-        /* ── SKELETON ── */
         .skeleton{background:var(--surface);border-radius:18px;border:1px solid var(--border);padding:14px;box-shadow:var(--card-shadow);}
         .sk-row{display:flex;gap:10px;margin-bottom:12px;}
         .sk-circle{width:44px;height:44px;border-radius:50%;background:var(--surface3);flex-shrink:0;animation:shimmer 1.4s infinite;}
@@ -215,475 +106,178 @@
         .sk-img{height:200px;border-radius:8px;background:var(--surface3);animation:shimmer 1.4s infinite;margin-top:8px;}
         @keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.5}}
 
-        /* ── ADD STORY SHEET ── */
-        .story-sheet-option{
-            display:flex;align-items:center;gap:16px;
-            padding:16px 24px;cursor:pointer;
-            transition:background 0.15s;border-radius:14px;margin:0 8px;
-        }
-        .story-sheet-option:active{background:var(--surface2);}
-        .story-sheet-icon{
-            width:52px;height:52px;border-radius:16px;
-            display:flex;align-items:center;justify-content:center;
-            font-size:22px;color:#fff;flex-shrink:0;
-        }
-        .story-sheet-label{font-size:16px;font-weight:700;color:var(--text);}
-        .story-sheet-desc{font-size:13px;color:var(--text-muted);margin-top:2px;}
+        /* LIKE ANIM */
+        @keyframes like-pop{0%{transform:scale(1)}30%{transform:scale(1.45)}60%{transform:scale(0.88)}100%{transform:scale(1)}}
+        @keyframes like-burst{0%{transform:translate(-50%,-50%) scale(0);opacity:1}100%{transform:translate(-50%,-50%) scale(1.8);opacity:0}}
+        @keyframes like-particle{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+        .like-anim{animation:like-pop 0.4s cubic-bezier(0.36,0.07,0.19,0.97) both;}
+        .like-ring{position:absolute;width:48px;height:48px;border-radius:50%;border:3px solid var(--accent);pointer-events:none;animation:like-burst 0.45s ease-out forwards;}
+        .like-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--accent);pointer-events:none;animation:like-particle 0.5s ease-out forwards;}
 
-        /* ── COMMENT SHEET ── */
-        .comment-sheet-overlay{
-            position:fixed;inset:0;z-index:9990;
-            background:rgba(0,0,0,0.45);
-            display:flex;flex-direction:column;justify-content:flex-end;
-            animation:fadeIn 0.2s ease;
-        }
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        .comment-sheet{
-            background:var(--surface);
-            border-radius:24px 24px 0 0;
-            max-height:80vh;
-            display:flex;flex-direction:column;
-            animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
-        }
-        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-        .comment-sheet-handle{
-            width:40px;height:4px;border-radius:2px;
-            background:var(--border);margin:12px auto 0;flex-shrink:0;
-        }
-        .comment-sheet-header{
-            display:flex;align-items:center;justify-content:space-between;
-            padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;
-        }
-        .comment-sheet-title{font-size:16px;font-weight:800;color:var(--text);}
-        .comment-sheet-close{
-            width:30px;height:30px;border-radius:50%;
-            background:var(--surface2);border:none;
-            display:flex;align-items:center;justify-content:center;
-            font-size:16px;color:var(--text-muted);cursor:pointer;
-        }
-        .comment-sheet-list{
-            flex:1;overflow-y:auto;padding:12px 16px;
-            display:flex;flex-direction:column;gap:14px;
-            scrollbar-width:none;
-        }
-        .comment-sheet-list::-webkit-scrollbar{display:none;}
-        .cs-comment{display:flex;gap:10px;align-items:flex-start;}
-        .cs-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
-        .cs-bubble{
-            flex:1;background:var(--surface2);border-radius:14px;padding:9px 13px;
-        }
-        .cs-author{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
-        .cs-text{font-size:14px;color:var(--text);line-height:1.4;}
-        .cs-time{font-size:11px;color:var(--text-muted);margin-top:4px;}
-        .cs-empty{text-align:center;color:var(--text-muted);font-size:14px;padding:24px 0;}
-        .comment-sheet-input-row{
-            display:flex;align-items:center;gap:10px;
-            padding:12px 16px 16px;
-            border-top:1px solid var(--border);flex-shrink:0;
-            box-sizing:border-box;width:100%;
-        }
-        .cs-input-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--accent);}
-        .cs-input{
-            flex:1;min-width:0;background:var(--surface2);border:1.5px solid var(--border);
-            border-radius:22px;padding:10px 16px;
-            font-size:15px;color:var(--text);font-family:inherit;outline:none;
-            transition:border-color 0.2s;
-        }
-        .cs-input:focus{border-color:var(--accent);}
-        .cs-input::placeholder{color:var(--text-muted);}
-        .cs-send{
-            width:38px;height:38px;min-width:38px;border-radius:50%;border:none;
-            background:var(--accent);color:#fff;
-            display:flex;align-items:center;justify-content:center;
-            font-size:16px;cursor:pointer;flex-shrink:0;
-            transition:transform 0.15s,opacity 0.15s;
-        }
-        .cs-send:active{transform:scale(0.9);}
-
-        /* ── LIKE ANIMATION ── */
-        @keyframes like-pop {
-            0%   { transform: scale(1); }
-            30%  { transform: scale(1.45); }
-            60%  { transform: scale(0.88); }
-            100% { transform: scale(1); }
-        }
-        @keyframes like-burst {
-            0%   { transform: translate(-50%,-50%) scale(0); opacity: 1; }
-            100% { transform: translate(-50%,-50%) scale(1.8); opacity: 0; }
-        }
-        @keyframes like-particle {
-            0%   { transform: translate(0,0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--tx),var(--ty)) scale(0); opacity: 0; }
-        }
-        .like-anim { animation: like-pop 0.4s cubic-bezier(0.36,0.07,0.19,0.97) both; }
-        .like-ring {
-            position: absolute;
-            width: 48px; height: 48px;
-            border-radius: 50%;
-            border: 3px solid var(--accent);
-            pointer-events: none;
-            animation: like-burst 0.45s ease-out forwards;
-        }
-        .like-dot {
-            position: absolute;
-            width: 7px; height: 7px;
-            border-radius: 50%;
-            background: var(--accent);
-            pointer-events: none;
-            animation: like-particle 0.5s ease-out forwards;
-        }
-        .action-btn { position: relative; overflow: visible; }
-
-        /* ── TOAST ── */
-        .toast{
-            position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
-            background:#1a1a24;color:#fff;border-radius:30px;padding:12px 24px;
-            font-size:14px;font-weight:700;z-index:9999;
-            box-shadow:0 8px 24px rgba(0,0,0,0.3);
-            opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;
-        }
+        /* TOAST */
+        .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a24;color:#fff;border-radius:30px;padding:12px 24px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.3);opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;}
         .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-        /* ── NAV BAR ── */
-        .nav-float{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--nav-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);padding:11px 30px;border-radius:44px;display:flex;gap:30px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);z-index:1000;}
-        .tab{color:var(--text-muted);font-size:19px;cursor:pointer;padding:4px 2px;position:relative;transition:color 0.2s,transform 0.15s;-webkit-tap-highlight-color:transparent;text-decoration:none;display:flex;align-items:center;justify-content:center;}
+        /* NAV */
+        .nav-float{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--header-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);padding:11px 30px;border-radius:44px;display:flex;gap:30px;box-shadow:0 8px 32px rgba(0,0,0,0.12);z-index:1000;}
+        .tab{color:var(--text-muted);font-size:19px;cursor:pointer;padding:4px 2px;position:relative;transition:color 0.2s,transform 0.15s;text-decoration:none;display:flex;align-items:center;justify-content:center;}
         .tab:active{transform:scale(0.88);}
         .tab.active{color:var(--accent);}
         .tab.active::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:4px;height:4px;background:var(--accent);border-radius:50%;}
 
-        /* ── STORY VIEWER ── */
-        .story-viewer{
-            display:none;position:fixed;inset:0;z-index:9999;
-            background:#000;
-        }
+        /* STORY VIEWER */
+        .story-viewer{display:none;position:fixed;inset:0;z-index:9999;background:#000;}
         .story-viewer.open{display:block;}
-
-        /* imagen/video a pantalla completa */
-        .story-viewer #sv-img,
-        .story-viewer #sv-video{
-            position:absolute;inset:0;
-            width:100%;height:100%;
-            object-fit:cover;
-        }
-
-        /* degradado arriba */
-        .story-viewer-header{
-            position:absolute;top:0;left:0;right:0;z-index:2;
-            padding:52px 14px 20px;
-            background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 100%);
-        }
-
-        /* barra de progreso */
+        .story-viewer #sv-img,.story-viewer #sv-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+        .story-viewer-header{position:absolute;top:0;left:0;right:0;z-index:2;padding:52px 14px 20px;background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 100%);}
         .sv-bars{display:flex;gap:4px;margin-bottom:12px;}
-        .sv-progress{
-            flex:1;height:3px;
-            background:rgba(255,255,255,0.35);
-            border-radius:2px;overflow:hidden;
-        }
+        .sv-progress{flex:1;height:3px;background:rgba(255,255,255,0.35);border-radius:2px;overflow:hidden;}
         .sv-fill{height:100%;background:#fff;width:0%;animation:story-prog 5s linear forwards;}
         @keyframes story-prog{from{width:0}to{width:100%}}
-
-        /* fila usuario + cerrar */
-        .sv-user-row{
-            display:flex;align-items:center;gap:10px;
-        }
-        .sv-avatar{
-            width:40px;height:40px;border-radius:50%;
-            object-fit:cover;border:2px solid #fff;flex-shrink:0;
-        }
+        .sv-user-row{display:flex;align-items:center;gap:10px;}
+        .sv-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #fff;flex-shrink:0;}
         .sv-user-info{flex:1;}
-        .sv-name{color:#fff;font-size:14px;font-weight:700;line-height:1.2;}
+        .sv-name{color:#fff;font-size:14px;font-weight:700;}
         .sv-time{color:rgba(255,255,255,0.75);font-size:12px;}
-        .sv-close{
-            width:36px;height:36px;border-radius:50%;
-            background:rgba(0,0,0,0.4);
-            display:flex;align-items:center;justify-content:center;
-            color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;
-        }
+        .sv-close{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;}
+        .sv-bottom-fade{position:absolute;bottom:0;left:0;right:0;z-index:2;height:120px;background:linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 100%);pointer-events:none;}
 
-        /* degradado abajo */
-        .sv-bottom-fade{
-            position:absolute;bottom:0;left:0;right:0;z-index:2;
-            height:120px;
-            background:linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 100%);
-            pointer-events:none;
-        }
-
-        /* ── SEARCH SHEET ── */
-        .search-overlay{
-            position:fixed;inset:0;z-index:9992;
-            background:rgba(0,0,0,0.5);
-            display:flex;flex-direction:column;justify-content:flex-end;
-            animation:fadeIn 0.2s ease;
-        }
-        .search-sheet{
-            background:var(--surface);
-            border-radius:24px 24px 0 0;
-            max-height:88vh;
-            display:flex;flex-direction:column;
-            animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
-        }
-        .search-handle{
-            width:40px;height:4px;border-radius:2px;
-            background:var(--border);margin:12px auto 0;flex-shrink:0;
-        }
-        .search-header{
-            padding:14px 16px 10px;flex-shrink:0;
-        }
+        /* SHEETS */
+        .sheet-overlay{position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,0.45);display:flex;flex-direction:column;justify-content:flex-end;animation:fadeIn 0.2s ease;}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .sheet{background:var(--surface);border-radius:24px 24px 0 0;max-height:85vh;display:flex;flex-direction:column;animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);}
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        .sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:12px auto 0;flex-shrink:0;}
+        .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+        .sheet-title{font-size:16px;font-weight:800;color:var(--text);}
+        .sheet-close{width:30px;height:30px;border-radius:50%;background:var(--surface2);border:none;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-muted);cursor:pointer;}
+        .cs-list{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:14px;scrollbar-width:none;}
+        .cs-list::-webkit-scrollbar{display:none;}
+        .cs-comment{display:flex;gap:10px;align-items:flex-start;}
+        .cs-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
+        .cs-bubble{flex:1;background:var(--surface2);border-radius:14px;padding:9px 13px;}
+        .cs-author{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+        .cs-text{font-size:14px;color:var(--text);line-height:1.4;}
+        .cs-time{font-size:11px;color:var(--text-muted);margin-top:4px;}
+        .cs-empty{text-align:center;color:var(--text-muted);font-size:14px;padding:24px 0;}
+        .cs-input-row{display:flex;align-items:center;gap:10px;padding:12px 16px 16px;border-top:1px solid var(--border);flex-shrink:0;}
+        .cs-input-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--accent);}
+        .cs-input{flex:1;min-width:0;background:var(--surface2);border:1.5px solid var(--border);border-radius:22px;padding:10px 16px;font-size:15px;color:var(--text);font-family:inherit;outline:none;transition:border-color 0.2s;}
+        .cs-input:focus{border-color:var(--accent);}
+        .cs-input::placeholder{color:var(--text-muted);}
+        .cs-send{width:38px;height:38px;min-width:38px;border-radius:50%;border:none;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;}
+        .cs-send:active{transform:scale(0.9);}
+        .search-header{padding:14px 16px 10px;flex-shrink:0;}
         .search-title{font-size:17px;font-weight:800;margin-bottom:12px;}
-        .search-input-wrap{
-            display:flex;align-items:center;gap:10px;
-            background:var(--surface2);border:1.5px solid var(--border);
-            border-radius:16px;padding:10px 14px;
-            transition:border-color 0.2s;
-        }
+        .search-input-wrap{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:16px;padding:10px 14px;transition:border-color 0.2s;}
         .search-input-wrap:focus-within{border-color:var(--accent);}
         .search-input-wrap i{color:var(--text-muted);font-size:15px;}
-        #search-input{
-            flex:1;background:none;border:none;outline:none;
-            font-size:16px;color:var(--text);font-family:inherit;
-        }
+        #search-input{flex:1;background:none;border:none;outline:none;font-size:16px;color:var(--text);font-family:inherit;}
         #search-input::placeholder{color:var(--text-muted);}
-        #search-clear{
-            color:var(--text-muted);font-size:14px;cursor:pointer;
-            display:none;padding:2px 4px;
-        }
+        #search-clear{color:var(--text-muted);font-size:14px;cursor:pointer;display:none;padding:2px 4px;}
         #search-clear.show{display:block;}
-        .search-results{
-            flex:1;overflow-y:auto;
-            padding:8px 0 24px;
-            scrollbar-width:none;
-        }
+        .search-results{flex:1;overflow-y:auto;padding:8px 0 24px;scrollbar-width:none;}
         .search-results::-webkit-scrollbar{display:none;}
-        .search-state{
-            text-align:center;padding:40px 24px;
-            color:var(--text-muted);
-        }
+        .search-state{text-align:center;padding:40px 24px;color:var(--text-muted);}
         .search-state i{font-size:40px;margin-bottom:12px;display:block;opacity:0.35;}
         .search-state p{font-size:14px;font-weight:600;}
-        .search-user-item{
-            display:flex;align-items:center;gap:12px;
-            padding:12px 18px;cursor:pointer;
-            transition:background 0.15s;
-        }
+        .search-user-item{display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;transition:background 0.15s;}
         .search-user-item:active{background:var(--surface2);}
-        .search-user-avatar{
-            width:50px;height:50px;border-radius:50%;
-            object-fit:cover;border:2px solid var(--accent);flex-shrink:0;
-        }
+        .search-user-avatar{width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
         .search-user-info{flex:1;min-width:0;}
         .search-user-name{font-size:15px;font-weight:700;color:var(--text);}
         .search-user-username{font-size:13px;color:var(--text-muted);margin-top:2px;}
-        .search-follow-btn{
-            padding:7px 16px;border-radius:20px;border:none;
-            background:var(--accent);color:#fff;
-            font-size:13px;font-weight:700;font-family:inherit;
-            cursor:pointer;flex-shrink:0;transition:all 0.2s;
-        }
-        .search-follow-btn.siguiendo{
-            background:var(--surface2);color:var(--text-muted);
-            border:1.5px solid var(--border);
-        }
-        .search-follow-btn:active{transform:scale(0.93);}
-        .search-divider{
-            font-size:11px;font-weight:800;color:var(--text-muted);
-            text-transform:uppercase;letter-spacing:.8px;
-            padding:12px 18px 6px;
-        }
-        .notif-overlay{
-            position:fixed;inset:0;z-index:9990;
-            background:rgba(0,0,0,0.45);
-            display:flex;flex-direction:column;justify-content:flex-end;
-            animation:fadeIn 0.2s ease;
-        }
-        .notif-sheet{
-            background:var(--surface);
-            border-radius:24px 24px 0 0;
-            max-height:85vh;
-            display:flex;flex-direction:column;
-            animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
-        }
-        .notif-handle{
-            width:40px;height:4px;border-radius:2px;
-            background:var(--border);margin:12px auto 0;flex-shrink:0;
-        }
-        .notif-header{
-            display:flex;align-items:center;justify-content:space-between;
-            padding:14px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
-        }
-        .notif-title{font-size:17px;font-weight:800;}
-        .notif-mark-all{
-            font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;
-        }
-        .notif-list{
-            flex:1;overflow-y:auto;
-            display:flex;flex-direction:column;
-            scrollbar-width:none;
-        }
+        .search-follow-btn{padding:7px 16px;border-radius:20px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;flex-shrink:0;transition:all 0.2s;}
+        .search-follow-btn.siguiendo{background:var(--surface2);color:var(--text-muted);border:1.5px solid var(--border);}
+        .search-divider{font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;padding:12px 18px 6px;}
+        .notif-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;scrollbar-width:none;}
         .notif-list::-webkit-scrollbar{display:none;}
-        .notif-item{
-            display:flex;align-items:center;gap:12px;
-            padding:14px 18px;
-            border-bottom:1px solid var(--border);
-            cursor:pointer;transition:background 0.15s;
-            position:relative;
-        }
+        .notif-item{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;position:relative;}
         .notif-item:active{background:var(--surface2);}
         .notif-item.unread{background:rgba(108,99,255,0.06);}
-        .notif-item.unread::before{
-            content:'';position:absolute;left:0;top:0;bottom:0;
-            width:3px;border-radius:0 3px 3px 0;
-            background:var(--accent);
-        }
+        .notif-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 3px 3px 0;background:var(--accent);}
         .notif-avatar-wrap{position:relative;flex-shrink:0;}
-        .notif-avatar{
-            width:48px;height:48px;border-radius:50%;
-            object-fit:cover;border:2px solid var(--border);
-        }
-        .notif-icon-badge{
-            position:absolute;bottom:-2px;right:-2px;
-            width:20px;height:20px;border-radius:50%;
-            display:flex;align-items:center;justify-content:center;
-            font-size:10px;color:#fff;
-            border:2px solid var(--surface);
-        }
+        .notif-avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--border);}
+        .notif-icon-badge{position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;border:2px solid var(--surface);}
         .notif-body{flex:1;min-width:0;}
         .notif-text{font-size:14px;line-height:1.4;color:var(--text);}
         .notif-text strong{font-weight:700;}
         .notif-time{font-size:12px;color:var(--text-muted);margin-top:3px;}
-        .notif-thumb{
-            width:44px;height:44px;border-radius:10px;
-            object-fit:cover;flex-shrink:0;
-        }
-        .notif-unread-dot{
-            width:9px;height:9px;border-radius:50%;
-            background:var(--accent);flex-shrink:0;
-        }
-        .notif-empty{
-            text-align:center;padding:48px 24px;color:var(--text-muted);
-        }
+        .notif-thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;}
+        .notif-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+        .notif-empty{text-align:center;padding:48px 24px;color:var(--text-muted);}
         .notif-empty i{font-size:44px;margin-bottom:14px;display:block;opacity:0.4;}
         .notif-empty p{font-size:15px;font-weight:600;}
-        /* badge en campana */
-        #notif-btn .notif-badge{
-            position:absolute;top:4px;right:4px;
-            min-width:16px;height:16px;border-radius:8px;
-            background:#e74c3c;color:#fff;
-            font-size:10px;font-weight:800;
-            display:flex;align-items:center;justify-content:center;
-            padding:0 3px;
-            border:2px solid var(--header-bg);
-            display:none;
-        }
-        #notif-btn .notif-badge.show{display:flex;}
-
-        /* MEDIA queries */
-        @media(min-width:600px){
-            .feed,.compose-box,.stories-wrap,.header{max-width:600px;margin-left:auto;margin-right:auto;}
-        }
+        .notif-mark-all{font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;}
+        #notif-badge{position:absolute;top:4px;right:4px;min-width:16px;height:16px;border-radius:8px;background:#e74c3c;color:#fff;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--header-bg);}
+        #notif-badge.show{display:flex;}
+        .story-sheet-option{display:flex;align-items:center;gap:16px;padding:16px 24px;cursor:pointer;transition:background 0.15s;border-radius:14px;margin:0 8px;}
+        .story-sheet-option:active{background:var(--surface2);}
+        .story-sheet-icon{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0;}
+        .story-sheet-label{font-size:16px;font-weight:700;color:var(--text);}
+        .story-sheet-desc{font-size:13px;color:var(--text-muted);margin-top:2px;}
+        @media(min-width:600px){.feed,.compose-box,.stories-wrap,.header{max-width:600px;margin-left:auto;margin-right:auto;}}
     </style>
 </head>
 <body>
 <script>
-    (function(){
-        var t=localStorage.getItem('snapbook-theme')||'light';
-        document.documentElement.setAttribute('data-theme',t);
-    })();
-    (function(){
-        var COLORS={Morado:{light:"#6c63ff",dark:"#6c63ff"},Azul:{light:"#1877f2",dark:"#4da3ff"},Rosa:{light:"#e91e8c",dark:"#ff6eb4"},Verde:{light:"#2ecc71",dark:"#43ef7b"},Naranja:{light:"#f39c12",dark:"#ffb347"},Rojo:{light:"#e74c3c",dark:"#ff6b6b"},Cyan:{light:"#00bcd4",dark:"#26d9f0"},Dorado:{light:"#d4a017",dark:"#ffd700"}};
-        var saved=localStorage.getItem("snapbook-accent")||"Azul";
-        var color=COLORS[saved]||COLORS["Azul"];
-        var isDark=document.documentElement.getAttribute("data-theme")==="dark";
-        document.documentElement.style.setProperty("--accent",isDark?color.dark:color.light);
-    })();
+    (function(){var t=localStorage.getItem('snapbook-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+    (function(){var C={Morado:{light:"#6c63ff",dark:"#6c63ff"},Azul:{light:"#1877f2",dark:"#4da3ff"},Rosa:{light:"#e91e8c",dark:"#ff6eb4"},Verde:{light:"#2ecc71",dark:"#43ef7b"},Naranja:{light:"#f39c12",dark:"#ffb347"},Rojo:{light:"#e74c3c",dark:"#ff6b6b"},Cyan:{light:"#00bcd4",dark:"#26d9f0"},Dorado:{light:"#d4a017",dark:"#ffd700"}};var s=localStorage.getItem("snapbook-accent")||"Azul";var c=C[s]||C["Azul"];var d=document.documentElement.getAttribute("data-theme")==="dark";document.documentElement.style.setProperty("--accent",d?c.dark:c.light);})();
 </script>
 
-<!-- HEADER -->
 <div class="header">
     <div class="logo">SnapBook</div>
     <div class="header-actions">
-        <div class="hbtn" onclick="openSearchSheet()" title="Buscar" style="cursor:pointer;"><i class="fa-solid fa-magnifying-glass"></i></div>
-        <div class="hbtn" id="notif-btn" onclick="openNotifSheet()" title="Notificaciones" style="cursor:pointer;"><i class="fa-solid fa-bell"></i><span class="notif-badge" id="notif-badge"></span></div>
-        <a class="hbtn" href="settings.html" title="Ajustes"><i class="fa-solid fa-gear"></i></a>
+        <div class="hbtn" onclick="openSearchSheet()"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <div class="hbtn" id="notif-btn" onclick="openNotifSheet()"><i class="fa-solid fa-bell"></i><span class="notif-badge" id="notif-badge"></span></div>
+        <a class="hbtn" href="settings.html"><i class="fa-solid fa-gear"></i></a>
     </div>
 </div>
 
-<!-- STORIES -->
 <div class="stories-wrap" id="stories-wrap">
     <div class="story-add-box" onclick="openAddStorySheet()">
         <div class="story-add-circle"><i class="fa-solid fa-plus"></i></div>
         <span>Tu historia</span>
     </div>
-    <!-- Stories se cargan dinámicamente -->
     <div id="stories-list" style="display:flex;gap:10px;"></div>
 </div>
 
-<!-- COMPOSE BOX -->
 <div class="compose-box">
     <div class="compose-top">
-        <img class="compose-avatar" id="compose-avatar" src="default-avatar.png" alt="Tu avatar">
+        <img class="compose-avatar" id="compose-avatar" src="default-avatar.png" alt="avatar">
         <div class="compose-input" onclick="location.href='create-posts.html'">¿Qué estás pensando?</div>
     </div>
     <div class="compose-actions">
-        <div class="compose-action" onclick="location.href='create-posts.html?type=image'">
-            <i class="fa-solid fa-image ic-photo"></i> <span>Foto</span>
-        </div>
-        <div class="compose-action" onclick="location.href='create-posts.html?type=video'">
-            <i class="fa-solid fa-video ic-video"></i> <span>Video</span>
-        </div>
+        <div class="compose-action" onclick="location.href='create-posts.html?type=image'"><i class="fa-solid fa-image ic-photo"></i> <span>Foto</span></div>
+        <div class="compose-action" onclick="location.href='create-posts.html?type=video'"><i class="fa-solid fa-video ic-video"></i> <span>Video</span></div>
     </div>
 </div>
 
-<!-- FEED -->
 <div class="feed" id="feed">
-    <!-- Skeletons mientras carga -->
-    <div class="skeleton" id="sk1">
-        <div class="sk-row"><div class="sk-circle"></div><div class="sk-lines"><div class="sk-line w70"></div><div class="sk-line w40"></div></div></div>
-        <div class="sk-line" style="height:14px;margin-bottom:6px;"></div>
-        <div class="sk-img"></div>
-    </div>
-    <div class="skeleton" id="sk2">
-        <div class="sk-row"><div class="sk-circle"></div><div class="sk-lines"><div class="sk-line w70"></div><div class="sk-line w40"></div></div></div>
-        <div class="sk-line" style="height:14px;margin-bottom:6px;"></div>
-        <div class="sk-line" style="height:14px;width:60%;margin-bottom:6px;"></div>
-    </div>
+    <div class="skeleton" id="sk1"><div class="sk-row"><div class="sk-circle"></div><div class="sk-lines"><div class="sk-line w70"></div><div class="sk-line w40"></div></div></div><div class="sk-img"></div></div>
+    <div class="skeleton" id="sk2"><div class="sk-row"><div class="sk-circle"></div><div class="sk-lines"><div class="sk-line w70"></div><div class="sk-line w40"></div></div></div><div class="sk-line" style="height:14px;margin-bottom:6px;"></div></div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- STORY VIEWER -->
 <div class="story-viewer" id="story-viewer">
-    <!-- Media a pantalla completa -->
     <img id="sv-img" src="" style="display:none">
     <video id="sv-video" src="" autoplay playsinline style="display:none"></video>
-
-    <!-- Header: barras + usuario + cerrar -->
     <div class="story-viewer-header">
         <div class="sv-bars" id="sv-bars"></div>
         <div class="sv-user-row">
             <img class="sv-avatar" id="sv-avatar" src="">
-            <div class="sv-user-info">
-                <div class="sv-name" id="sv-name"></div>
-                <div class="sv-time" id="sv-time">Hace un momento</div>
-            </div>
-            <div class="sv-close" onclick="closeStory()">
-                <i class="fa-solid fa-xmark"></i>
-            </div>
+            <div class="sv-user-info"><div class="sv-name" id="sv-name"></div><div class="sv-time" id="sv-time"></div></div>
+            <div class="sv-close" onclick="closeStory()"><i class="fa-solid fa-xmark"></i></div>
         </div>
     </div>
-
-    <!-- Degradado abajo -->
     <div class="sv-bottom-fade"></div>
-
-    <!-- Zonas tap: anterior (izq) / siguiente (der) -->
     <div style="position:absolute;inset:0;z-index:1;display:flex;">
         <div style="flex:1;" onclick="_svPrev()"></div>
         <div style="flex:1;" onclick="_svNext()"></div>
     </div>
 </div>
 
-<!-- NAV BAR -->
 <nav class="nav-float">
     <div class="tab active" onclick="location.href='Home.html'"><i class="fa-solid fa-house"></i></div>
     <div class="tab" onclick="location.href='videos.html'"><i class="fa-solid fa-play"></i></div>
@@ -693,316 +287,175 @@
 </nav>
 
 <script type="module">
-// ── Firebase: Auth + Realtime Database ─────────
+// ════════════════════════════════════════════════════════
+//  IMPORTS
+// ════════════════════════════════════════════════════════
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import {
-    ref, onValue, get, set, remove, push, query, orderByChild
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
+import { ref, onValue, get, set, remove, push, query, orderByChild }
+    from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-// ── Turso: dynamic import con fallback seguro ───
+
+// ════════════════════════════════════════════════════════
+//  TURSO — carga dinámica con fallback
+// ════════════════════════════════════════════════════════
 let sincronizarUsuario, crearPost, obtenerFeed, tursoToggleLike, misLikes;
 let agregarComentario, obtenerComentarios, eliminarComentario, eliminarPost;
-let crearHistoria, obtenerHistorias, eliminarHistoriasExpiradas;
-let tursoDisponible = false;
+let crearHistoria, obtenerHistorias, eliminarHistoriasExpiradas, tursoQuery;
+let tursoOK = false;
 
 try {
-    const db_mod = await import('./db.js');
-    sincronizarUsuario       = db_mod.sincronizarUsuario;
-    crearPost                = db_mod.crearPost;
-    obtenerFeed              = db_mod.obtenerFeed;
-    tursoToggleLike          = db_mod.toggleLike;
-    misLikes                 = db_mod.misLikes;
-    agregarComentario        = db_mod.agregarComentario;
-    obtenerComentarios       = db_mod.obtenerComentarios;
-    eliminarComentario       = db_mod.eliminarComentario;
-    eliminarPost             = db_mod.eliminarPost;
-    crearHistoria            = db_mod.crearHistoria;
-    obtenerHistorias         = db_mod.obtenerHistorias;
-    eliminarHistoriasExpiradas = db_mod.eliminarHistoriasExpiradas;
-    tursoDisponible = true;
-    console.log('✅ Turso cargado correctamente');
+    const m = await import('./db.js');
+    sincronizarUsuario         = m.sincronizarUsuario;
+    crearPost                  = m.crearPost;
+    obtenerFeed                = m.obtenerFeed;
+    tursoToggleLike            = m.toggleLike;
+    misLikes                   = m.misLikes;
+    agregarComentario          = m.agregarComentario;
+    obtenerComentarios         = m.obtenerComentarios;
+    eliminarComentario         = m.eliminarComentario;
+    eliminarPost               = m.eliminarPost;
+    crearHistoria              = m.crearHistoria;
+    obtenerHistorias           = m.obtenerHistorias;
+    eliminarHistoriasExpiradas = m.eliminarHistoriasExpiradas;
+    tursoQuery                 = m.tursoQuery;
+    tursoOK = true;
+    console.log('✅ Turso OK');
 } catch(e) {
-    console.warn('⚠️ db.js no disponible, usando Firebase:', e.message);
+    console.warn('⚠️ db.js no disponible:', e.message);
 }
 
-// ── Supabase: Storage de fotos y videos ────────
+// ════════════════════════════════════════════════════════
+//  SUPABASE / CLOUDINARY
+// ════════════════════════════════════════════════════════
 const supabase = createClient(
     'https://ihefracdvmyuqgzzqjpf.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloZWZyYWNkdm15dXFnenpxanBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MjIyNTAsImV4cCI6MjA5MTA5ODI1MH0.iVczrV0sCrYoUE-kGuvtRiguCiQI13m_wLYZn1kS5C8'
 );
-const BUCKET = 'Avatares';
 
-// Sube un archivo a Supabase y devuelve la URL pública
-async function supabaseUpload(file, carpeta, onProgress) {
+async function supabaseUpload(file, carpeta, onProg) {
     const ext  = file.name.split('.').pop();
     const path = `${carpeta}/${Date.now()}.${ext}`;
-
-    // Simular progreso (Supabase JS v2 no tiene progreso nativo en upload simple)
-    if (onProgress) onProgress(30);
-    const { data, error } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, file, { upsert: true });
-    if (error) throw new Error('Error subiendo archivo: ' + error.message);
-    if (onProgress) onProgress(100);
-
-    const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
-    return urlData.publicUrl;
+    if (onProg) onProg(30);
+    const { data, error } = await supabase.storage.from('Avatares').upload(path, file, { upsert: true });
+    if (error) throw new Error('Supabase: ' + error.message);
+    if (onProg) onProg(100);
+    const { data: u } = supabase.storage.from('Avatares').getPublicUrl(data.path);
+    return u.publicUrl;
 }
 
-// Sube video a Cloudinary (25GB gratis)
-async function cloudinaryUpload(file, onProgress) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'snapbook');
-    return new Promise((resolve, reject) => {
+async function cloudinaryUpload(file, onProg) {
+    const fd = new FormData();
+    fd.append('file', file); fd.append('upload_preset', 'snapbook');
+    return new Promise((res, rej) => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'https://api.cloudinary.com/v1_1/defhc9kz6/video/upload');
-        if (onProgress) {
-            xhr.upload.onprogress = e => {
-                if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100));
-            };
-        }
-        xhr.onload = () => {
-            if (xhr.status === 200) resolve(JSON.parse(xhr.responseText).secure_url);
-            else reject(new Error('Cloudinary error: ' + xhr.responseText));
-        };
-        xhr.onerror = () => reject(new Error('Error de red al subir video'));
-        xhr.send(formData);
+        if (onProg) xhr.upload.onprogress = e => { if (e.lengthComputable) onProg(Math.round(e.loaded/e.total*100)); };
+        xhr.onload  = () => xhr.status === 200 ? res(JSON.parse(xhr.responseText).secure_url) : rej(new Error('Cloudinary error'));
+        xhr.onerror = () => rej(new Error('Error de red'));
+        xhr.send(fd);
     });
 }
 
-let currentUser = null;
-let followingSet = new Set();   // UIDs que sigo
-let postsUnsubscribe = null;
+// ════════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ════════════════════════════════════════════════════════
+let currentUser  = null;
+let followingSet = new Set();
 
-// ── Helpers ────────────────────────────────────
+// ── Feed state ───────────────────────────────────────────
+// renderedIds es la ÚNICA fuente de verdad para deduplicación.
+// Si un ID está aquí → nunca se vuelve a insertar en el DOM.
+const renderedIds = new Set();
+let fbUnsubscribe = null;   // unsubscribe del listener Firebase
+let feedLoading   = false;
+let feedDone      = false;
+let feedCursor    = Date.now();
+
+// ════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════
 function timeAgo(ts) {
-    const d = Math.floor((Date.now() - ts) / 1000);
-    if (d < 60)   return 'Hace un momento';
-    if (d < 3600) return `Hace ${Math.floor(d/60)} min`;
+    const d = Math.floor((Date.now() - Number(ts)) / 1000);
+    if (d < 60)    return 'Hace un momento';
+    if (d < 3600)  return `Hace ${Math.floor(d/60)} min`;
     if (d < 86400) return `Hace ${Math.floor(d/3600)} h`;
-    return new Date(ts).toLocaleDateString('es-MX', {day:'numeric',month:'short'});
+    return new Date(Number(ts)).toLocaleDateString('es-MX', { day:'numeric', month:'short' });
 }
 
 function showToast(msg) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
+    t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-function removeSkeletons() {
+function removeSkeleton() {
     document.getElementById('sk1')?.remove();
     document.getElementById('sk2')?.remove();
 }
 
-// ── Story viewer ───────────────────────────────
-let _svStories = [];   // lista de historias del grupo actual
-let _svIndex   = 0;    // índice actual
-let _svTimer   = null; // timeout de avance automático
+function formatDur(s) { return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
 
-window.openStoryGroup = function(stories, startIndex) {
-    _svStories = stories;
-    _svIndex   = startIndex;
-    _svRender();
-    document.getElementById('story-viewer').classList.add('open');
-};
+// ════════════════════════════════════════════════════════
+//  buildPost — normaliza campos de Firebase y Turso
+// ════════════════════════════════════════════════════════
+function buildPost(id, p) {
+    const autor    = p.autor     || p.nombre    || 'Usuario';
+    const avatar   = p.avatar                   || 'default-avatar.png';
+    const contenido= p.contenido || p.texto      || '';
+    const imgUrl   = p.imagenPost|| p.imagen_url || '';
+    const videoUrl = p.videoUrl  || p.video_url  || '';
+    const audioUrl = p.audioUrl  || p.audio_url  || '';
+    const ts       = Number(p.timestamp || 0);
+    const isAnon   = p.esAnonimo || p.es_anonimo == 1;
+    const isVoz    = p.esVoz     || !!audioUrl;
 
-function _svRender() {
-    clearTimeout(_svTimer);
-    const s    = _svStories[_svIndex];
-    const sv   = document.getElementById('story-viewer');
-    const img  = document.getElementById('sv-img');
-    const vid  = document.getElementById('sv-video');
-
-    // Info usuario
-    document.getElementById('sv-name').textContent   = s.autor || 'Usuario';
-    document.getElementById('sv-avatar').src          = s.avatar || 'default-avatar.png';
-    document.getElementById('sv-time').textContent    = timeAgo(s.timestamp);
-
-    // Barras de progreso (una por historia)
-    const barsEl = document.getElementById('sv-bars');
-    barsEl.innerHTML = _svStories.map((_, i) => `
-        <div class="sv-progress">
-            <div class="sv-fill" id="sv-bar-${i}" style="width:${i < _svIndex ? '100%' : '0%'};animation:none;"></div>
-        </div>
-    `).join('');
-
-    // Animar barra actual
-    requestAnimationFrame(() => {
-        const bar = document.getElementById(`sv-bar-${_svIndex}`);
-        if (bar) { bar.style.animation = 'none'; bar.offsetHeight; bar.style.animation = 'story-prog 5s linear forwards'; }
-    });
-
-    // Contenido
-    img.style.display = 'none';
-    vid.style.display = 'none';
-    const txtEl = document.getElementById('sv-texto');
-    if (txtEl) txtEl.style.display = 'none';
-
-    if (s.textoHistoria) {
-        sv.style.background = s.bgGradient || 'linear-gradient(135deg,#6c63ff,#f5576c)';
-        let el = document.getElementById('sv-texto');
-        if (!el) {
-            el = document.createElement('div');
-            el.id = 'sv-texto';
-            el.style.cssText = 'position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;padding:32px;font-size:26px;font-weight:800;color:#fff;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,0.4);line-height:1.3;pointer-events:none;';
-            sv.appendChild(el);
-        }
-        el.textContent = s.textoHistoria;
-        el.style.display = 'flex';
-    } else {
-        sv.style.background = '#000';
-        const isVideo = !!s.videoUrl;
-        const url = s.imagenUrl || s.videoUrl || '';
-        if (isVideo) { vid.src = url; vid.style.display = 'block'; }
-        else { img.src = url; img.style.display = 'block'; }
-    }
-
-    // Avance automático a los 5s
-    _svTimer = setTimeout(() => _svNext(), 5000);
-}
-
-function _svNext() {
-    if (_svIndex < _svStories.length - 1) {
-        _svIndex++;
-        _svRender();
-    } else {
-        closeStory();
-    }
-}
-
-function _svPrev() {
-    if (_svIndex > 0) {
-        _svIndex--;
-        _svRender();
-    }
-}
-
-window.closeStory = function() {
-    clearTimeout(_svTimer);
-    document.getElementById('story-viewer').classList.remove('open');
-    document.getElementById('sv-video').src = '';
-    _svStories = []; _svIndex = 0;
-};
-
-// Mantener openStory como alias simple por si acaso
-window.openStory = function(url, name, avatar, isVideo, textoHistoria, bgGradient, timestamp) {
-    openStoryGroup([{ imagenUrl: isVideo ? null : url, videoUrl: isVideo ? url : null, textoHistoria, bgGradient, autor: name, avatar, timestamp: timestamp || Date.now() }], 0);
-};
-
-// ── Build story items ──────────────────────────
-function buildStories(storiesData) {
-    const list = document.getElementById('stories-list');
-    list.innerHTML = '';
-    if (!storiesData) return;
-
-    // Agrupar por uid, filtrar expiradas
-    const byUser = {};
-    Object.entries(storiesData).forEach(([id, s]) => {
-        if (!s.uid) return;
-        const isFollowing = followingSet.has(s.uid) || s.uid === currentUser.uid;
-        if (!isFollowing) return;
-        if (s.expira && Date.now() > s.expira) return;
-        if (!byUser[s.uid]) byUser[s.uid] = [];
-        byUser[s.uid].push({ ...s, id });
-    });
-
-    // Una tarjeta por usuario — muestra la más reciente como preview
-    Object.values(byUser).forEach(stories => {
-        stories.sort((a, b) => a.timestamp - b.timestamp);
-        const latest = stories[stories.length - 1];
-        const isMe = latest.uid === currentUser.uid;
-        const mediaUrl = latest.imagenUrl || latest.videoUrl || '';
-        const bgStyle = latest.textoHistoria
-            ? `background:${latest.bgGradient||'linear-gradient(135deg,var(--accent),var(--accent2))'}`
-            : (mediaUrl ? `background-image:url('${mediaUrl}')` : `background:var(--surface3)`);
-        const avatarSrc = latest.avatar || 'default-avatar.png';
-        const nombre = isMe ? 'Tu historia' : (latest.autor || 'Usuario');
-
-        const div = document.createElement('div');
-        div.className = 'story-item';
-        div.innerHTML = `
-            <div class="story-bg" style="${bgStyle};background-size:cover;background-position:center;"></div>
-            <div class="story-overlay"></div>
-            ${latest.textoHistoria ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:10px;font-size:12px;font-weight:700;color:#fff;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,0.5);">${latest.textoHistoria}</div>` : ''}
-            <div class="story-user-badge"><img src="${avatarSrc}" onerror="this.src='default-avatar.png'"></div>
-            ${stories.length > 1 ? `<div style="position:absolute;top:6px;right:6px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:2px 5px;">${stories.length}</div>` : ''}
-            <span class="story-name">${nombre}</span>
-        `;
-        div.onclick = () => openStoryGroup(stories, 0);
-        list.appendChild(div);
-    });
-}
-
-// ── Build single post ──────────────────────────
-function buildPost(id, p, myLikes) {
-    const isLiked   = myLikes && myLikes[id];
-    const likesArr  = p.likes ? Object.values(p.likes) : [];
-    const likeCount = likesArr.length;
-    const isAnon    = p.esAnonimo;
-    const isVoz     = p.esVoz;
-    const isEnc     = p.esEncuesta;
-    const isMom     = p.esMomento;
-    const authorDisplay = isAnon ? '🎭 Anónimo' : (p.autor || 'Usuario');
-    const avatarSrc     = isAnon ? '' : (p.avatar || 'default-avatar.png');
+    const authorDisplay = isAnon ? '🎭 Anónimo' : autor;
+    const avatarSrc     = isAnon ? 'default-avatar.png' : avatar;
 
     let mediaHTML = '';
-    if (p.imagenPost) {
-        mediaHTML = `<img class="post-img" src="${p.imagenPost}" loading="lazy" onclick="openImgFull('${p.imagenPost}')">`;
-    } else if (p.videoUrl) {
-        mediaHTML = `<video class="post-video" src="${p.videoUrl}" controls playsinline></video>`;
-    }
+    if (imgUrl)        mediaHTML = `<img class="post-img" src="${imgUrl}" loading="lazy" onclick="openImgFull('${imgUrl}')">`;
+    else if (videoUrl) mediaHTML = `<video class="post-video" src="${videoUrl}" controls playsinline></video>`;
 
     let extraHTML = '';
     if (p.humor) extraHTML += `<div class="post-mood"><i class="fa-solid fa-face-smile"></i> Se siente: ${p.humor}</div>`;
-    if (isMom && p.tipoMomento) extraHTML += `<div class="post-tag"><i class="fa-solid fa-sun"></i> ${p.tipoMomento}</div>`;
-    if (isVoz && p.audioUrl) {
+    if (p.esMomento && p.tipoMomento) extraHTML += `<div class="post-tag"><i class="fa-solid fa-sun"></i> ${p.tipoMomento}</div>`;
+    if (isVoz && audioUrl) {
         const dur = p.duracionAudio ? formatDur(p.duracionAudio) : '–';
-        extraHTML += `<div class="post-audio"><div class="audio-icon"><i class="fa-solid fa-microphone"></i></div><div class="audio-info">Nota de voz · ${dur}<br><audio controls src="${p.audioUrl}" style="width:100%;margin-top:6px;"></audio></div></div>`;
+        extraHTML += `<div class="post-audio"><div class="audio-icon"><i class="fa-solid fa-microphone"></i></div><div class="audio-info">Nota de voz · ${dur}<br><audio controls src="${audioUrl}" style="width:100%;margin-top:6px;"></audio></div></div>`;
     }
-    if (isEnc && p.pregunta) {
-        const totalVotos = (p.opciones||[]).reduce((acc,o)=>acc+(o.votos?Object.keys(o.votos).length:0),0);
-        const opcionesHTML = (p.opciones||[]).map((o,i)=>{
+    if (p.esEncuesta && p.pregunta) {
+        const totalV = (p.opciones||[]).reduce((a,o)=>a+(o.votos?Object.keys(o.votos).length:0),0);
+        const optsH  = (p.opciones||[]).map((o,i)=>{
             const v = o.votos ? Object.keys(o.votos).length : 0;
-            const pct = totalVotos > 0 ? Math.round(v/totalVotos*100) : 0;
-            return `<div class="encuesta-opcion" onclick="votarEncuesta('${id}',${i},this)">
-                <div class="encuesta-bar" style="width:${pct}%"></div>
-                <span style="position:relative">${o.texto}</span>
-                <span style="margin-left:auto;font-size:12px;color:var(--text-muted);position:relative">${pct}%</span>
-            </div>`;
+            const pct = totalV > 0 ? Math.round(v/totalV*100) : 0;
+            return `<div class="encuesta-opcion" onclick="votarEncuesta('${id}',${i})"><div class="encuesta-bar" style="width:${pct}%"></div><span style="position:relative">${o.texto}</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted);position:relative">${pct}%</span></div>`;
         }).join('');
-        extraHTML += `<div class="post-encuesta"><div class="encuesta-pregunta-txt">${p.pregunta}</div>${opcionesHTML}<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${totalVotos} voto${totalVotos!==1?'s':''}</div></div>`;
+        extraHTML += `<div class="post-encuesta"><div class="encuesta-pregunta-txt">${p.pregunta}</div>${optsH}<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${totalV} voto${totalV!==1?'s':''}</div></div>`;
     }
 
-    const contentSize = (p.contenido||'').length < 100 && !p.imagenPost && !p.videoUrl ? ' big' : '';
-
+    const big  = contenido.length < 100 && !imgUrl && !videoUrl ? ' big' : '';
     const card = document.createElement('div');
-    card.className = 'post-card';
+    card.className  = 'post-card';
     card.dataset.id = id;
-    card.innerHTML = `
+    card.innerHTML  = `
         <div class="post-header">
-            <img class="post-avatar" src="${avatarSrc||'default-avatar.png'}" onerror="this.src='default-avatar.png'" onclick="location.href='profile.html?uid=${p.uid}'">
+            <img class="post-avatar" src="${avatarSrc}" onerror="this.src='default-avatar.png'" onclick="location.href='Profile.html?uid=${p.uid}'">
             <div class="post-meta">
                 <div class="post-author">${authorDisplay}</div>
-                <div class="post-time">${timeAgo(p.timestamp)} <i class="fa-solid fa-earth-americas"></i></div>
+                <div class="post-time">${timeAgo(ts)} <i class="fa-solid fa-earth-americas"></i></div>
             </div>
             <div class="post-menu" onclick="postMenu('${id}','${p.uid}')"><i class="fa-solid fa-ellipsis"></i></div>
         </div>
-        ${p.contenido ? `<div class="post-content${contentSize}">${p.contenido}</div>` : ''}
-        ${extraHTML}
-        ${mediaHTML}
+        ${contenido ? `<div class="post-content${big}">${contenido}</div>` : ''}
+        ${extraHTML}${mediaHTML}
         <div class="post-stats">
-            <div class="likes-count" id="likes-count-${id}">
-                ${likeCount > 0 ? `<div class="like-bubble">👍</div> <span>${likeCount} Me gusta</span>` : ''}
-            </div>
+            <div class="likes-count" id="likes-count-${id}"></div>
             <div class="comments-count" id="comments-count-${id}" onclick="openCommentSheet('${id}')" style="cursor:pointer;">Ver comentarios</div>
         </div>
         <div class="post-actions">
-            <div class="action-btn ${isLiked?'liked':''}" id="like-btn-${id}" onclick="toggleLike('${id}')">
-                <i class="fa-${isLiked?'solid':'regular'} fa-thumbs-up"></i> Me gusta
+            <div class="action-btn" id="like-btn-${id}" onclick="toggleLike('${id}')">
+                <i class="fa-regular fa-thumbs-up"></i> Me gusta
             </div>
             <div class="action-btn" onclick="openCommentSheet('${id}')">
                 <i class="fa-regular fa-comment"></i> Comentar
@@ -1010,1033 +463,692 @@ function buildPost(id, p, myLikes) {
             <div class="action-btn" onclick="sharePost('${id}')">
                 <i class="fa-solid fa-share"></i> Compartir
             </div>
-        </div>
-    `;
+        </div>`;
     return card;
 }
 
-function formatDur(s) {
-    const m = Math.floor(s/60);
-    return `${m}:${String(s%60).padStart(2,'0')}`;
+function applyLikeState(id, liked) {
+    const btn  = document.getElementById(`like-btn-${id}`);
+    const icon = btn?.querySelector('i');
+    if (!btn) return;
+    btn.classList.toggle('liked', liked);
+    if (icon) icon.className = `fa-${liked?'solid':'regular'} fa-thumbs-up`;
 }
 
-window.openImgFull = function(url) {
-    const ov = document.createElement('div');
-    ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
-    ov.innerHTML=`<img src="${url}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
-    ov.onclick=()=>ov.remove();
-    document.body.appendChild(ov);
-};
+// ════════════════════════════════════════════════════════
+//  FEED — arquitectura limpia
+//
+//  REGLA: renderedIds es la única fuente de verdad.
+//  Un post se inserta en el DOM UNA SOLA VEZ, sin importar
+//  de qué fuente venga. Firebase y Turso comparten el mismo Set.
+// ════════════════════════════════════════════════════════
+async function initFeed() {
+    if (feedLoading) return;
+    feedLoading = true;
+    const feed  = document.getElementById('feed');
 
-window.goComments = function(id) { location.href = `comments.html?id=${id}`; };
+    // Cancelar listener anterior y limpiar estado
+    if (fbUnsubscribe) { fbUnsubscribe(); fbUnsubscribe = null; }
+    renderedIds.clear();
+    feedDone   = false;
+    feedCursor = Date.now();
+    feed.querySelectorAll('.post-card, .empty-state').forEach(el => el.remove());
 
+    // Obtener lista de seguidos
+    const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
+    followingSet  = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
+    followingSet.add(currentUser.uid);
+
+    // ── FUENTE A: Turso (paginado) ──────────────────────
+    // Carga los posts históricos. Firebase solo añade los nuevos.
+    if (tursoOK) {
+        try {
+            const uids  = Array.from(followingSet);
+            const posts = await obtenerFeed(uids, 20, feedCursor);
+            if (posts.length < 20) feedDone = true;
+            if (posts.length > 0)  feedCursor = Number(posts[posts.length-1].timestamp);
+
+            const likedSet = await misLikes(currentUser.uid, posts.map(p => p.id));
+
+            posts.forEach(p => {
+                if (renderedIds.has(p.id)) return;  // nunca duplicar
+                renderedIds.add(p.id);
+
+                const card = buildPost(p.id, p);
+                const lc   = Number(p.total_likes || 0);
+                card.querySelector(`#likes-count-${p.id}`).innerHTML =
+                    lc > 0 ? `<div class="like-bubble">👍</div> <span>${lc} Me gusta</span>` : '';
+                const cc = Number(p.total_comentarios || 0);
+                card.querySelector(`#comments-count-${p.id}`).textContent =
+                    cc > 0 ? `${cc} comentario${cc!==1?'s':''}` : 'Ver comentarios';
+                if (likedSet.has(p.id)) applyLikeState(p.id, true); // actuar sobre card antes de agregar al DOM
+                feed.appendChild(card);
+                if (likedSet.has(p.id)) applyLikeState(p.id, true); // y también después (ya en DOM)
+            });
+        } catch(err) {
+            console.warn('Turso feed error:', err);
+        }
+    }
+
+    // ── FUENTE B: Firebase realtime ─────────────────────
+    // Escucha todos los posts en tiempo real. Solo inserta
+    // aquellos cuyo ID aún no está en renderedIds.
+    // Si Turso ya cargó el post → renderedIds.has(id) === true → se ignora.
+    // Si es un post nuevo en tiempo real → se inserta arriba.
+    const postsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'));
+    fbUnsubscribe  = onValue(postsRef, snap => {
+        const all = [];
+        snap.forEach(c => all.push({ id: c.key, ...c.val() }));
+
+        all
+            .filter(p => p.esAnonimo || p.uid === currentUser.uid || followingSet.has(p.uid))
+            .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
+            .forEach(p => {
+                if (renderedIds.has(p.id)) return;  // ← la misma comprobación, nunca duplica
+                renderedIds.add(p.id);
+
+                const card      = buildPost(p.id, p);
+                const likeCount = p.likes ? Object.keys(p.likes).length : 0;
+                card.querySelector(`#likes-count-${p.id}`).innerHTML =
+                    likeCount > 0 ? `<div class="like-bubble">👍</div> <span>${likeCount} Me gusta</span>` : '';
+                if (p.likes?.[currentUser.uid]) {
+                    const btn  = card.querySelector(`#like-btn-${p.id}`);
+                    const icon = btn?.querySelector('i');
+                    if (btn)  btn.classList.add('liked');
+                    if (icon) icon.className = 'fa-solid fa-thumbs-up';
+                }
+
+                // Posts nuevos van arriba, históricos abajo
+                const first = feed.querySelector('.post-card');
+                if (first) feed.insertBefore(card, first);
+                else        feed.appendChild(card);
+
+                watchCommentCount(p.id);
+            });
+
+        removeSkeleton();
+
+        if (renderedIds.size === 0 && !feed.querySelector('.empty-state')) {
+            const em = document.createElement('div');
+            em.className = 'empty-state';
+            em.innerHTML = `<i class="fa-solid fa-users"></i><h3>Sigue a alguien para ver posts</h3><p>Sus publicaciones aparecerán aquí.</p>`;
+            feed.appendChild(em);
+        } else if (renderedIds.size > 0) {
+            feed.querySelector('.empty-state')?.remove();
+        }
+    });
+
+    removeSkeleton();
+    feedLoading = false;
+    if (tursoOK) setupInfiniteScroll();
+}
+
+// Infinite scroll — solo carga más desde Turso
+async function loadMore() {
+    if (feedLoading || feedDone || !tursoOK) return;
+    feedLoading = true;
+    try {
+        const uids  = Array.from(followingSet);
+        const posts = await obtenerFeed(uids, 20, feedCursor);
+        if (posts.length < 20) feedDone = true;
+        if (posts.length > 0)  feedCursor = Number(posts[posts.length-1].timestamp);
+
+        const likedSet = await misLikes(currentUser.uid, posts.map(p => p.id));
+        const feed     = document.getElementById('feed');
+
+        posts.forEach(p => {
+            if (renderedIds.has(p.id)) return;
+            renderedIds.add(p.id);
+            const card = buildPost(p.id, p);
+            const lc   = Number(p.total_likes || 0);
+            card.querySelector(`#likes-count-${p.id}`).innerHTML =
+                lc > 0 ? `<div class="like-bubble">👍</div> <span>${lc} Me gusta</span>` : '';
+            const cc = Number(p.total_comentarios || 0);
+            card.querySelector(`#comments-count-${p.id}`).textContent =
+                cc > 0 ? `${cc} comentario${cc!==1?'s':''}` : 'Ver comentarios';
+            feed.appendChild(card);
+            if (likedSet.has(p.id)) applyLikeState(p.id, true);
+        });
+    } catch(err) { console.warn('loadMore error:', err); }
+    feedLoading = false;
+}
+
+function setupInfiniteScroll() {
+    window.addEventListener('scroll', () => {
+        if (feedDone || feedLoading) return;
+        if (window.scrollY + window.innerHeight >= document.body.scrollHeight - 300) loadMore();
+    }, { passive: true });
+}
+
+// ════════════════════════════════════════════════════════
+//  COMMENT COUNT
+// ════════════════════════════════════════════════════════
+async function watchCommentCount(postId) {
+    const el = document.getElementById(`comments-count-${postId}`);
+    if (!el) return;
+    try {
+        const res = await tursoQuery('SELECT COUNT(*) as n FROM comentarios WHERE post_id = ?', [postId]);
+        const n   = Number(res[0]?.n || 0);
+        el.textContent = n > 0 ? `${n} comentario${n!==1?'s':''}` : 'Ver comentarios';
+    } catch {
+        onValue(ref(db, `comentarios/${postId}`), snap => {
+            const n = snap.exists() ? Object.keys(snap.val()).length : 0;
+            el.textContent = n > 0 ? `${n} comentario${n!==1?'s':''}` : 'Ver comentarios';
+        });
+    }
+}
+
+// ════════════════════════════════════════════════════════
+//  LIKE
+// ════════════════════════════════════════════════════════
 window.toggleLike = async function(id) {
     if (!currentUser) return;
     const btn    = document.getElementById(`like-btn-${id}`);
     const iconEl = btn?.querySelector('i');
     if (!btn) return;
 
-    // ── Optimistic UI: actualizar antes de la llamada ──
     const wasLiked = btn.classList.contains('liked');
     const nowLiked = !wasLiked;
-    btn.classList.toggle('liked', nowLiked);
-    if (iconEl) iconEl.className = `fa-${nowLiked ? 'solid' : 'regular'} fa-thumbs-up`;
+    applyLikeState(id, nowLiked); // optimistic UI
 
     try {
-        // ── Turso: toggle like ─────────────────────
         await tursoToggleLike(id, currentUser.uid);
 
         if (nowLiked) {
-            // Animación pop
-            if (iconEl) {
-                iconEl.classList.remove('like-anim');
-                void iconEl.offsetWidth;
-                iconEl.classList.add('like-anim');
-                iconEl.addEventListener('animationend', () => iconEl.classList.remove('like-anim'), { once: true });
-            }
-            // Anillo + partículas
+            iconEl?.classList.add('like-anim');
+            iconEl?.addEventListener('animationend', () => iconEl.classList.remove('like-anim'), { once: true });
             const ring = document.createElement('div');
-            ring.className = 'like-ring';
-            ring.style.cssText = 'left:50%;top:50%;';
-            btn.appendChild(ring);
-            ring.addEventListener('animationend', () => ring.remove());
+            ring.className = 'like-ring'; ring.style.cssText = 'left:50%;top:50%;';
+            btn.appendChild(ring); ring.addEventListener('animationend', () => ring.remove());
             const colors = ['#1877f2','#ff6584','#ffcc00','#43e97b','#f093fb'];
             for (let k = 0; k < 6; k++) {
-                const dot = document.createElement('div');
+                const dot   = document.createElement('div');
                 dot.className = 'like-dot';
-                const angle = (k / 6) * Math.PI * 2;
-                const dist  = 28 + Math.random() * 14;
-                dot.style.cssText = `left:50%;top:50%;background:${colors[k%colors.length]};--tx:${Math.round(Math.cos(angle)*dist)}px;--ty:${Math.round(Math.sin(angle)*dist)}px;animation-delay:${k*0.03}s;`;
-                btn.appendChild(dot);
-                dot.addEventListener('animationend', () => dot.remove());
+                const angle = (k/6)*Math.PI*2, dist = 28 + Math.random()*14;
+                dot.style.cssText = `left:50%;top:50%;background:${colors[k%5]};--tx:${Math.round(Math.cos(angle)*dist)}px;--ty:${Math.round(Math.sin(angle)*dist)}px;animation-delay:${k*0.03}s;`;
+                btn.appendChild(dot); dot.addEventListener('animationend', () => dot.remove());
             }
-            // Notif via Firebase
-            const postSnap = await get(ref(db, `publicaciones/${id}`));
-            if (postSnap.exists() && postSnap.val().uid) {
-                writeNotif(postSnap.val().uid, 'like', { postId: id, postImagen: postSnap.val().imagenPost || '' });
-            }
+            const ps = await get(ref(db, `publicaciones/${id}`));
+            if (ps.exists() && ps.val().uid) writeNotif(ps.val().uid, 'like', { postId: id, postImagen: ps.val().imagenPost||'' });
         }
 
-        // Actualizar conteo con query Turso
-        const { tursoQuery } = await import('./turso-config.js');
-        const res = await tursoQuery('SELECT COUNT(*) as total FROM likes WHERE post_id = ?', [id]);
+        const res   = await tursoQuery('SELECT COUNT(*) as total FROM likes WHERE post_id = ?', [id]);
         const count = Number(res[0]?.total || 0);
-        const bar = document.getElementById(`likes-count-${id}`);
+        const bar   = document.getElementById(`likes-count-${id}`);
         if (bar) bar.innerHTML = count > 0 ? `<div class="like-bubble">👍</div> <span>${count} Me gusta</span>` : '';
 
-    } catch (err) {
-        console.warn('Turso like falló, usando Firebase fallback:', err);
-        // Revertir UI y usar Firebase
-        btn.classList.toggle('liked', wasLiked);
-        if (iconEl) iconEl.className = `fa-${wasLiked ? 'solid' : 'regular'} fa-thumbs-up`;
+    } catch {
+        // Firebase fallback
+        applyLikeState(id, wasLiked);
         const likeRef = ref(db, `publicaciones/${id}/likes/${currentUser.uid}`);
-        const snap = await get(likeRef);
+        const snap    = await get(likeRef);
         if (snap.exists()) await remove(likeRef);
         else {
             await set(likeRef, true);
-            const postSnap = await get(ref(db, `publicaciones/${id}`));
-            if (postSnap.exists() && postSnap.val().uid) {
-                writeNotif(postSnap.val().uid, 'like', { postId: id, postImagen: postSnap.val().imagenPost || '' });
-            }
+            const ps = await get(ref(db, `publicaciones/${id}`));
+            if (ps.exists() && ps.val().uid) writeNotif(ps.val().uid, 'like', { postId: id, postImagen: ps.val().imagenPost||'' });
         }
         const allSnap = await get(ref(db, `publicaciones/${id}/likes`));
-        const count = allSnap.exists() ? Object.keys(allSnap.val()).length : 0;
-        const bar = document.getElementById(`likes-count-${id}`);
+        const count   = allSnap.exists() ? Object.keys(allSnap.val()).length : 0;
+        const bar     = document.getElementById(`likes-count-${id}`);
         if (bar) bar.innerHTML = count > 0 ? `<div class="like-bubble">👍</div> <span>${count} Me gusta</span>` : '';
+        applyLikeState(id, !wasLiked);
     }
 };
 
-// ── Comment count per post (Turso) ────────────
-async function watchCommentCount(postId) {
-    const el = document.getElementById(`comments-count-${postId}`);
-    if (!el) return;
-    try {
-        const rows = await obtenerComentarios(postId, 1);
-        // Solo necesitamos el conteo, usamos total_comentarios del feed si está
-        const card = document.querySelector(`.post-card[data-id="${postId}"]`);
-        // Query ligera: solo contar
-        const { tursoQuery } = await import('./turso-config.js');
-        const res = await tursoQuery('SELECT COUNT(*) as n FROM comentarios WHERE post_id = ?', [postId]);
-        const n = Number(res[0]?.n || 0);
-        el.textContent = n > 0 ? `${n} comentario${n !== 1 ? 's' : ''}` : 'Ver comentarios';
-    } catch {
-        onValue(ref(db, `comentarios/${postId}`), (snap) => {
-            const n = snap.exists() ? Object.keys(snap.val()).length : 0;
-            el.textContent = n > 0 ? `${n} comentario${n !== 1 ? 's' : ''}` : 'Ver comentarios';
-        });
-    }
-}
+// ════════════════════════════════════════════════════════
+//  POST ACTIONS
+// ════════════════════════════════════════════════════════
+window.postMenu = function(id, uid) {
+    const sheet = document.createElement('div');
+    sheet.style.cssText = 'position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.4);';
+    const isOwn = uid === currentUser?.uid;
+    sheet.innerHTML = `
+        <div style="background:var(--surface);border-radius:24px 24px 0 0;padding:20px 0 32px;font-family:'Plus Jakarta Sans',sans-serif;">
+            ${isOwn?`<div onclick="deletePost('${id}');this.closest('[style]').remove();" style="padding:16px 24px;font-size:16px;font-weight:700;color:#e74c3c;cursor:pointer;"><i class="fa-solid fa-trash" style="margin-right:10px;"></i>Eliminar publicación</div>`:''}
+            <div onclick="this.closest('[style]').remove();" style="padding:16px 24px;font-size:16px;font-weight:700;color:var(--text-muted);cursor:pointer;border-top:1px solid var(--border);">Cancelar</div>
+        </div>`;
+    sheet.onclick = e => { if (e.target === sheet) sheet.remove(); };
+    document.body.appendChild(sheet);
+};
 
-window.votarEncuesta = async function(postId, idx, el) {
+window.deletePost = async function(id) {
+    try { await eliminarPost(id, currentUser.uid); }
+    catch { await remove(ref(db, `publicaciones/${id}`)); }
+    document.querySelector(`.post-card[data-id="${id}"]`)?.remove();
+    renderedIds.delete(id);
+    showToast('🗑️ Publicación eliminada');
+};
+
+window.openImgFull = function(url) {
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+    ov.innerHTML = `<img src="${url}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+    ov.onclick   = () => ov.remove();
+    document.body.appendChild(ov);
+};
+
+window.sharePost = function(id) {
+    const url = `${location.origin}${location.pathname}?post=${id}`;
+    if (navigator.share) navigator.share({ url });
+    else { navigator.clipboard?.writeText(url); showToast('🔗 Link copiado'); }
+};
+
+window.votarEncuesta = async function(postId, idx) {
     if (!currentUser) return;
-    const voteRef = ref(db, `publicaciones/${postId}/opciones/${idx}/votos/${currentUser.uid}`);
-    const snap = await get(voteRef);
-    if (!snap.exists()) { await set(voteRef, true); showToast('✅ Voto registrado'); }
+    const vRef = ref(db, `publicaciones/${postId}/opciones/${idx}/votos/${currentUser.uid}`);
+    const snap = await get(vRef);
+    if (!snap.exists()) { await set(vRef, true); showToast('✅ Voto registrado'); }
     else showToast('Ya votaste en esta encuesta');
 };
 
-window.openAddStorySheet = function() {
-    const overlay = document.createElement('div');
-    overlay.className = 'comment-sheet-overlay';
-    overlay.innerHTML = `
-        <div class="comment-sheet" id="story-sheet">
-            <div class="comment-sheet-handle"></div>
-            <div class="comment-sheet-header">
-                <span class="comment-sheet-title">Nueva historia</span>
-                <button class="comment-sheet-close" onclick="this.closest('.comment-sheet-overlay').remove()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <!-- Vista inicial: elegir tipo -->
-            <div id="story-type-picker" style="padding:12px 8px 28px;display:flex;flex-direction:column;gap:4px;">
-                <div class="story-sheet-option" onclick="storyPickMedia('imagen')">
-                    <div class="story-sheet-icon" style="background:linear-gradient(135deg,#43e97b,#38f9d7);">
-                        <i class="fa-solid fa-image"></i>
-                    </div>
-                    <div>
-                        <div class="story-sheet-label">Foto</div>
-                        <div class="story-sheet-desc">Comparte una imagen como historia</div>
-                    </div>
-                </div>
-                <div class="story-sheet-option" onclick="storyPickMedia('video')">
-                    <div class="story-sheet-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
-                        <i class="fa-solid fa-video"></i>
-                    </div>
-                    <div>
-                        <div class="story-sheet-label">Video</div>
-                        <div class="story-sheet-desc">Comparte un video corto</div>
-                    </div>
-                </div>
-                <div class="story-sheet-option" onclick="storyShowTextEditor()">
-                    <div class="story-sheet-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);">
-                        <i class="fa-solid fa-font"></i>
-                    </div>
-                    <div>
-                        <div class="story-sheet-label">Texto</div>
-                        <div class="story-sheet-desc">Crea una historia solo con texto</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Vista: preview + publicar (oculta) -->
-            <div id="story-preview-view" style="display:none;flex-direction:column;flex:1;">
-                <div style="position:relative;background:#000;min-height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                    <img id="story-preview-img" style="max-width:100%;max-height:320px;display:none;border-radius:0;">
-                    <video id="story-preview-vid" style="max-width:100%;max-height:320px;display:none;" controls playsinline></video>
-                    <div id="story-preview-txt" style="display:none;color:#fff;font-size:22px;font-weight:800;text-align:center;padding:24px;text-shadow:0 2px 8px rgba(0,0,0,0.7);"></div>
-                </div>
-                <div style="padding:16px;">
-                    <div id="story-upload-bar" style="display:none;margin-bottom:12px;">
-                        <div style="height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;">
-                            <div id="story-upload-fill" style="height:100%;width:0%;background:var(--accent);transition:width 0.3s;border-radius:3px;"></div>
-                        </div>
-                        <div id="story-upload-pct" style="font-size:12px;color:var(--text-muted);margin-top:4px;text-align:center;">Subiendo...</div>
-                    </div>
-                    <button id="story-publish-btn" onclick="storyPublish()" style="
-                        width:100%;padding:14px;border-radius:14px;border:none;
-                        background:linear-gradient(135deg,var(--accent),var(--accent2));
-                        color:#fff;font-size:16px;font-weight:800;
-                        cursor:pointer;font-family:inherit;
-                        display:flex;align-items:center;justify-content:center;gap:8px;
-                    "><i class='fa-solid fa-paper-plane'></i> Publicar historia</button>
-                    <button onclick="storyBackToPicker()" style="
-                        width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);
-                        background:transparent;color:var(--text-muted);font-size:14px;font-weight:700;
-                        cursor:pointer;font-family:inherit;margin-top:8px;
-                    ">Cambiar</button>
-                </div>
-            </div>
-
-            <!-- Vista: editor de texto (oculta) -->
-            <div id="story-text-view" style="display:none;flex-direction:column;flex:1;padding:16px;gap:12px;">
-                <div id="story-text-bg" style="
-                    min-height:200px;border-radius:16px;
-                    background:linear-gradient(135deg,var(--accent),var(--accent2));
-                    display:flex;align-items:center;justify-content:center;padding:20px;
-                ">
-                    <textarea id="story-text-input" placeholder="Escribe tu historia..." style="
-                        background:transparent;border:none;outline:none;
-                        color:#fff;font-size:20px;font-weight:700;text-align:center;
-                        width:100%;resize:none;font-family:inherit;
-                        text-shadow:0 1px 4px rgba(0,0,0,0.4);min-height:120px;
-                    " oninput="document.getElementById('story-text-preview').textContent=this.value"></textarea>
-                </div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    ${['linear-gradient(135deg,#6c63ff,#f5576c)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#1a1a24,#2a2a38)'].map((g,i)=>`
-                        <div onclick="document.getElementById('story-text-bg').style.background='${g}'" style="
-                            width:36px;height:36px;border-radius:50%;background:${g};cursor:pointer;
-                            border:2px solid var(--border);flex-shrink:0;
-                        "></div>
-                    `).join('')}
-                </div>
-                <button onclick="storyPublishText()" style="
-                    width:100%;padding:14px;border-radius:14px;border:none;
-                    background:linear-gradient(135deg,var(--accent),var(--accent2));
-                    color:#fff;font-size:16px;font-weight:800;
-                    cursor:pointer;font-family:inherit;
-                    display:flex;align-items:center;justify-content:center;gap:8px;
-                "><i class='fa-solid fa-paper-plane'></i> Publicar historia</button>
-                <button onclick="storyBackToPicker()" style="
-                    width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);
-                    background:transparent;color:var(--text-muted);font-size:14px;font-weight:700;
-                    cursor:pointer;font-family:inherit;
-                ">Volver</button>
-            </div>
-        </div>
-
-        <!-- Input file oculto -->
-        <input type="file" id="story-file-input" style="display:none" onchange="storyFileSelected(this)">
-    `;
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-    document.body.appendChild(overlay);
-};
-
-// Estado temporal de la historia
-let _storyFile = null;
-let _storyType = null; // 'imagen' o 'video'
-
-window.storyPickMedia = function(tipo) {
-    _storyType = tipo;
-    const input = document.getElementById('story-file-input');
-    input.accept = tipo === 'imagen' ? 'image/*' : 'video/*';
-    input.click();
-};
-
-window.storyFileSelected = function(input) {
-    const file = input.files[0];
-    if (!file) return;
-    _storyFile = file;
-    const url = URL.createObjectURL(file);
-
-    document.getElementById('story-type-picker').style.display = 'none';
-    document.getElementById('story-text-view').style.display = 'none';
-    const pv = document.getElementById('story-preview-view');
-    pv.style.display = 'flex';
-
-    const img = document.getElementById('story-preview-img');
-    const vid = document.getElementById('story-preview-vid');
-    const txt = document.getElementById('story-preview-txt');
-    img.style.display = 'none'; vid.style.display = 'none'; txt.style.display = 'none';
-
-    if (_storyType === 'imagen') { img.src = url; img.style.display = 'block'; }
-    else { vid.src = url; vid.style.display = 'block'; }
-};
-
-window.storyShowTextEditor = function() {
-    document.getElementById('story-type-picker').style.display = 'none';
-    document.getElementById('story-text-view').style.display = 'flex';
-};
-
-window.storyBackToPicker = function() {
-    _storyFile = null; _storyType = null;
-    document.getElementById('story-preview-view').style.display = 'none';
-    document.getElementById('story-text-view').style.display = 'none';
-    document.getElementById('story-type-picker').style.display = 'flex';
-    document.getElementById('story-upload-bar').style.display = 'none';
-    document.getElementById('story-upload-fill').style.width = '0%';
-};
-
-window.storyPublish = async function() {
-    if (!_storyFile || !currentUser) return;
-    const btn = document.getElementById('story-publish-btn');
-    btn.disabled = true;
-    btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Subiendo...";
-    document.getElementById('story-upload-bar').style.display = 'block';
-
-    const onProgress = pct => {
-        document.getElementById('story-upload-fill').style.width = pct + '%';
-        document.getElementById('story-upload-pct').textContent = `Subiendo... ${pct}%`;
-    };
-
-    try {
-        let downloadURL;
-        if (_storyType === 'video') {
-            // Videos → Cloudinary (25GB gratis)
-            downloadURL = await cloudinaryUpload(_storyFile, onProgress);
-        } else {
-            // Fotos → Supabase
-            downloadURL = await supabaseUpload(_storyFile, `stories/${currentUser.uid}`, onProgress);
-        }
-
-        const now = Date.now();
-        const data = {
-            uid: currentUser.uid,
-            autor: currentUser.displayName || 'Usuario',
-            avatar: currentUser.photoURL || '',
-            timestamp: now,
-            expira: now + 24 * 60 * 60 * 1000, // 24h
-        };
-        if (_storyType === 'imagen') data.imagenUrl = downloadURL;
-        else data.videoUrl = downloadURL;
-
-        // Guardar en Firebase
-        await push(ref(db, 'historias'), data);
-        // Guardar en Turso con el MISMO timestamp
-        try {
-            await crearHistoria(currentUser, {
-                imagenUrl:  data.imagenUrl || null,
-                videoUrl:   data.videoUrl  || null,
-                timestamp:  now,
-                expira:     now + 24 * 60 * 60 * 1000,
-            });
-        } catch(e) { console.warn('Turso historia:', e); }
-        showToast('✅ Historia publicada');
-        document.querySelector('.comment-sheet-overlay')?.remove();
-        loadStories();
-    } catch (err) {
-        showToast('❌ Error al subir: ' + err.message);
-        btn.disabled = false;
-        btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> Publicar historia";
-    }
-};
-
-window.storyPublishText = async function() {
-    const texto = document.getElementById('story-text-input')?.value.trim();
-    if (!texto || !currentUser) { showToast('Escribe algo primero'); return; }
-    const bg = document.getElementById('story-text-bg')?.style.background || '';
-    const now = Date.now();
-    await push(ref(db, 'historias'), {
-        uid: currentUser.uid,
-        autor: currentUser.displayName || 'Usuario',
-        avatar: currentUser.photoURL || '',
-        timestamp: now,
-        expira: now + 24 * 60 * 60 * 1000,
-        textoHistoria: texto,
-        bgGradient: bg,
-    });
-    // Guardar en Turso con el MISMO timestamp
-    try {
-        await crearHistoria(currentUser, { textoHistoria: texto, bgGradient: bg, timestamp: now, expira: now + 24 * 60 * 60 * 1000 });
-    } catch(e) { console.warn('Turso historia texto:', e); }
-    try { await crearHistoria(currentUser, { textoHistoria: texto, bgGradient: bg }); }
-    catch(e) { console.warn('Turso historia texto:', e); }
-    showToast('✅ Historia publicada');
-    document.querySelector('.comment-sheet-overlay')?.remove();
-    loadStories();
-};
-
+// ════════════════════════════════════════════════════════
+//  COMENTARIOS
+// ════════════════════════════════════════════════════════
 window.openCommentSheet = async function(postId) {
     const overlay = document.createElement('div');
-    overlay.className = 'comment-sheet-overlay';
+    overlay.className = 'sheet-overlay';
     overlay.innerHTML = `
-        <div class="comment-sheet" id="cs-sheet">
-            <div class="comment-sheet-handle"></div>
-            <div class="comment-sheet-header">
-                <span class="comment-sheet-title">Comentarios</span>
-                <button class="comment-sheet-close" onclick="this.closest('.comment-sheet-overlay').remove()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+        <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <span class="sheet-title">Comentarios</span>
+                <button class="sheet-close" onclick="this.closest('.sheet-overlay').remove()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="comment-sheet-list" id="cs-list-${postId}">
+            <div class="cs-list" id="cs-list-${postId}">
                 <div class="cs-empty"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:20px;margin-bottom:8px;display:block;"></i>Cargando...</div>
             </div>
-            <div class="comment-sheet-input-row">
+            <div class="cs-input-row">
                 <img class="cs-input-avatar" src="${currentUser.photoURL||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
                 <input class="cs-input" id="cs-input-${postId}" placeholder="Escribe un comentario..." autocomplete="off">
-                <button class="cs-send" onclick="sendSheetComment('${postId}')">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
+                <button class="cs-send" onclick="sendComment('${postId}')"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
-        </div>
-    `;
+        </div>`;
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
-    setTimeout(() => document.getElementById(`cs-input-${postId}`)?.focus(), 300);
-    document.getElementById(`cs-input-${postId}`)?.addEventListener('keydown', e => {
-        if (e.key === 'Enter') sendSheetComment(postId);
-    });
+    const inp = document.getElementById(`cs-input-${postId}`);
+    setTimeout(() => inp?.focus(), 300);
+    inp?.addEventListener('keydown', e => { if (e.key === 'Enter') sendComment(postId); });
 
-    // ── Cargar comentarios desde Turso ─────────
-    async function renderComments() {
-        const listEl = document.getElementById(`cs-list-${postId}`);
-        if (!listEl) return;
+    async function render() {
+        const el = document.getElementById(`cs-list-${postId}`);
+        if (!el) return;
         try {
-            const comments = await obtenerComentarios(postId, 100);
-            if (!comments.length) {
-                listEl.innerHTML = `<div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>`;
-                return;
-            }
-            listEl.innerHTML = comments.map(c => `
+            const arr = await obtenerComentarios(postId, 100);
+            if (!arr.length) { el.innerHTML = `<div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>`; return; }
+            el.innerHTML = arr.map(c=>`
                 <div class="cs-comment" data-cid="${c.id}">
                     <img class="cs-avatar" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
                     <div class="cs-bubble">
                         <div class="cs-author">${c.nombre||'Usuario'}</div>
                         <div class="cs-text">${c.texto}</div>
                         <div class="cs-time">${timeAgo(Number(c.timestamp))}</div>
-                        ${c.uid === currentUser.uid ? `<div class="cs-del" onclick="deleteSheetComment('${postId}','${c.id}')"><i class="fa-solid fa-trash"></i></div>` : ''}
+                        ${c.uid===currentUser.uid?`<div style="font-size:12px;color:#e74c3c;cursor:pointer;margin-top:4px;" onclick="deleteComment('${postId}','${c.id}')"><i class="fa-solid fa-trash"></i> Eliminar</div>`:''}
                     </div>
-                </div>
-            `).join('');
-            listEl.scrollTop = listEl.scrollHeight;
+                </div>`).join('');
+            el.scrollTop = el.scrollHeight;
         } catch {
-            // Fallback Firebase
-            onValue(ref(db, `comentarios/${postId}`), (snap) => {
-                if (!snap.exists()) { listEl.innerHTML = `<div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>`; return; }
-                const arr = [];
-                snap.forEach(c => arr.push(c.val()));
-                arr.sort((a,b)=>a.timestamp-b.timestamp);
-                listEl.innerHTML = arr.map(c=>`<div class="cs-comment"><img class="cs-avatar" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'"><div class="cs-bubble"><div class="cs-author">${c.autor||'Usuario'}</div><div class="cs-text">${c.texto}</div><div class="cs-time">${timeAgo(c.timestamp)}</div></div></div>`).join('');
-                listEl.scrollTop = listEl.scrollHeight;
+            onValue(ref(db,`comentarios/${postId}`), snap => {
+                if (!snap.exists()) { el.innerHTML=`<div class="cs-empty"><i class="fa-regular fa-comment" style="font-size:28px;margin-bottom:8px;display:block;"></i>Sé el primero en comentar</div>`; return; }
+                const arr=[];snap.forEach(c=>arr.push(c.val()));arr.sort((a,b)=>a.timestamp-b.timestamp);
+                el.innerHTML=arr.map(c=>`<div class="cs-comment"><img class="cs-avatar" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'"><div class="cs-bubble"><div class="cs-author">${c.autor||'Usuario'}</div><div class="cs-text">${c.texto}</div><div class="cs-time">${timeAgo(c.timestamp)}</div></div></div>`).join('');
+                el.scrollTop=el.scrollHeight;
             });
         }
     }
-    renderComments();
-    // Guardar función de refresh en el overlay para usarla al enviar
-    overlay._refreshComments = renderComments;
+    render();
+    overlay._refresh = render;
 };
 
-window.deleteSheetComment = async function(postId, commentId) {
+window.deleteComment = async function(postId, commentId) {
     if (!confirm('¿Eliminar comentario?')) return;
     try {
         await eliminarComentario(commentId, currentUser.uid);
         document.querySelector(`.cs-comment[data-cid="${commentId}"]`)?.remove();
         watchCommentCount(postId);
         showToast('Comentario eliminado');
-    } catch(e) { showToast('Error al eliminar'); }
+    } catch { showToast('Error al eliminar'); }
 };
 
-window.sendSheetComment = async function(postId) {
+window.sendComment = async function(postId) {
     const inp = document.getElementById(`cs-input-${postId}`);
     const txt = inp?.value.trim();
     if (!txt || !currentUser) return;
     inp.value = '';
     try {
-        // ── Turso: guardar comentario ──────────────
         await agregarComentario(postId, currentUser, txt);
-        // Refrescar lista
-        const overlay = document.querySelector('.comment-sheet-overlay');
-        if (overlay?._refreshComments) await overlay._refreshComments();
-        watchCommentCount(postId);
-    } catch {
-        // Fallback Firebase
-        await push(ref(db, `comentarios/${postId}`), {
-            autor: currentUser.displayName || 'Usuario',
-            avatar: currentUser.photoURL || '',
-            uid: currentUser.uid,
-            texto: txt,
-            timestamp: Date.now()
-        });
-    }
-    // Notificación via Firebase (siempre)
-    const postSnap = await get(ref(db, `publicaciones/${postId}`));
-    if (postSnap.exists() && postSnap.val().uid) {
-        writeNotif(postSnap.val().uid, 'comment', { postId, comentario: txt, postImagen: postSnap.val().imagenPost || '' });
-    }
-};
-
-window.quickComment = async function(e, postId) {
-    if (e.key !== 'Enter') return;
-    const inp = e.target;
-    const txt = inp.value.trim();
-    if (!txt || !currentUser) return;
-    inp.value = '';
-    try {
-        await agregarComentario(postId, currentUser, txt);
+        const ov = document.querySelector('.sheet-overlay');
+        if (ov?._refresh) await ov._refresh();
         watchCommentCount(postId);
     } catch {
         await push(ref(db, `comentarios/${postId}`), {
-            autor: currentUser.displayName || 'Usuario',
-            avatar: currentUser.photoURL || '',
-            uid: currentUser.uid,
-            texto: txt,
-            timestamp: Date.now()
+            autor: currentUser.displayName||'Usuario', avatar: currentUser.photoURL||'',
+            uid: currentUser.uid, texto: txt, timestamp: Date.now()
         });
     }
-    const qSnap = await get(ref(db, `publicaciones/${postId}`));
-    if (qSnap.exists() && qSnap.val().uid) writeNotif(qSnap.val().uid, 'comment', { postId, comentario: txt });
-    showToast('💬 Comentario publicado');
+    const ps = await get(ref(db, `publicaciones/${postId}`));
+    if (ps.exists() && ps.val().uid) writeNotif(ps.val().uid, 'comment', { postId, comentario: txt, postImagen: ps.val().imagenPost||'' });
 };
 
-window.sharePost = function(id) {
-    const url = `${location.origin}${location.pathname}?post=${id}`;
-    if (navigator.share) { navigator.share({ url }); }
-    else { navigator.clipboard?.writeText(url); showToast('🔗 Link copiado'); }
-};
+// ════════════════════════════════════════════════════════
+//  STORIES
+// ════════════════════════════════════════════════════════
+async function loadStories() {
+    const seen = new Set();
+    const obj  = {};
 
-window.postMenu = function(id, uid) {
-    const sheet = document.createElement('div');
-    sheet.style.cssText='position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.4);';
-    const isOwn = uid === currentUser?.uid;
-    sheet.innerHTML=`
-        <div style="background:var(--surface);border-radius:24px 24px 0 0;padding:20px 0 32px;font-family:'Plus Jakarta Sans',sans-serif;">
-            ${isOwn?`<div onclick="deletePost('${id}');this.closest('[style]').remove();" style="padding:16px 24px;font-size:16px;font-weight:700;color:#e74c3c;cursor:pointer;"><i class="fa-solid fa-trash" style="margin-right:10px;"></i>Eliminar publicación</div>`:''}
-            <div onclick="this.closest('[style]').remove();" style="padding:16px 24px;font-size:16px;font-weight:700;color:var(--text-muted);cursor:pointer;border-top:1px solid var(--border);">Cancelar</div>
-        </div>`;
-    sheet.onclick = e => { if (e.target===sheet) sheet.remove(); };
-    document.body.appendChild(sheet);
-};
-
-window.deletePost = async function(id) {
     try {
-        await eliminarPost(id, currentUser.uid);
-    } catch {
-        await remove(ref(db, `publicaciones/${id}`));
-    }
-    document.querySelector(`.post-card[data-id="${id}"]`)?.remove();
-    showToast('🗑️ Publicación eliminada');
-};
+        const snap = await get(ref(db, 'historias'));
+        if (snap.exists()) {
+            const now = Date.now();
+            snap.forEach(c => {
+                const s = c.val();
+                if (!s.uid || (s.expira && s.expira <= now)) return;
+                const key = `${s.uid}_${Math.floor(Number(s.timestamp)/1000)}`;
+                if (seen.has(key)) return;
+                seen.add(key);
+                obj[c.key] = s;
+            });
+        }
+    } catch(e) { console.warn('Firebase historias:', e); }
 
-// ── BUSCADOR DE USUARIOS ────────────────────────
-window.openSearchSheet = function() {
+    if (tursoOK) {
+        try {
+            await eliminarHistoriasExpiradas();
+            const rows = await obtenerHistorias();
+            rows.forEach(r => {
+                const key = `${r.uid}_${Math.floor(Number(r.timestamp)/1000)}`;
+                if (seen.has(key)) return;
+                seen.add(key);
+                obj[r.id] = { uid:r.uid, autor:r.autor, avatar:r.avatar, imagenUrl:r.imagen_url, videoUrl:r.video_url, textoHistoria:r.texto_historia, bgGradient:r.bg_gradient, timestamp:Number(r.timestamp), expira:Number(r.expira) };
+            });
+        } catch(e) { console.warn('Turso historias:', e); }
+    }
+
+    if (Object.keys(obj).length > 0) buildStories(obj);
+}
+
+function buildStories(data) {
+    const list = document.getElementById('stories-list');
+    list.innerHTML = '';
+    const byUser = {};
+    Object.entries(data).forEach(([id, s]) => {
+        if (!s.uid) return;
+        if (!followingSet.has(s.uid) && s.uid !== currentUser.uid) return;
+        if (s.expira && Date.now() > s.expira) return;
+        if (!byUser[s.uid]) byUser[s.uid] = [];
+        byUser[s.uid].push({ ...s, id });
+    });
+    Object.values(byUser).forEach(stories => {
+        stories.sort((a,b) => a.timestamp - b.timestamp);
+        const latest  = stories[stories.length-1];
+        const isMe    = latest.uid === currentUser.uid;
+        const mUrl    = latest.imagenUrl || latest.videoUrl || '';
+        const bgStyle = latest.textoHistoria
+            ? `background:${latest.bgGradient||'linear-gradient(135deg,var(--accent),var(--accent2))'}`
+            : (mUrl ? `background-image:url('${mUrl}')` : `background:var(--surface3)`);
+        const div = document.createElement('div');
+        div.className = 'story-item';
+        div.innerHTML = `
+            <div class="story-bg" style="${bgStyle};background-size:cover;background-position:center;"></div>
+            <div class="story-overlay"></div>
+            ${latest.textoHistoria?`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:10px;font-size:12px;font-weight:700;color:#fff;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,0.5);">${latest.textoHistoria}</div>`:''}
+            <div class="story-user-badge"><img src="${latest.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'"></div>
+            ${stories.length>1?`<div style="position:absolute;top:6px;right:6px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:2px 5px;">${stories.length}</div>`:''}
+            <span class="story-name">${isMe?'Tu historia':(latest.autor||'Usuario')}</span>`;
+        div.onclick = () => openStoryGroup(stories, 0);
+        list.appendChild(div);
+    });
+}
+
+let _svStories=[], _svIndex=0, _svTimer=null;
+window.openStoryGroup = function(stories, start) { _svStories=stories; _svIndex=start; _svRender(); document.getElementById('story-viewer').classList.add('open'); };
+function _svRender() {
+    clearTimeout(_svTimer);
+    const s=_svStories[_svIndex], sv=document.getElementById('story-viewer');
+    const img=document.getElementById('sv-img'), vid=document.getElementById('sv-video');
+    document.getElementById('sv-name').textContent=s.autor||'Usuario';
+    document.getElementById('sv-avatar').src=s.avatar||'default-avatar.png';
+    document.getElementById('sv-time').textContent=timeAgo(s.timestamp);
+    document.getElementById('sv-bars').innerHTML=_svStories.map((_,i)=>`<div class="sv-progress"><div class="sv-fill" id="sv-bar-${i}" style="width:${i<_svIndex?'100%':'0%'};animation:none;"></div></div>`).join('');
+    requestAnimationFrame(()=>{const bar=document.getElementById(`sv-bar-${_svIndex}`);if(bar){bar.style.animation='none';bar.offsetHeight;bar.style.animation='story-prog 5s linear forwards';}});
+    img.style.display='none'; vid.style.display='none';
+    const txtEl=document.getElementById('sv-texto'); if(txtEl) txtEl.style.display='none';
+    if(s.textoHistoria){sv.style.background=s.bgGradient||'linear-gradient(135deg,#6c63ff,#f5576c)';let el=document.getElementById('sv-texto');if(!el){el=document.createElement('div');el.id='sv-texto';el.style.cssText='position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;padding:32px;font-size:26px;font-weight:800;color:#fff;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,0.4);line-height:1.3;pointer-events:none;';sv.appendChild(el);}el.textContent=s.textoHistoria;el.style.display='flex';}
+    else{sv.style.background='#000';if(s.videoUrl){vid.src=s.videoUrl;vid.style.display='block';}else{img.src=s.imagenUrl||'';img.style.display='block';}}
+    _svTimer=setTimeout(()=>_svNext(),5000);
+}
+window._svNext=function(){if(_svIndex<_svStories.length-1){_svIndex++;_svRender();}else closeStory();};
+window._svPrev=function(){if(_svIndex>0){_svIndex--;_svRender();}};
+window.closeStory=function(){clearTimeout(_svTimer);document.getElementById('story-viewer').classList.remove('open');document.getElementById('sv-video').src='';_svStories=[];_svIndex=0;};
+
+window.openAddStorySheet = function() {
     const overlay = document.createElement('div');
-    overlay.className = 'search-overlay';
+    overlay.className = 'sheet-overlay';
     overlay.innerHTML = `
-        <div class="search-sheet">
-            <div class="search-handle"></div>
-            <div class="search-header">
-                <div class="search-title">🔍 Buscar personas</div>
-                <div class="search-input-wrap">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input id="search-input" type="text" placeholder="Buscar por nombre de usuario..." autocomplete="off" autocorrect="off" spellcheck="false">
-                    <span id="search-clear" onclick="clearSearch()"><i class="fa-solid fa-xmark"></i></span>
-                </div>
+        <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <span class="sheet-title">Nueva historia</span>
+                <button class="sheet-close" onclick="this.closest('.sheet-overlay').remove()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="search-results" id="search-results">
-                <div class="search-state">
-                    <i class="fa-solid fa-users"></i>
-                    <p>Escribe un nombre para buscar</p>
+            <div id="story-type-picker" style="padding:12px 8px 28px;display:flex;flex-direction:column;gap:4px;">
+                <div class="story-sheet-option" onclick="storyPickMedia('imagen')"><div class="story-sheet-icon" style="background:linear-gradient(135deg,#43e97b,#38f9d7);"><i class="fa-solid fa-image"></i></div><div><div class="story-sheet-label">Foto</div><div class="story-sheet-desc">Comparte una imagen como historia</div></div></div>
+                <div class="story-sheet-option" onclick="storyPickMedia('video')"><div class="story-sheet-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);"><i class="fa-solid fa-video"></i></div><div><div class="story-sheet-label">Video</div><div class="story-sheet-desc">Comparte un video corto</div></div></div>
+                <div class="story-sheet-option" onclick="storyShowTextEditor()"><div class="story-sheet-icon" style="background:linear-gradient(135deg,#6c63ff,#48c6ef);"><i class="fa-solid fa-font"></i></div><div><div class="story-sheet-label">Texto</div><div class="story-sheet-desc">Escribe algo con fondo de color</div></div></div>
+            </div>
+            <div id="story-preview-view" style="display:none;flex-direction:column;gap:12px;padding:12px 16px 24px;">
+                <img id="story-preview-img" style="max-height:260px;border-radius:16px;object-fit:contain;display:none;">
+                <video id="story-preview-vid" style="max-height:260px;border-radius:16px;display:none;" muted playsinline></video>
+                <div id="story-upload-bar" style="display:none;"><div style="height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;"><div id="story-upload-fill" style="height:100%;background:var(--accent);width:0%;transition:width 0.3s;"></div></div><div id="story-upload-pct" style="font-size:12px;color:var(--text-muted);margin-top:4px;">Subiendo...</div></div>
+                <button id="story-publish-btn" onclick="storyPublish()" style="padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;"><i class='fa-solid fa-paper-plane'></i> Publicar historia</button>
+                <button onclick="storyBackToPicker()" style="padding:12px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Volver</button>
+            </div>
+            <div id="story-text-view" style="display:none;flex-direction:column;gap:12px;padding:16px 16px 24px;">
+                <textarea id="story-text-input" placeholder="Escribe tu historia..." style="background:var(--surface2);border:1.5px solid var(--border);border-radius:16px;padding:14px;font-size:18px;font-weight:700;color:var(--text);font-family:inherit;outline:none;resize:none;min-height:120px;line-height:1.4;"></textarea>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    ${['linear-gradient(135deg,#6c63ff,#48c6ef)','linear-gradient(135deg,#f5576c,#f093fb)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#f7b731,#fd9644)','linear-gradient(135deg,#1a1a24,#2a2a38)'].map(g=>`<div onclick="selectStoryBg(this,'${g}')" style="width:44px;height:44px;border-radius:12px;background:${g};cursor:pointer;border:3px solid transparent;" data-bg="${g}"></div>`).join('')}
                 </div>
+                <button onclick="storyPublishText()" style="padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;"><i class='fa-solid fa-paper-plane'></i> Publicar historia</button>
+                <button onclick="storyBackToPicker()" style="padding:12px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Volver</button>
             </div>
         </div>
-    `;
+        <input type="file" id="story-file-input" style="display:none" onchange="storyFileSelected(this)">`;
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
+};
 
-    const input = document.getElementById('search-input');
-    input.focus();
+let _storyFile=null, _storyType=null, _storyBg='linear-gradient(135deg,#6c63ff,#48c6ef)';
+window.selectStoryBg  = function(el, bg) { _storyBg=bg; document.querySelectorAll('[data-bg]').forEach(d=>d.style.border='3px solid transparent'); el.style.border='3px solid var(--accent)'; };
+window.storyPickMedia = function(tipo) { _storyType=tipo; const i=document.getElementById('story-file-input'); i.accept=tipo==='imagen'?'image/*':'video/*'; i.click(); };
+window.storyFileSelected = function(input) {
+    const file=input.files[0]; if(!file) return; _storyFile=file;
+    const url=URL.createObjectURL(file);
+    document.getElementById('story-type-picker').style.display='none';
+    document.getElementById('story-text-view').style.display='none';
+    const pv=document.getElementById('story-preview-view'); pv.style.display='flex';
+    const img=document.getElementById('story-preview-img'), vid=document.getElementById('story-preview-vid');
+    img.style.display='none'; vid.style.display='none';
+    if(_storyType==='imagen'){img.src=url;img.style.display='block';}else{vid.src=url;vid.style.display='block';}
+};
+window.storyShowTextEditor = function() { document.getElementById('story-type-picker').style.display='none'; document.getElementById('story-text-view').style.display='flex'; };
+window.storyBackToPicker   = function() { _storyFile=null;_storyType=null; document.getElementById('story-preview-view').style.display='none'; document.getElementById('story-text-view').style.display='none'; document.getElementById('story-type-picker').style.display='flex'; const b=document.getElementById('story-upload-bar'); if(b) b.style.display='none'; };
+window.storyPublish = async function() {
+    if(!_storyFile||!currentUser) return;
+    const btn=document.getElementById('story-publish-btn'); btn.disabled=true; btn.innerHTML="<i class='fa-solid fa-spinner fa-spin'></i> Subiendo...";
+    document.getElementById('story-upload-bar').style.display='block';
+    const onProg=pct=>{document.getElementById('story-upload-fill').style.width=pct+'%';document.getElementById('story-upload-pct').textContent=`Subiendo... ${pct}%`;};
+    try {
+        let url; if(_storyType==='video') url=await cloudinaryUpload(_storyFile,onProg); else url=await supabaseUpload(_storyFile,`stories/${currentUser.uid}`,onProg);
+        const now=Date.now(), data={uid:currentUser.uid,autor:currentUser.displayName||'Usuario',avatar:currentUser.photoURL||'',timestamp:now,expira:now+86400000};
+        if(_storyType==='imagen') data.imagenUrl=url; else data.videoUrl=url;
+        await push(ref(db,'historias'),data);
+        try{await crearHistoria(currentUser,{...data});}catch(e){console.warn(e);}
+        showToast('✅ Historia publicada'); document.querySelector('.sheet-overlay')?.remove(); loadStories();
+    } catch(err) { showToast('❌ Error: '+err.message); btn.disabled=false; btn.innerHTML="<i class='fa-solid fa-paper-plane'></i> Publicar historia"; }
+};
+window.storyPublishText = async function() {
+    const texto=document.getElementById('story-text-input')?.value.trim();
+    if(!texto||!currentUser){showToast('Escribe algo primero');return;}
+    const now=Date.now(), data={uid:currentUser.uid,autor:currentUser.displayName||'Usuario',avatar:currentUser.photoURL||'',timestamp:now,expira:now+86400000,textoHistoria:texto,bgGradient:_storyBg};
+    await push(ref(db,'historias'),data);
+    try{await crearHistoria(currentUser,data);}catch(e){console.warn(e);}
+    showToast('✅ Historia publicada'); document.querySelector('.sheet-overlay')?.remove(); loadStories();
+};
 
-    let debounceTimer;
-    input.addEventListener('input', () => {
-        const q = input.value.trim();
+// ════════════════════════════════════════════════════════
+//  BÚSQUEDA
+// ════════════════════════════════════════════════════════
+window.openSearchSheet = function() {
+    const overlay = document.createElement('div');
+    overlay.className = 'sheet-overlay';
+    overlay.innerHTML = `
+        <div class="sheet" style="max-height:88vh;">
+            <div class="sheet-handle"></div>
+            <div class="search-header">
+                <div class="search-title">🔍 Buscar personas</div>
+                <div class="search-input-wrap"><i class="fa-solid fa-magnifying-glass"></i><input id="search-input" type="text" placeholder="Buscar por nombre..." autocomplete="off" autocorrect="off" spellcheck="false"><span id="search-clear" onclick="clearSearch()"><i class="fa-solid fa-xmark"></i></span></div>
+            </div>
+            <div class="search-results" id="search-results"><div class="search-state"><i class="fa-solid fa-users"></i><p>Escribe un nombre para buscar</p></div></div>
+        </div>`;
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+    const inp = document.getElementById('search-input'); inp.focus();
+    let timer;
+    inp.addEventListener('input', () => {
+        const q = inp.value.trim();
         document.getElementById('search-clear').classList.toggle('show', q.length > 0);
-        clearTimeout(debounceTimer);
-        if (q.length === 0) {
-            document.getElementById('search-results').innerHTML = `
-                <div class="search-state"><i class="fa-solid fa-users"></i><p>Escribe un nombre para buscar</p></div>`;
-            return;
-        }
+        clearTimeout(timer);
+        if (!q) { document.getElementById('search-results').innerHTML=`<div class="search-state"><i class="fa-solid fa-users"></i><p>Escribe un nombre para buscar</p></div>`; return; }
         if (q.length < 2) return;
-        debounceTimer = setTimeout(() => runSearch(q), 350);
+        timer = setTimeout(() => runSearch(q), 350);
     });
 };
 
 window.clearSearch = function() {
-    const inp = document.getElementById('search-input');
-    if (inp) { inp.value = ''; inp.focus(); }
+    const inp=document.getElementById('search-input'); if(inp){inp.value='';inp.focus();}
     document.getElementById('search-clear')?.classList.remove('show');
-    document.getElementById('search-results').innerHTML = `
-        <div class="search-state"><i class="fa-solid fa-users"></i><p>Escribe un nombre para buscar</p></div>`;
+    document.getElementById('search-results').innerHTML=`<div class="search-state"><i class="fa-solid fa-users"></i><p>Escribe un nombre para buscar</p></div>`;
 };
 
 async function runSearch(q) {
-    const resultsEl = document.getElementById('search-results');
-    if (!resultsEl) return;
-    resultsEl.innerHTML = `<div class="search-state"><i class="fa-solid fa-circle-notch fa-spin" style="opacity:.5;"></i><p>Buscando...</p></div>`;
-
+    const res = document.getElementById('search-results'); if (!res) return;
+    res.innerHTML=`<div class="search-state"><i class="fa-solid fa-circle-notch fa-spin" style="opacity:.5;"></i><p>Buscando...</p></div>`;
     try {
-        const snap = await get(ref(db, 'usuarios'));
-        if (!snap.exists()) {
-            resultsEl.innerHTML = `<div class="search-state"><i class="fa-solid fa-user-slash"></i><p>No se encontraron usuarios</p></div>`;
-            return;
-        }
-
-        const qLow = q.toLowerCase();
-        const matches = [];
-        snap.forEach(child => {
-            const u = child.val();
-            const nombre = (u.nombre || u.displayName || '').toLowerCase();
-            const username = (u.username || u.nombre || '').toLowerCase();
-            if (nombre.includes(qLow) || username.includes(qLow)) {
-                matches.push({ uid: child.key, ...u });
-            }
-        });
-
-        // Cargar lista de siguiendo
+        const snap = await get(ref(db,'usuarios'));
+        if (!snap.exists()) { res.innerHTML=`<div class="search-state"><i class="fa-solid fa-user-slash"></i><p>No se encontraron usuarios</p></div>`; return; }
+        const qL = q.toLowerCase(), matches = [];
+        snap.forEach(c => { const u=c.val(), n=(u.nombre||u.displayName||'').toLowerCase(), us=(u.username||u.nombre||'').toLowerCase(); if(n.includes(qL)||us.includes(qL)) matches.push({uid:c.key,...u}); });
         const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
-        const siguiendoSet = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
-
-        if (matches.length === 0) {
-            resultsEl.innerHTML = `<div class="search-state"><i class="fa-solid fa-user-slash"></i><p>Sin resultados para "<strong>${q}</strong>"</p></div>`;
-            return;
-        }
-
-        resultsEl.innerHTML = `<div class="search-divider">${matches.length} resultado${matches.length !== 1 ? 's' : ''}</div>` +
+        const sigSet  = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
+        if (!matches.length) { res.innerHTML=`<div class="search-state"><i class="fa-solid fa-user-slash"></i><p>Sin resultados para "<strong>${q}</strong>"</p></div>`; return; }
+        res.innerHTML = `<div class="search-divider">${matches.length} resultado${matches.length!==1?'s':''}</div>` +
             matches.map(u => {
-                const isMe = u.uid === currentUser.uid;
-                const following = siguiendoSet.has(u.uid);
-                const avatar = u.photoURL || u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.nombre||'U')}&background=6c63ff&color=fff&size=96`;
-                const btn = isMe
-                    ? `<span style="font-size:12px;color:var(--text-muted);font-weight:700;">Tú</span>`
-                    : `<button class="search-follow-btn ${following?'siguiendo':''}" onclick="event.stopPropagation();searchToggleFollow('${u.uid}',this,event)">${following?'Siguiendo':'Seguir'}</button>`;
-                return `
-                    <div class="search-user-item" onclick="goToProfile('${u.uid}')">
-                        <img class="search-user-avatar" src="${avatar}" onerror="this.src='default-avatar.png'">
-                        <div class="search-user-info">
-                            <div class="search-user-name">${u.nombre || u.displayName || 'Usuario'}</div>
-                            <div class="search-user-username">@${(u.username || u.nombre || 'usuario').toLowerCase().replace(/\s+/g,'')}</div>
-                        </div>
-                        ${btn}
-                    </div>`;
+                const isMe=u.uid===currentUser.uid, fol=sigSet.has(u.uid);
+                const av=u.photoURL||u.avatar||`https://ui-avatars.com/api/?name=${encodeURIComponent(u.nombre||'U')}&background=6c63ff&color=fff&size=96`;
+                const btn=isMe?`<span style="font-size:12px;color:var(--text-muted);font-weight:700;">Tú</span>`:`<button class="search-follow-btn ${fol?'siguiendo':''}" onclick="event.stopPropagation();searchToggleFollow('${u.uid}',this,event)">${fol?'Siguiendo':'Seguir'}</button>`;
+                return `<div class="search-user-item" onclick="goToProfile('${u.uid}')"><img class="search-user-avatar" src="${av}" onerror="this.src='default-avatar.png'"><div class="search-user-info"><div class="search-user-name">${u.nombre||u.displayName||'Usuario'}</div><div class="search-user-username">@${(u.username||u.nombre||'usuario').toLowerCase().replace(/\s+/g,'')}</div></div>${btn}</div>`;
             }).join('');
-    } catch(e) {
-        resultsEl.innerHTML = `<div class="search-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Error al buscar</p></div>`;
-    }
+    } catch { res.innerHTML=`<div class="search-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Error al buscar</p></div>`; }
 }
 
-window.goToProfile = function(uid) {
-    document.querySelector('.search-overlay')?.remove();
-    location.href = `Profile.html?uid=${uid}`;
-};
-
+window.goToProfile = function(uid) { document.querySelector('.sheet-overlay')?.remove(); location.href=`Profile.html?uid=${uid}`; };
 window.searchToggleFollow = async function(uid, btn, event) {
-    if (event) event.stopPropagation(); // ← evitar que abra el perfil
-    if (!currentUser) return;
-    btn.disabled = true;
-    const followRef    = ref(db, `siguiendo/${currentUser.uid}/${uid}`);
-    const seguidorRef  = ref(db, `seguidores/${uid}/${currentUser.uid}`);
-    const snap = await get(followRef);
-    if (snap.exists()) {
-        // Dejar de seguir
-        await remove(followRef);
-        await remove(seguidorRef);
-        btn.textContent = 'Seguir';
-        btn.classList.remove('siguiendo');
-    } else {
-        // Seguir
-        await set(followRef, true);
-        await set(seguidorRef, true);
-        btn.textContent = 'Siguiendo';
-        btn.classList.add('siguiendo');
-        writeNotif(uid, 'follow');
-        showToast('✅ Ahora lo sigues');
-    }
-    btn.disabled = false;
+    if (event) event.stopPropagation(); if (!currentUser) return; btn.disabled=true;
+    const fRef=ref(db,`siguiendo/${currentUser.uid}/${uid}`), sRef=ref(db,`seguidores/${uid}/${currentUser.uid}`);
+    const snap=await get(fRef);
+    if (snap.exists()) { await remove(fRef); await remove(sRef); btn.textContent='Seguir'; btn.classList.remove('siguiendo'); }
+    else { await set(fRef,true); await set(sRef,true); btn.textContent='Siguiendo'; btn.classList.add('siguiendo'); writeNotif(uid,'follow'); showToast('✅ Ahora lo sigues'); }
+    btn.disabled=false;
 };
 
-// ── NOTIFICACIONES ──────────────────────────────
+// ════════════════════════════════════════════════════════
+//  NOTIFICACIONES
+// ════════════════════════════════════════════════════════
 function listenNotifications(uid) {
-    const notifRef = ref(db, `notificaciones/${uid}`);
-    onValue(notifRef, (snap) => {
-        let unread = 0;
-        if (snap.exists()) {
-            snap.forEach(n => { if (!n.val().leida) unread++; });
-        }
-        const badge = document.getElementById('notif-badge');
-        if (unread > 0) {
-            badge.textContent = unread > 9 ? '9+' : unread;
-            badge.classList.add('show');
-        } else {
-            badge.classList.remove('show');
-        }
+    onValue(ref(db,`notificaciones/${uid}`), snap => {
+        let unread=0; if(snap.exists()) snap.forEach(n=>{if(!n.val().leida) unread++;});
+        const badge=document.getElementById('notif-badge');
+        if(unread>0){badge.textContent=unread>9?'9+':unread;badge.classList.add('show');}else badge.classList.remove('show');
     });
 }
 
 window.openNotifSheet = function() {
     const overlay = document.createElement('div');
-    overlay.className = 'notif-overlay';
+    overlay.className = 'sheet-overlay';
     overlay.innerHTML = `
-        <div class="notif-sheet">
-            <div class="notif-handle"></div>
-            <div class="notif-header">
-                <span class="notif-title">🔔 Notificaciones</span>
-                <span class="notif-mark-all" onclick="markAllRead()">Marcar todo leído</span>
-            </div>
-            <div class="notif-list" id="notif-list-content">
-                <div class="notif-empty"><i class="fa-regular fa-bell"></i><p>Cargando...</p></div>
-            </div>
-        </div>
-    `;
+        <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header"><span class="sheet-title">🔔 Notificaciones</span><span class="notif-mark-all" onclick="markAllRead()">Marcar todo leído</span></div>
+            <div class="notif-list" id="notif-list-content"><div class="notif-empty"><i class="fa-regular fa-bell"></i><p>Cargando...</p></div></div>
+        </div>`;
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
     loadNotifList();
 };
 
 async function loadNotifList() {
-    const listEl = document.getElementById('notif-list-content');
-    if (!listEl || !currentUser) return;
-
-    const snap = await get(ref(db, `notificaciones/${currentUser.uid}`));
-    if (!snap.exists()) {
-        listEl.innerHTML = `<div class="notif-empty"><i class="fa-regular fa-bell"></i><p>Sin notificaciones aún</p></div>`;
-        return;
-    }
-
-    const items = [];
-    snap.forEach(c => items.push({ key: c.key, ...c.val() }));
-    items.sort((a, b) => b.timestamp - a.timestamp);
-
-    const ICONS = {
-        like:     { icon:'fa-solid fa-thumbs-up',   bg:'#1877f2' },
-        comment:  { icon:'fa-solid fa-comment',      bg:'#43e97b' },
-        follow:   { icon:'fa-solid fa-user-plus',    bg:'#ff6584' },
-        mention:  { icon:'fa-solid fa-at',           bg:'#f7b731' },
-    };
-
-    listEl.innerHTML = items.map(n => {
-        const cfg = ICONS[n.tipo] || { icon:'fa-solid fa-bell', bg:'var(--accent)' };
-        const unreadClass = n.leida ? '' : 'unread';
-        const dot = n.leida ? '' : '<div class="notif-unread-dot"></div>';
-        const thumb = n.postImagen
-            ? `<img class="notif-thumb" src="${n.postImagen}" onerror="this.style.display='none'">`
-            : '';
-        return `
-            <div class="notif-item ${unreadClass}" onclick="handleNotifClick('${n.key}','${n.tipo}','${n.postId||''}')">
-                <div class="notif-avatar-wrap">
-                    <img class="notif-avatar" src="${n.fromAvatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
-                    <div class="notif-icon-badge" style="background:${cfg.bg}">
-                        <i class="${cfg.icon}"></i>
-                    </div>
-                </div>
-                <div class="notif-body">
-                    <div class="notif-text">${buildNotifText(n)}</div>
-                    <div class="notif-time">${timeAgo(n.timestamp)}</div>
-                </div>
-                ${thumb}
-                ${dot}
-            </div>
-        `;
+    const el=document.getElementById('notif-list-content'); if(!el||!currentUser) return;
+    const snap=await get(ref(db,`notificaciones/${currentUser.uid}`));
+    if(!snap.exists()){el.innerHTML=`<div class="notif-empty"><i class="fa-regular fa-bell"></i><p>Sin notificaciones aún</p></div>`;return;}
+    const items=[]; snap.forEach(c=>items.push({key:c.key,...c.val()})); items.sort((a,b)=>b.timestamp-a.timestamp);
+    const ICONS={like:{icon:'fa-solid fa-thumbs-up',bg:'#1877f2'},comment:{icon:'fa-solid fa-comment',bg:'#43e97b'},follow:{icon:'fa-solid fa-user-plus',bg:'#ff6584'}};
+    el.innerHTML=items.map(n=>{
+        const cfg=ICONS[n.tipo]||{icon:'fa-solid fa-bell',bg:'var(--accent)'};
+        const thumb=n.postImagen?`<img class="notif-thumb" src="${n.postImagen}" onerror="this.style.display='none'">`:'';
+        const dot=n.leida?'':`<div class="notif-dot"></div>`;
+        return `<div class="notif-item ${n.leida?'':'unread'}" onclick="handleNotifClick('${n.key}','${n.tipo}','${n.postId||''}')">
+            <div class="notif-avatar-wrap"><img class="notif-avatar" src="${n.fromAvatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'"><div class="notif-icon-badge" style="background:${cfg.bg}"><i class="${cfg.icon}"></i></div></div>
+            <div class="notif-body"><div class="notif-text">${buildNotifText(n)}</div><div class="notif-time">${timeAgo(n.timestamp)}</div></div>${thumb}${dot}</div>`;
     }).join('');
-
-    // Marcar como leídas automáticamente después de 2s
-    setTimeout(() => markAllRead(false), 2000);
+    setTimeout(()=>markAllRead(false),2000);
 }
 
 function buildNotifText(n) {
-    const name = `<strong>${n.fromName || 'Alguien'}</strong>`;
-    switch (n.tipo) {
-        case 'like':    return `${name} le dio Me gusta a tu publicación 👍`;
-        case 'comment': return `${name} comentó: <em>"${(n.comentario||'').slice(0,60)}${(n.comentario||'').length>60?'…':''}"</em>`;
-        case 'follow':  return `${name} empezó a seguirte 🎉`;
-        case 'mention': return `${name} te mencionó en un comentario`;
-        default:        return `${name} interactuó contigo`;
-    }
+    const name=`<strong>${n.fromName||'Alguien'}</strong>`;
+    switch(n.tipo){case'like':return`${name} le dio Me gusta a tu publicación 👍`;case'comment':return`${name} comentó: <em>"${(n.comentario||'').slice(0,60)}${(n.comentario||'').length>60?'…':''}"</em>`;case'follow':return`${name} empezó a seguirte 🎉`;default:return`${name} interactuó contigo`;}
 }
 
-window.markAllRead = async function(showFeedback = true) {
-    if (!currentUser) return;
-    const snap = await get(ref(db, `notificaciones/${currentUser.uid}`));
-    if (!snap.exists()) return;
-    const updates = {};
-    snap.forEach(c => { updates[`notificaciones/${currentUser.uid}/${c.key}/leida`] = true; });
-    // Firebase set múltiple
-    await Promise.all(Object.entries(updates).map(([path, val]) => set(ref(db, path), val)));
-    if (showFeedback) {
-        // Refrescar lista
-        loadNotifList();
-        showToast('✅ Todo marcado como leído');
-    }
+window.markAllRead = async function(feedback=true) {
+    if(!currentUser) return;
+    const snap=await get(ref(db,`notificaciones/${currentUser.uid}`));
+    if(!snap.exists()) return;
+    await Promise.all(Object.keys(snap.val()).map(k=>set(ref(db,`notificaciones/${currentUser.uid}/${k}/leida`),true)));
+    if(feedback){loadNotifList();showToast('✅ Todo marcado como leído');}
     document.getElementById('notif-badge')?.classList.remove('show');
 };
 
 window.handleNotifClick = async function(key, tipo, postId) {
-    // Marcar esta notif como leída
-    if (currentUser && key) {
-        await set(ref(db, `notificaciones/${currentUser.uid}/${key}/leida`), true);
-    }
-    // Navegar según tipo
-    if (tipo === 'follow') {
-        document.querySelector('.notif-overlay')?.remove();
-        return;
-    }
-    if (postId && postId !== 'undefined' && postId !== '') {
-        document.querySelector('.notif-overlay')?.remove();
-        // Abrir hoja de comentarios si aplica
-        if (tipo === 'comment') openCommentSheet(postId);
-    }
+    if(currentUser&&key) await set(ref(db,`notificaciones/${currentUser.uid}/${key}/leida`),true);
+    if(tipo==='follow'){document.querySelector('.sheet-overlay')?.remove();return;}
+    if(postId&&postId!=='undefined'){document.querySelector('.sheet-overlay')?.remove();if(tipo==='comment')openCommentSheet(postId);}
 };
 
-// Escribir notificación en Firebase (se llama desde toggleLike, seguir, comentar)
-window.writeNotif = async function(toUid, tipo, extra = {}) {
-    if (!currentUser || toUid === currentUser.uid) return; // no notificarse a uno mismo
-    const n = {
-        tipo,
-        fromUid:    currentUser.uid,
-        fromName:   currentUser.displayName || 'Usuario',
-        fromAvatar: currentUser.photoURL    || '',
-        timestamp:  Date.now(),
-        leida:      false,
-        ...extra
-    };
-    await push(ref(db, `notificaciones/${toUid}`), n);
+window.writeNotif = async function(toUid, tipo, extra={}) {
+    if(!currentUser||toUid===currentUser.uid) return;
+    await push(ref(db,`notificaciones/${toUid}`),{tipo,fromUid:currentUser.uid,fromName:currentUser.displayName||'Usuario',fromAvatar:currentUser.photoURL||'',timestamp:Date.now(),leida:false,...extra});
 };
 
-// ── Feed (Firebase + Turso combinados) ────────
-let feedLoading = false;
-let feedDone = false;
-let feedLastTs = Date.now();
-const seenFingerprints = new Set(); // clave: uid+timestamp (dedup entre fuentes)
-const seenIds = new Set();          // IDs ya renderizados
+// ════════════════════════════════════════════════════════
+//  AUTH — punto de entrada, se ejecuta UNA SOLA VEZ
+// ════════════════════════════════════════════════════════
+let _initialized = false;
 
-// Huella única por post (mismo post en Firebase y Turso tiene igual uid+timestamp)
-function postFingerprint(uid, timestamp) {
-    return `${uid}_${Math.round(Number(timestamp) / 1000)}`; // tolerancia 1 seg
-}
-
-async function loadFeed(append = false) {
-    if (feedLoading || feedDone) return;
-    feedLoading = true;
-    const feed = document.getElementById('feed');
-
-    // Cargar seguidos desde Firebase
-    const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
-    followingSet = new Set();
-    if (sigSnap.exists()) {
-        Object.keys(sigSnap.val()).forEach(uid => followingSet.add(uid));
-    }
-    followingSet.add(currentUser.uid);
-
-    if (!append) {
-        seenFingerprints.clear();
-        seenIds.clear();
-        feed.querySelectorAll('.post-card').forEach(c => c.remove());
-        feed.querySelector('.empty-state')?.remove();
-    }
-
-    // ── 1. Cargar desde Turso ──────────────────
-    if (tursoDisponible) {
-        try {
-            const uids = Array.from(followingSet);
-            const posts = await obtenerFeed(uids, 20, feedLastTs);
-
-            if (posts.length < 20) feedDone = true;
-            if (posts.length > 0) feedLastTs = Number(posts[posts.length - 1].timestamp);
-
-            const postIds = posts.map(p => p.id);
-            const likedSet = await misLikes(currentUser.uid, postIds);
-
-            posts.forEach(p => {
-                const fp = postFingerprint(p.uid, p.timestamp);
-                if (seenFingerprints.has(fp) || seenIds.has(p.id)) return;
-                seenFingerprints.add(fp);
-                seenIds.add(p.id);
-
-                const postData = {
-                    uid:        p.uid,
-                    autor:      p.nombre,
-                    avatar:     p.avatar,
-                    contenido:  p.texto,
-                    imagenPost: p.imagen_url,
-                    videoUrl:   p.video_url,
-                    esAnonimo:  p.es_anonimo == 1,
-                    timestamp:  Number(p.timestamp),
-                    likes: likedSet.has(p.id) ? { [currentUser.uid]: true } : {},
-                    _tursoLikes: Number(p.total_likes || 0),
-                    _tursoComments: Number(p.total_comentarios || 0)
-                };
-                const card = buildPost(p.id, postData, postData.likes);
-                const likesEl = document.getElementById(`likes-count-${p.id}`);
-                if (likesEl && postData._tursoLikes > 0) {
-                    likesEl.innerHTML = `<div class="like-bubble">👍</div> <span>${postData._tursoLikes} Me gusta</span>`;
-                }
-                const commEl = document.getElementById(`comments-count-${p.id}`);
-                if (commEl && postData._tursoComments > 0) {
-                    commEl.textContent = `${postData._tursoComments} comentario${postData._tursoComments !== 1 ? 's' : ''}`;
-                }
-                feed.appendChild(card);
-            });
-        } catch(err) {
-            console.warn('⚠️ Turso feed error:', err);
-        }
-    }
-
-    // ── 2. Firebase en tiempo real (solo primera carga) ─
-    if (!append) {
-        const postsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'));
-        onValue(postsRef, (snap) => {
-            const allPosts = [];
-            snap.forEach(child => allPosts.push({ id: child.key, ...child.val() }));
-
-            const filtered = allPosts
-                .filter(p => p.esAnonimo || followingSet.has(p.uid))
-                .reverse()
-                .filter(p => {
-                    // Saltar si ya está renderizado por ID o por huella
-                    if (seenIds.has(p.id)) return false;
-                    const fp = postFingerprint(p.uid, p.timestamp);
-                    if (seenFingerprints.has(fp)) return false;
-                    return true;
-                });
-
-            filtered.forEach(p => {
-                const fp = postFingerprint(p.uid, p.timestamp);
-                seenFingerprints.add(fp);
-                seenIds.add(p.id);
-
-                const card = buildPost(p.id, p, p.likes);
-                const firstCard = feed.querySelector('.post-card');
-                if (firstCard && Number(p.timestamp) > feedLastTs) {
-                    feed.insertBefore(card, firstCard);
-                } else {
-                    feed.appendChild(card);
-                }
-                watchCommentCount(p.id);
-            });
-
-            removeSkeletons();
-
-            if (seenIds.size === 0) {
-                if (!feed.querySelector('.empty-state')) {
-                    const empty = document.createElement('div');
-                    empty.className = 'empty-state';
-                    empty.innerHTML = `
-                        <i class="fa-solid fa-users"></i>
-                        <h3>Sigue a alguien para ver posts</h3>
-                        <p>Cuando sigas a usuarios, sus publicaciones aparecerán aquí.</p>
-                    `;
-                    feed.appendChild(empty);
-                }
-            } else {
-                feed.querySelector('.empty-state')?.remove();
-            }
-        });
-    }
-
-    removeSkeletons();
-    feedLoading = false;
-    if (!append && tursoDisponible) setupInfiniteScroll();
-}
-
-function setupInfiniteScroll() {
-    window.removeEventListener('scroll', _onFeedScroll);
-    window.addEventListener('scroll', _onFeedScroll, { passive: true });
-}
-
-function _onFeedScroll() {
-    if (feedDone || feedLoading) return;
-    const scrolled = window.scrollY + window.innerHeight;
-    if (scrolled >= document.body.scrollHeight - 300) loadFeed(true);
-}
-
-// ── Stories (Firebase + Turso combinados) ─────
-// Huella única por historia: uid + timestamp redondeado a 1 segundo
-function storyFingerprint(uid, timestamp) {
-    return `${uid}_${Math.round(Number(timestamp) / 1000)}`;
-}
-
-async function loadStories() {
-    const storiesObj = {};
-    const seenStoryFp = new Set(); // evitar duplicados entre Firebase y Turso
-
-    // 1. Cargar desde Firebase
-    try {
-        const snap = await get(ref(db, 'historias'));
-        if (snap.exists()) {
-            const now = Date.now();
-            snap.forEach(child => {
-                const s = child.val();
-                if (!s.uid) return;
-                if (s.expira && s.expira <= now) return; // expirada
-                const fp = storyFingerprint(s.uid, s.timestamp);
-                if (seenStoryFp.has(fp)) return;
-                seenStoryFp.add(fp);
-                storiesObj[child.key] = s;
-            });
-        }
-    } catch(e) { console.warn('Firebase historias error:', e); }
-
-    // 2. Combinar con Turso — solo añadir si no existe ya por huella
-    if (tursoDisponible) {
-        try {
-            await eliminarHistoriasExpiradas();
-            const rows = await obtenerHistorias();
-            rows.forEach(r => {
-                const fp = storyFingerprint(r.uid, r.timestamp);
-                if (seenStoryFp.has(fp)) return; // ya existe desde Firebase
-                seenStoryFp.add(fp);
-                storiesObj[r.id] = {
-                    uid:           r.uid,
-                    autor:         r.autor,
-                    avatar:        r.avatar,
-                    imagenUrl:     r.imagen_url,
-                    videoUrl:      r.video_url,
-                    textoHistoria: r.texto_historia,
-                    bgGradient:    r.bg_gradient,
-                    timestamp:     Number(r.timestamp),
-                    expira:        Number(r.expira),
-                };
-            });
-        } catch(e) { console.warn('Turso historias error:', e); }
-    }
-
-    if (Object.keys(storiesObj).length > 0) buildStories(storiesObj);
-}
-
-// ── Auth ───────────────────────────────────────
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async user => {
     if (!user) { location.href = 'index.html'; return; }
     currentUser = user;
+    document.getElementById('compose-avatar').src = user.photoURL || 'default-avatar.png';
 
-    // Sync user profile to Turso
-    if (tursoDisponible) {
+    if (tursoOK) {
         try { await sincronizarUsuario(user); } catch(e) { console.warn('Turso sync:', e); }
     }
 
-    document.getElementById('compose-avatar').src = user.photoURL || 'default-avatar.png';
-
-    loadFeed();
-    loadStories();
-    listenNotifications(user.uid);
+    if (!_initialized) {
+        _initialized = true;
+        initFeed();
+        loadStories();
+        listenNotifications(user.uid);
+    }
 });
 </script>
 </body>
