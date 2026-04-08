@@ -1,8 +1,8 @@
-// db.js — Turso HTTP API (compatible con browser/GitHub Pages)
-// Reemplaza @libsql/client (Node.js only) con fetch directo a la REST API de Turso.
+// db.js — Turso via proxy del servidor API (evita CORS en el navegador)
 
-const TURSO_URL   = "https://snapbooksocialweb-panamxng-cloud.aws-us-east-1.turso.io";
-const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzU1ODg4NDQsImlkIjoiMDE5ZDY2OTctNTkwMS03NjNiLWIxODAtOWYwMDlhYTI4MzYxIiwicmlkIjoiYmU0ZWU4YmItYWQwMi00MzIwLTk5ZDgtNWExY2M0MzhjYzM5In0.68c2X35glT339UkwE0DmmN2fTImnr0U5OzoMuEv93MdcqErIQM5_QuhNDpbndTc2PE-ALwBUIphuWaLPjDsKAw";
+const TURSO_PROXY = "/api/turso";
+
+console.log("✅ Turso cargado correctamente");
 
 async function sql(query, args = []) {
   const mapArg = v => {
@@ -10,9 +10,9 @@ async function sql(query, args = []) {
     if (typeof v === "number") return { type: "integer", value: String(Math.trunc(v)) };
     return { type: "text", value: String(v) };
   };
-  const res = await fetch(`${TURSO_URL}/v2/pipeline`, {
+  const res = await fetch(TURSO_PROXY, {
     method: "POST",
-    headers: { "Authorization": `Bearer ${TURSO_TOKEN}`, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       requests: [
         { type: "execute", stmt: { sql: query, args: args.map(mapArg) } },
@@ -45,9 +45,9 @@ async function batch(statements) {
     ),
     { type: "close" }
   ];
-  const res = await fetch(`${TURSO_URL}/v2/pipeline`, {
+  const res = await fetch(TURSO_PROXY, {
     method: "POST",
-    headers: { "Authorization": `Bearer ${TURSO_TOKEN}`, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ requests })
   });
   if (!res.ok) throw new Error(`Turso batch HTTP ${res.status}`);
