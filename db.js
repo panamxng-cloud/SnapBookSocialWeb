@@ -152,15 +152,16 @@ export async function eliminarMensaje(msgId, uid) {
 }
 
 // ── POSTS ─────────────────────────────────────────────────────────────────────
-export async function crearPost(user, { texto, imagenUrl, videoUrl, audioUrl, esAnonimo }) {
-  const id = crypto.randomUUID();
+export async function crearPost(user, { id, texto, imagenUrl, videoUrl, audioUrl, esAnonimo, timestamp }) {
+  const postId = id || crypto.randomUUID();
+  const ts = timestamp || Date.now();
   await sql(
-    `INSERT INTO posts (id, uid, nombre, avatar, texto, imagen_url, video_url, audio_url, es_anonimo, timestamp)
+    `INSERT OR IGNORE INTO posts (id, uid, nombre, avatar, texto, imagen_url, video_url, audio_url, es_anonimo, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, user.uid, user.displayName || "Usuario", user.photoURL || "",
-     texto || "", imagenUrl || null, videoUrl || null, audioUrl || null, esAnonimo ? 1 : 0, Date.now()]
+    [postId, user.uid, user.displayName || "Usuario", user.photoURL || "",
+     texto || "", imagenUrl || null, videoUrl || null, audioUrl || null, esAnonimo ? 1 : 0, ts]
   );
-  return id;
+  return postId;
 }
 
 export async function obtenerFeed(uids, limite = 20, beforeTs = null) {
@@ -228,15 +229,15 @@ export async function eliminarPost(postId, uid) {
 }
 
 // ── HISTORIAS ─────────────────────────────────────────────────────────────────
-export async function crearHistoria(user, { imagenUrl, videoUrl, textoHistoria, bgGradient }) {
-  const id     = crypto.randomUUID();
-  const ahora  = Date.now();
-  const expira = ahora + 24 * 60 * 60 * 1000;
+export async function crearHistoria(user, { imagenUrl, videoUrl, textoHistoria, bgGradient, timestamp, expira }) {
+  const id    = crypto.randomUUID();
+  const ahora = timestamp || Date.now();
+  const exp   = expira || (ahora + 24 * 60 * 60 * 1000);
   await sql(
-    `INSERT INTO historias (id, uid, autor, avatar, imagen_url, video_url, texto_historia, bg_gradient, timestamp, expira)
+    `INSERT OR IGNORE INTO historias (id, uid, autor, avatar, imagen_url, video_url, texto_historia, bg_gradient, timestamp, expira)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, user.uid, user.displayName || "Usuario", user.photoURL || "",
-     imagenUrl || null, videoUrl || null, textoHistoria || null, bgGradient || null, ahora, expira]
+     imagenUrl || null, videoUrl || null, textoHistoria || null, bgGradient || null, ahora, exp]
   );
   return id;
 }

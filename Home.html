@@ -1319,23 +1319,26 @@ window.storyPublish = async function() {
             downloadURL = await supabaseUpload(_storyFile, `stories/${currentUser.uid}`, onProgress);
         }
 
+        const now = Date.now();
         const data = {
             uid: currentUser.uid,
             autor: currentUser.displayName || 'Usuario',
             avatar: currentUser.photoURL || '',
-            timestamp: Date.now(),
-            expira: Date.now() + 24 * 60 * 60 * 1000, // 24h
+            timestamp: now,
+            expira: now + 24 * 60 * 60 * 1000, // 24h
         };
         if (_storyType === 'imagen') data.imagenUrl = downloadURL;
         else data.videoUrl = downloadURL;
 
         // Guardar en Firebase
         await push(ref(db, 'historias'), data);
-        // Guardar en Turso (si falla no cancela)
+        // Guardar en Turso con el MISMO timestamp
         try {
             await crearHistoria(currentUser, {
-                imagenUrl: data.imagenUrl || null,
-                videoUrl:  data.videoUrl  || null,
+                imagenUrl:  data.imagenUrl || null,
+                videoUrl:   data.videoUrl  || null,
+                timestamp:  now,
+                expira:     now + 24 * 60 * 60 * 1000,
             });
         } catch(e) { console.warn('Turso historia:', e); }
         showToast('✅ Historia publicada');
@@ -1352,18 +1355,19 @@ window.storyPublishText = async function() {
     const texto = document.getElementById('story-text-input')?.value.trim();
     if (!texto || !currentUser) { showToast('Escribe algo primero'); return; }
     const bg = document.getElementById('story-text-bg')?.style.background || '';
+    const now = Date.now();
     await push(ref(db, 'historias'), {
         uid: currentUser.uid,
         autor: currentUser.displayName || 'Usuario',
         avatar: currentUser.photoURL || '',
-        timestamp: Date.now(),
-        expira: Date.now() + 24 * 60 * 60 * 1000,
+        timestamp: now,
+        expira: now + 24 * 60 * 60 * 1000,
         textoHistoria: texto,
         bgGradient: bg,
     });
-    // Guardar en Turso (si falla no cancela)
+    // Guardar en Turso con el MISMO timestamp
     try {
-        await crearHistoria(currentUser, { textoHistoria: texto, bgGradient: bg });
+        await crearHistoria(currentUser, { textoHistoria: texto, bgGradient: bg, timestamp: now, expira: now + 24 * 60 * 60 * 1000 });
     } catch(e) { console.warn('Turso historia texto:', e); }
     showToast('✅ Historia publicada');
     document.querySelector('.comment-sheet-overlay')?.remove();
@@ -1963,8 +1967,14 @@ function _onFeedScroll() {
 }
 
 // ── Stories (Firebase + Turso combinados) ─────
+// Huella única por historia: uid + timestamp redondeado a 1 segundo
+function storyFingerprint(uid, timestamp) {
+    return `${uid}_${Math.round(Number(timestamp) / 1000)}`;
+}
+
 async function loadStories() {
     const storiesObj = {};
+    const seenStoryFp = new Set(); // evitar duplicados entre Firebase y Turso
 
     // 1. Cargar desde Firebase
     try {
@@ -1973,20 +1983,25 @@ async function loadStories() {
             const now = Date.now();
             snap.forEach(child => {
                 const s = child.val();
-                // Filtrar expiradas (24h)
-                if (!s.expira || s.expira > now) {
-                    storiesObj[child.key] = s;
-                }
+                if (!s.uid) return;
+                if (s.expira && s.expira <= now) return; // expirada
+                const fp = storyFingerprint(s.uid, s.timestamp);
+                if (seenStoryFp.has(fp)) return;
+                seenStoryFp.add(fp);
+                storiesObj[child.key] = s;
             });
         }
     } catch(e) { console.warn('Firebase historias error:', e); }
 
-    // 2. Combinar con Turso (sus historias tienen prioridad si el id coincide)
+    // 2. Combinar con Turso — solo añadir si no existe ya por huella
     if (tursoDisponible) {
         try {
             await eliminarHistoriasExpiradas();
             const rows = await obtenerHistorias();
             rows.forEach(r => {
+                const fp = storyFingerprint(r.uid, r.timestamp);
+                if (seenStoryFp.has(fp)) return; // ya existe desde Firebase
+                seenStoryFp.add(fp);
                 storiesObj[r.id] = {
                     uid:           r.uid,
                     autor:         r.autor,
