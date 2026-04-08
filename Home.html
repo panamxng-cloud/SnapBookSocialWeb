@@ -1819,7 +1819,13 @@ window.writeNotif = async function(toUid, tipo, extra = {}) {
 let feedLoading = false;
 let feedDone = false;
 let feedLastTs = Date.now();
-const feedPostIds = new Set(); // evitar duplicados entre fuentes
+const seenFingerprints = new Set(); // clave: uid+timestamp (dedup entre fuentes)
+const seenIds = new Set();          // IDs ya renderizados
+
+// Huella única por post (mismo post en Firebase y Turso tiene igual uid+timestamp)
+function postFingerprint(uid, timestamp) {
+    return `${uid}_${Math.round(Number(timestamp) / 1000)}`; // tolerancia 1 seg
+}
 
 async function loadFeed(append = false) {
     if (feedLoading || feedDone) return;
@@ -1835,13 +1841,13 @@ async function loadFeed(append = false) {
     followingSet.add(currentUser.uid);
 
     if (!append) {
-        feedPostIds.clear();
+        seenFingerprints.clear();
+        seenIds.clear();
         feed.querySelectorAll('.post-card').forEach(c => c.remove());
         feed.querySelector('.empty-state')?.remove();
     }
 
     // ── 1. Cargar desde Turso ──────────────────
-    let tursoPostIds = [];
     if (tursoDisponible) {
         try {
             const uids = Array.from(followingSet);
@@ -1852,11 +1858,13 @@ async function loadFeed(append = false) {
 
             const postIds = posts.map(p => p.id);
             const likedSet = await misLikes(currentUser.uid, postIds);
-            tursoPostIds = postIds;
 
             posts.forEach(p => {
-                if (feedPostIds.has(p.id)) return;
-                feedPostIds.add(p.id);
+                const fp = postFingerprint(p.uid, p.timestamp);
+                if (seenFingerprints.has(fp) || seenIds.has(p.id)) return;
+                seenFingerprints.add(fp);
+                seenIds.add(p.id);
+
                 const postData = {
                     uid:        p.uid,
                     autor:      p.nombre,
@@ -1886,21 +1894,30 @@ async function loadFeed(append = false) {
         }
     }
 
-    // ── 2. Cargar desde Firebase (tiempo real) ─
-    // Escuchar nuevos posts en Firebase que no vengan de Turso
+    // ── 2. Firebase en tiempo real (solo primera carga) ─
     if (!append) {
         const postsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'));
         onValue(postsRef, (snap) => {
             const allPosts = [];
             snap.forEach(child => allPosts.push({ id: child.key, ...child.val() }));
+
             const filtered = allPosts
-                .filter(p => (p.esAnonimo || followingSet.has(p.uid)) && !feedPostIds.has(p.id))
-                .reverse();
+                .filter(p => p.esAnonimo || followingSet.has(p.uid))
+                .reverse()
+                .filter(p => {
+                    // Saltar si ya está renderizado por ID o por huella
+                    if (seenIds.has(p.id)) return false;
+                    const fp = postFingerprint(p.uid, p.timestamp);
+                    if (seenFingerprints.has(fp)) return false;
+                    return true;
+                });
 
             filtered.forEach(p => {
-                feedPostIds.add(p.id);
+                const fp = postFingerprint(p.uid, p.timestamp);
+                seenFingerprints.add(fp);
+                seenIds.add(p.id);
+
                 const card = buildPost(p.id, p, p.likes);
-                // Insertar al inicio si es más reciente que el primer post de Turso
                 const firstCard = feed.querySelector('.post-card');
                 if (firstCard && Number(p.timestamp) > feedLastTs) {
                     feed.insertBefore(card, firstCard);
@@ -1912,8 +1929,7 @@ async function loadFeed(append = false) {
 
             removeSkeletons();
 
-            // Estado vacío solo si ninguna fuente tiene posts
-            if (feedPostIds.size === 0) {
+            if (seenIds.size === 0) {
                 if (!feed.querySelector('.empty-state')) {
                     const empty = document.createElement('div');
                     empty.className = 'empty-state';
@@ -1932,8 +1948,6 @@ async function loadFeed(append = false) {
 
     removeSkeletons();
     feedLoading = false;
-
-    // Scroll infinito solo con Turso
     if (!append && tursoDisponible) setupInfiniteScroll();
 }
 
