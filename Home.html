@@ -475,113 +475,118 @@ function applyLikeState(id, liked) {
     if (icon) icon.className = `fa-${liked?'solid':'regular'} fa-thumbs-up`;
 }
 
-// ════════════════════════════════════════════════════════
-//  FEED — arquitectura limpia
+// ═════════════════════════════════════════════════════════
+//  FEED — sin duplicados garantizado
 //
-//  REGLA: renderedIds es la única fuente de verdad.
-//  Un post se inserta en el DOM UNA SOLA VEZ, sin importar
-//  de qué fuente venga. Firebase y Turso comparten el mismo Set.
-// ════════════════════════════════════════════════════════
+//  ESTRATEGIA DEFINITIVA:
+//  1. Turso  → get() paginado (posts históricos)
+//  2. Firebase → get() una sola vez (lo que Turso no tiene)
+//  3. Firebase onValue → limitToLast(1) solo para posts NUEVOS
+//     El primer disparo se ignora. Nunca itera posts viejos.
+// ═════════════════════════════════════════════════════════
 async function initFeed() {
     if (feedLoading) return;
     feedLoading = true;
-    const feed  = document.getElementById('feed');
+    const feed = document.getElementById('feed');
 
-    // Cancelar listener anterior y limpiar estado
+    // Cancelar listener anterior y limpiar
     if (fbUnsubscribe) { fbUnsubscribe(); fbUnsubscribe = null; }
     renderedIds.clear();
     feedDone   = false;
     feedCursor = Date.now();
     feed.querySelectorAll('.post-card, .empty-state').forEach(el => el.remove());
 
-    // Obtener lista de seguidos
+    // Obtener seguidos
     const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
     followingSet  = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
     followingSet.add(currentUser.uid);
 
-    // ── FUENTE A: Turso (paginado) ──────────────────────
-    // Carga los posts históricos. Firebase solo añade los nuevos.
+    // ── PASO 1: Turso — carga histórica paginada
     if (tursoOK) {
         try {
             const uids  = Array.from(followingSet);
             const posts = await obtenerFeed(uids, 20, feedCursor);
             if (posts.length < 20) feedDone = true;
             if (posts.length > 0)  feedCursor = Number(posts[posts.length-1].timestamp);
-
             const likedSet = await misLikes(currentUser.uid, posts.map(p => p.id));
-
             posts.forEach(p => {
-                if (renderedIds.has(p.id)) return;  // nunca duplicar
+                if (renderedIds.has(p.id)) return;
                 renderedIds.add(p.id);
-
                 const card = buildPost(p.id, p);
-                const lc   = Number(p.total_likes || 0);
+                const lc = Number(p.total_likes || 0);
                 card.querySelector(`#likes-count-${p.id}`).innerHTML =
                     lc > 0 ? `<div class="like-bubble">👍</div> <span>${lc} Me gusta</span>` : '';
                 const cc = Number(p.total_comentarios || 0);
                 card.querySelector(`#comments-count-${p.id}`).textContent =
                     cc > 0 ? `${cc} comentario${cc!==1?'s':''}` : 'Ver comentarios';
-                if (likedSet.has(p.id)) applyLikeState(p.id, true); // actuar sobre card antes de agregar al DOM
                 feed.appendChild(card);
-                if (likedSet.has(p.id)) applyLikeState(p.id, true); // y también después (ya en DOM)
+                if (likedSet.has(p.id)) applyLikeState(p.id, true);
             });
-        } catch(err) {
-            console.warn('Turso feed error:', err);
-        }
+        } catch(err) { console.warn('Turso feed error:', err); }
     }
 
-    // ── FUENTE B: Firebase realtime ─────────────────────
-    // Escucha todos los posts en tiempo real. Solo inserta
-    // aquellos cuyo ID aún no está en renderedIds.
-    // Si Turso ya cargó el post → renderedIds.has(id) === true → se ignora.
-    // Si es un post nuevo en tiempo real → se inserta arriba.
-    const postsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'));
-    fbUnsubscribe  = onValue(postsRef, snap => {
-        const all = [];
-        snap.forEach(c => all.push({ id: c.key, ...c.val() }));
-
-        all
-            .filter(p => p.esAnonimo || p.uid === currentUser.uid || followingSet.has(p.uid))
-            .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
-            .forEach(p => {
-                if (renderedIds.has(p.id)) return;  // ← la misma comprobación, nunca duplica
-                renderedIds.add(p.id);
-
-                const card      = buildPost(p.id, p);
-                const likeCount = p.likes ? Object.keys(p.likes).length : 0;
-                card.querySelector(`#likes-count-${p.id}`).innerHTML =
-                    likeCount > 0 ? `<div class="like-bubble">👍</div> <span>${likeCount} Me gusta</span>` : '';
-                if (p.likes?.[currentUser.uid]) {
-                    const btn  = card.querySelector(`#like-btn-${p.id}`);
-                    const icon = btn?.querySelector('i');
-                    if (btn)  btn.classList.add('liked');
-                    if (icon) icon.className = 'fa-solid fa-thumbs-up';
-                }
-
-                // Posts nuevos van arriba, históricos abajo
-                const first = feed.querySelector('.post-card');
-                if (first) feed.insertBefore(card, first);
-                else        feed.appendChild(card);
-
-                watchCommentCount(p.id);
-            });
-
-        removeSkeleton();
-
-        if (renderedIds.size === 0 && !feed.querySelector('.empty-state')) {
-            const em = document.createElement('div');
-            em.className = 'empty-state';
-            em.innerHTML = `<i class="fa-solid fa-users"></i><h3>Sigue a alguien para ver posts</h3><p>Sus publicaciones aparecerán aquí.</p>`;
-            feed.appendChild(em);
-        } else if (renderedIds.size > 0) {
-            feed.querySelector('.empty-state')?.remove();
+    // ── PASO 2: Firebase get() — una sola vez, sin listener
+    // Solo inserta lo que Turso NO tiene. renderedIds lo garantiza.
+    try {
+        const fbSnap = await get(query(ref(db, 'publicaciones'), orderByChild('timestamp')));
+        if (fbSnap.exists()) {
+            const all = [];
+            fbSnap.forEach(c => all.push({ id: c.key, ...c.val() }));
+            all
+                .filter(p => p.esAnonimo || p.uid === currentUser.uid || followingSet.has(p.uid))
+                .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
+                .forEach(p => {
+                    if (renderedIds.has(p.id)) return;
+                    renderedIds.add(p.id);
+                    const card = buildPost(p.id, p);
+                    const lc = p.likes ? Object.keys(p.likes).length : 0;
+                    card.querySelector(`#likes-count-${p.id}`).innerHTML =
+                        lc > 0 ? `<div class="like-bubble">👍</div> <span>${lc} Me gusta</span>` : '';
+                    if (p.likes?.[currentUser.uid]) applyLikeState(p.id, true);
+                    feed.appendChild(card);
+                    watchCommentCount(p.id);
+                });
         }
-    });
+    } catch(err) { console.warn('Firebase get error:', err); }
 
     removeSkeleton();
+
+    if (renderedIds.size === 0) {
+        const em = document.createElement('div');
+        em.className = 'empty-state';
+        em.innerHTML = `<i class="fa-solid fa-users"></i><h3>Sigue a alguien para ver posts</h3><p>Sus publicaciones aparecerán aquí.</p>`;
+        feed.appendChild(em);
+    }
+
+    // ── PASO 3: Firebase onValue — SOLO posts NUEVOS
+    // limitToLast(1) + ignorar primer disparo = CERO duplicados posibles.
+    const { limitToLast } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js");
+    const newPostsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'), limitToLast(1));
+    let fbFirstFire = true;
+    fbUnsubscribe = onValue(newPostsRef, snap => {
+        if (fbFirstFire) { fbFirstFire = false; return; }
+        snap.forEach(c => {
+            const p = { id: c.key, ...c.val() };
+            if (renderedIds.has(p.id)) return;
+            if (!p.esAnonimo && p.uid !== currentUser.uid && !followingSet.has(p.uid)) return;
+            renderedIds.add(p.id);
+            feed.querySelector('.empty-state')?.remove();
+            const card = buildPost(p.id, p);
+            const lc = p.likes ? Object.keys(p.likes).length : 0;
+            card.querySelector(`#likes-count-${p.id}`).innerHTML =
+                lc > 0 ? `<div class="like-bubble">👍</div> <span>${lc} Me gusta</span>` : '';
+            if (p.likes?.[currentUser.uid]) applyLikeState(p.id, true);
+            const first = feed.querySelector('.post-card');
+            if (first) feed.insertBefore(card, first);
+            else feed.appendChild(card);
+            watchCommentCount(p.id);
+        });
+    });
+
     feedLoading = false;
     if (tursoOK) setupInfiniteScroll();
 }
+
 
 // Infinite scroll — solo carga más desde Turso
 async function loadMore() {

@@ -189,26 +189,19 @@ export async function crearPost(user, { texto, imagenUrl = null, videoUrl = null
   const uid = user?.uid;
   if (!uid) throw new Error("crearPost: user.uid es undefined");
 
-  // Deduplicación: si ya existe este firebase_id, retorna el id existente sin error
-  if (firebaseId) {
-    const existe = await exec("SELECT id FROM posts WHERE firebase_id = ?", [firebaseId]);
-    if (existe.length) {
-      console.warn("⚠️ crearPost: duplicado detectado, omitiendo:", firebaseId);
-      return existe[0].id;
-    }
-  }
+  // El ID en Turso ES el firebaseId — misma clave en ambas bases de datos.
+  // Si no hay firebaseId (caso raro), generamos un UUID como fallback.
+  const id = firebaseId ?? crypto.randomUUID();
 
-  const id = crypto.randomUUID();
-  console.log("📝 crearPost →", { id, uid, texto: (texto ?? "").slice(0, 40), imagenUrl, videoUrl, audioUrl, firebaseId });
-
+  // Deduplicación: INSERT OR IGNORE evita duplicados si se reintenta
   await exec(
-    `INSERT INTO posts (id, uid, nombre, avatar, texto, imagen_url, video_url, audio_url, es_anonimo, timestamp, firebase_id)
+    `INSERT OR IGNORE INTO posts (id, uid, nombre, avatar, texto, imagen_url, video_url, audio_url, es_anonimo, timestamp, firebase_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, uid, user.displayName ?? "Usuario", user.photoURL ?? "",
      texto ?? "", imagenUrl, videoUrl, audioUrl, esAnonimo ? 1 : 0, Date.now(), firebaseId]
   );
 
-  console.log("✅ crearPost guardado:", id, "| imagen:", imagenUrl ?? "—", "| video:", videoUrl ?? "—");
+  console.log("✅ crearPost guardado con id =", id, "| imagen:", imagenUrl ?? "—", "| video:", videoUrl ?? "—");
   return id;
 }
 
@@ -229,6 +222,7 @@ export async function obtenerPostsPorUid(uid) {
 }
 
 export async function eliminarPost(postId, uid) {
+  // postId puede ser el firebaseId (que ahora ES el id en Turso)
   await exec("DELETE FROM posts       WHERE id = ? AND uid = ?", [postId, uid]);
   await exec("DELETE FROM likes       WHERE post_id = ?",        [postId]);
   await exec("DELETE FROM comentarios WHERE post_id = ?",        [postId]);
@@ -289,24 +283,16 @@ export async function crearShort(user, { videoUrl, descripcion = "", firebaseId 
   const uid = user?.uid;
   if (!uid) throw new Error("crearShort: user.uid es undefined");
 
-  if (firebaseId) {
-    const existe = await exec("SELECT id FROM shorts WHERE firebase_id = ?", [firebaseId]);
-    if (existe.length) {
-      console.warn("⚠️ crearShort: duplicado detectado, omitiendo:", firebaseId);
-      return existe[0].id;
-    }
-  }
-
-  const id = crypto.randomUUID();
-  console.log("🎬 crearShort →", { id, uid, firebaseId });
+  // El ID en Turso ES el firebaseId — misma clave en ambas bases de datos.
+  const id = firebaseId ?? crypto.randomUUID();
 
   await exec(
-    `INSERT INTO shorts (id, uid, autor, avatar, video_url, descripcion, timestamp, firebase_id)
+    `INSERT OR IGNORE INTO shorts (id, uid, autor, avatar, video_url, descripcion, timestamp, firebase_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, uid, user.displayName ?? "Usuario", user.photoURL ?? "", videoUrl, descripcion, Date.now(), firebaseId]
   );
 
-  console.log("✅ crearShort guardado:", id);
+  console.log("✅ crearShort guardado con id =", id);
   return id;
 }
 

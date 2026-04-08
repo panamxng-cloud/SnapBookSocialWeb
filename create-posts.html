@@ -347,8 +347,19 @@ import { uploadPostImage }                          from './supabase-config.js';
 import { uploadPostVideo, uploadShort, uploadPostAudio } from './cloudinary-config.js';
 import { logNuevaPublicacion }                      from './sheetdb-config.js';
 
-// ── Imports Turso ─────────────────────────────────────────────────
-import { crearPost, crearShort, tursoQuery } from './db.js';
+// ── Imports Turso (dinámico con fallback, igual que Home.html) ───
+let crearPost, crearShort, tursoQuery;
+let tursoOK = false;
+try {
+    const dbMod = await import('./db.js');
+    crearPost   = dbMod.crearPost;
+    crearShort  = dbMod.crearShort;
+    tursoQuery  = dbMod.tursoQuery;
+    tursoOK     = true;
+    console.log('✅ Turso OK (create-posts)');
+} catch(e) {
+    console.warn('⚠️ db.js no disponible, solo Firebase:', e.message);
+}
 
 // ── Firebase config ───────────────────────────────────────────────
 const app  = initializeApp({
@@ -363,16 +374,10 @@ const app  = initializeApp({
 const auth = getAuth(app);
 const db   = getDatabase(app);
 
-// ── Test de conexión Turso (no bloqueante) ────────────────────────
-(async () => {
-    try {
-        await tursoQuery('SELECT 1');
-        console.log('✅ Turso conectado');
-    } catch(e) {
-        console.error('❌ Turso sin conexión:', e);
-        setTimeout(() => toast('⚠️ Turso sin conexión — solo se guardará en Firebase'), 1500);
-    }
-})();
+// ── Aviso si Turso no está disponible ────────────────────────────
+if (!tursoOK) {
+    setTimeout(() => toast('⚠️ Turso sin conexión — solo se guardará en Firebase'), 1500);
+}
 
 // ── Estado ────────────────────────────────────────────────────────
 let usuario    = null;
@@ -781,7 +786,7 @@ btnPub.addEventListener('click', async () => {
             const d = {
                 autor    : '🎭 Anónimo',
                 avatar   : '',
-                uid      : 'anon_' + Date.now(),
+                uid      : usuario.uid,  // uid real para filtros de feed; esAnonimo:true oculta la identidad
                 timestamp: Date.now(),
                 likes    : {},
                 esAnonimo: true,
