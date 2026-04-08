@@ -225,6 +225,17 @@
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+// ── Turso ──
+import {
+    sincronizarUsuario,
+    obtenerPostsPorUid,
+    obtenerShortsPorUid,
+    registrarVisita,
+    contarVisitas30Dias,
+    contarSeguidores,
+    contarSiguiendo
+} from './db.js';
         // ── Supabase Storage ──
         import { uploadAvatar, uploadCover } from './supabase-config.js';
         import { updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -275,6 +286,9 @@
             document.getElementById('profile-username').textContent = '@' + (user.email?.split('@')[0] || 'usuario');
             showSkeleton();
 
+            // Sync a Turso
+            try { await sincronizarUsuario(user); } catch(e) { console.warn('Turso sync:', e); }
+
             // Cargar datos de DB
             try {
                 const userSnap = await get(ref(db, `usuarios/${user.uid}`));
@@ -296,16 +310,18 @@
 
             // Registrar visita y cargar conteo (últimos 30 días)
             try {
-                const visitKey = Date.now();
-                await push(ref(db, `visitas_perfil/${user.uid}`), {
-                    ts: visitKey, visitor: user.uid // en tu caso propio; desde perfil ajeno sería el uid del visitante
-                });
-                // Contar visitas últimos 30 días
-                const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-                const visSnap = await get(ref(db, `visitas_perfil/${user.uid}`));
+                // Firebase
+                await push(ref(db, `visitas_perfil/${user.uid}`), { ts: Date.now(), visitor: user.uid });
+                // Turso
+                try { await registrarVisita(user.uid, user.uid); } catch(e) {}
+                // Contar desde Turso primero, sino Firebase
                 let visitCount = 0;
-                if (visSnap.exists()) {
-                    visSnap.forEach(c => { if ((c.val().ts || 0) >= thirtyDaysAgo) visitCount++; });
+                try {
+                    visitCount = await contarVisitas30Dias(user.uid);
+                } catch(e) {
+                    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+                    const visSnap = await get(ref(db, `visitas_perfil/${user.uid}`));
+                    if (visSnap.exists()) visSnap.forEach(c => { if ((c.val().ts||0) >= thirtyDaysAgo) visitCount++; });
                 }
                 document.getElementById('stat-visits').textContent = visitCount > 999
                     ? Math.floor(visitCount/1000) + 'k' : visitCount;
@@ -321,26 +337,37 @@
                 animateCount(document.getElementById('stat-following'), fwingSnap.exists() ? Object.values(fwingSnap.val()).filter(Boolean).length : 0);
             } catch(e) {}
 
-            // Cargar publicaciones Y shorts en paralelo
+            // Cargar publicaciones Y shorts — Turso primero, Firebase fallback
             try {
-                const [postsSnap, shortsSnap] = await Promise.all([
-                    get(ref(db, 'publicaciones')),
-                    get(ref(db, 'shorts'))
-                ]);
+                let tursoOk = false;
+                try {
+                    const [tPosts, tShorts] = await Promise.all([
+                        obtenerPostsPorUid(user.uid),
+                        obtenerShortsPorUid(user.uid)
+                    ]);
+                    tPosts.forEach(p => allPosts.push({
+                        id: p.id, uid: p.uid, autor: p.nombre, avatar: p.avatar,
+                        contenido: p.texto, imagenPost: p.imagen_url,
+                        videoUrl: p.video_url, timestamp: Number(p.timestamp)
+                    }));
+                    tShorts.forEach(s => allShorts.push({
+                        id: s.id, uid: s.uid, autor: s.autor, avatar: s.avatar,
+                        videoUrl: s.video_url, descripcion: s.descripcion, timestamp: Number(s.timestamp)
+                    }));
+                    tursoOk = true;
+                } catch(e) { console.warn('Turso perfil fallback Firebase:', e); }
 
-                if (postsSnap.exists()) {
-                    postsSnap.forEach(c => {
-                        if (c.val().uid === user.uid) allPosts.push({id: c.key, ...c.val()});
-                    });
-                    allPosts.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
-                }
-                if (shortsSnap.exists()) {
-                    shortsSnap.forEach(c => {
-                        if (c.val().uid === user.uid) allShorts.push({id: c.key, ...c.val()});
-                    });
-                    allShorts.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+                if (!tursoOk) {
+                    const [postsSnap, shortsSnap] = await Promise.all([
+                        get(ref(db, 'publicaciones')),
+                        get(ref(db, 'shorts'))
+                    ]);
+                    if (postsSnap.exists()) postsSnap.forEach(c => { if (c.val().uid === user.uid) allPosts.push({id: c.key, ...c.val()}); });
+                    if (shortsSnap.exists()) shortsSnap.forEach(c => { if (c.val().uid === user.uid) allShorts.push({id: c.key, ...c.val()}); });
                 }
 
+                allPosts.sort((a,b)  => (b.timestamp||0) - (a.timestamp||0));
+                allShorts.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
                 animateCount(document.getElementById('stat-posts'), allPosts.length + allShorts.length);
                 renderGrid('posts');
             } catch(e) { console.error(e); }

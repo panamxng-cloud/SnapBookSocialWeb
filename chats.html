@@ -2000,19 +2000,21 @@ async function sendTextMessage(text) {
         msgData.replyTo = { senderName: replyingTo.senderName, text: replyingTo.text || replyingTo.type };
     }
 
-    // ── Turso: persistir mensaje (historial) ──────
+    // ── Firebase primero (tiempo real) ────────────────────────────────────
+    const fbRef = await push(ref(db, `mensajes/${activeChatId}`), msgData);
+
+    // ── Turso: persistir con firebaseId para evitar duplicados ────────────
     try {
         await tursoEnviarMensaje(activeChatId, currentUser, {
-            texto:     text.trim(),
-            tipo:      'text',
-            replyToId: replyingTo?.id || null
+            texto:      text.trim(),
+            tipo:       'text',
+            replyToId:  replyingTo?.id || null,
+            firebaseId: fbRef.key
         });
     } catch(e) {
         console.warn('Turso enviarMensaje error:', e);
     }
 
-    // ── Firebase: entrega en tiempo real (siempre) ─
-    await push(ref(db, `mensajes/${activeChatId}`), msgData);
     await updateChatMeta(activeChatId, text.trim(), 'text');
     cancelReply();
 }
@@ -2125,14 +2127,17 @@ function compressChatImage(file, maxWidth = 1080, quality = 0.80) {
     });
 }
 
-// Helper: enviar media a Turso + Firebase
+// Helper: enviar media a Firebase primero, luego persistir en Turso con firebaseId
 async function _sendMediaMsg(url, tipo, texto, extra = {}) {
-    try {
-        await tursoEnviarMensaje(activeChatId, currentUser, { mediaUrl: url, tipo, texto });
-    } catch(e) { console.warn('Turso media persist error:', e); }
     const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', url, type: tipo, text: texto, timestamp: Date.now(), read: false, ...extra };
-    await push(ref(db, `mensajes/${activeChatId}`), msg);
+    const fbRef = await push(ref(db, `mensajes/${activeChatId}`), msg);
     await updateChatMeta(activeChatId, texto, tipo);
+    // Turso: historial con firebaseId para evitar duplicados
+    try {
+        await tursoEnviarMensaje(activeChatId, currentUser, {
+            mediaUrl: url, tipo, texto, firebaseId: fbRef.key
+        });
+    } catch(e) { console.warn('Turso media persist error:', e); }
 }
 
 document.getElementById('attach-img').onchange = async e => {
@@ -2173,8 +2178,14 @@ window.sendLocation = function() {
         const { latitude, longitude } = pos.coords;
         const url = `https://maps.google.com/?q=${latitude},${longitude}`;
         const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', type: 'location', text: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`, url, timestamp: Date.now(), read: false };
-        await push(ref(db, `mensajes/${activeChatId}`), msg);
+        const fbRef = await push(ref(db, `mensajes/${activeChatId}`), msg);
         await updateChatMeta(activeChatId, '📍 Ubicación', 'location');
+        try {
+            await tursoEnviarMensaje(activeChatId, currentUser, {
+                texto: `📍 ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+                tipo: 'location', mediaUrl: url, firebaseId: fbRef.key
+            });
+        } catch(e) { console.warn('Turso location:', e); }
     }, () => alert('No se pudo obtener tu ubicación'));
 };
 
@@ -2189,8 +2200,13 @@ window.sendSticker = function() {
 window.doSendSticker = async function(s) {
     closeEmojiPanel();
     const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', type: 'sticker', text: s, timestamp: Date.now(), read: false };
-    await push(ref(db, `mensajes/${activeChatId}`), msg);
+    const fbRef = await push(ref(db, `mensajes/${activeChatId}`), msg);
     await updateChatMeta(activeChatId, s, 'sticker');
+    try {
+        await tursoEnviarMensaje(activeChatId, currentUser, {
+            texto: s, tipo: 'sticker', firebaseId: fbRef.key
+        });
+    } catch(e) { console.warn('Turso sticker:', e); }
 };
 
 // ── POLL ───────────────────────────────────────────────────────────────────
@@ -2305,8 +2321,14 @@ window.sendVoice = async function() {
         try {
             const url = await uploadChatAudio(activeChatId, blob);
             const msg = { senderUid: currentUser.uid, senderName: currentUser.displayName||'Usuario', senderAvatar: currentUser.photoURL||'', type: 'audio', url, duration: dur, text: '🎤 Audio', timestamp: Date.now(), read: false };
-            await push(ref(db, `mensajes/${activeChatId}`), msg);
+            const fbRef = await push(ref(db, `mensajes/${activeChatId}`), msg);
             await updateChatMeta(activeChatId, '🎤 Audio', 'audio');
+            // Turso: guardar con firebaseId para no duplicar
+            try {
+                await tursoEnviarMensaje(activeChatId, currentUser, {
+                    texto: '🎤 Audio', tipo: 'audio', mediaUrl: url, firebaseId: fbRef.key
+                });
+            } catch(e) { console.warn('Turso audio msg:', e); }
         } catch(err) { console.error(err); }
         mediaRecorder.stream?.getTracks().forEach(t=>t.stop());
     };
