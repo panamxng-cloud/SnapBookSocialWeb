@@ -299,17 +299,17 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // ════════════════════════════════════════════════════════
 //  TURSO — carga dinámica con fallback
 // ════════════════════════════════════════════════════════
-let sincronizarUsuario, crearPost, obtenerFeed, tursoToggleLike, misLikes;
+let sincronizarUsuario, crearPost, obtenerFeedCompleto, tursoToggleLike, misLikes;
 let agregarComentario, obtenerComentarios, eliminarComentario, eliminarPost;
 let crearHistoria, obtenerHistorias, eliminarHistoriasExpiradas, tursoQuery;
-let tursoSeguir, tursoDejarDeSeguir, tursoEsSeguidor, tursoObtenerSiguiendo;
+let votarEnEncuesta, miVotoEncuesta, obtenerEncuestasPorPosts;
 let tursoOK = false;
 
 try {
     const m = await import('./db.js');
     sincronizarUsuario         = m.sincronizarUsuario;
     crearPost                  = m.crearPost;
-    obtenerFeed                = m.obtenerFeed;
+    obtenerFeedCompleto        = m.obtenerFeedCompleto;
     tursoToggleLike            = m.toggleLike;
     misLikes                   = m.misLikes;
     agregarComentario          = m.agregarComentario;
@@ -320,15 +320,18 @@ try {
     obtenerHistorias           = m.obtenerHistorias;
     eliminarHistoriasExpiradas = m.eliminarHistoriasExpiradas;
     tursoQuery                 = m.tursoQuery;
-    tursoSeguir                = m.seguirUsuario;
-    tursoDejarDeSeguir         = m.dejarDeSeguir;
-    tursoEsSeguidor            = m.esSeguidor;
-    tursoObtenerSiguiendo      = m.obtenerSiguiendo;
+    votarEnEncuesta            = m.votarEnEncuesta;
+    miVotoEncuesta             = m.miVotoEncuesta;
+    obtenerEncuestasPorPosts   = m.obtenerEncuestasPorPosts;
     tursoOK = true;
     console.log('✅ Turso OK');
 } catch(e) {
     console.warn('⚠️ db.js no disponible:', e.message);
 }
+
+// Cache de encuestas Turso para el feed
+const tursoEncuestas = {};  // postId  → enc object
+const tursoMisVotos  = {};  // encuestaId → opcionIdx
 
 // ════════════════════════════════════════════════════════
 //  SUPABASE / CLOUDINARY
@@ -480,56 +483,70 @@ function applyLikeState(id, liked) {
     if (icon) icon.className = `fa-${liked?'solid':'regular'} fa-thumbs-up`;
 }
 
-// ═════════════════════════════════════════════════════════
-//  FEED — sin duplicados garantizado
+// ════════════════════════════════════════════════════════
+//  FEED — arquitectura limpia
 //
-//  ESTRATEGIA DEFINITIVA:
-//  1. Turso  → get() paginado (posts históricos)
-//  2. Firebase → get() una sola vez (lo que Turso no tiene)
-//  3. Firebase onValue → limitToLast(1) solo para posts NUEVOS
-//     El primer disparo se ignora. Nunca itera posts viejos.
-// ═════════════════════════════════════════════════════════
+//  REGLA: renderedIds es la única fuente de verdad.
+//  Un post se inserta en el DOM UNA SOLA VEZ, sin importar
+//  de qué fuente venga. Firebase y Turso comparten el mismo Set.
+// ════════════════════════════════════════════════════════
 async function initFeed() {
     if (feedLoading) return;
     feedLoading = true;
-    const feed = document.getElementById('feed');
+    const feed  = document.getElementById('feed');
 
-    // Cancelar listener anterior y limpiar
+    // Cancelar listener anterior y limpiar estado
     if (fbUnsubscribe) { fbUnsubscribe(); fbUnsubscribe = null; }
     renderedIds.clear();
     feedDone   = false;
     feedCursor = Date.now();
     feed.querySelectorAll('.post-card, .empty-state').forEach(el => el.remove());
 
-    // Obtener seguidos — Turso primero, Firebase como fallback
-    if (tursoOK) {
-        try {
-            const uidsT = await tursoObtenerSiguiendo(currentUser.uid);
-            followingSet = new Set(uidsT);
-        } catch(e) {
-            console.warn('Turso siguiendo fallback Firebase:', e);
-            const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
-            followingSet  = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
-        }
-    } else {
-        const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
-        followingSet  = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
-    }
+    // Obtener lista de seguidos
+    const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
+    followingSet  = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
     followingSet.add(currentUser.uid);
 
-    // ── PASO 1: Turso — carga histórica paginada
+    // ── FUENTE A: Turso (paginado) ──────────────────────
+    // Carga los posts históricos primero. Firebase se registra DESPUÉS
+    // para evitar la condición de carrera que causaba duplicados.
     if (tursoOK) {
         try {
-            const uids  = Array.from(followingSet);
-            const posts = await obtenerFeed(uids, 20, feedCursor);
+            const uids = Array.from(followingSet);
+            const { posts, encuestas, misVotos } = await obtenerFeedCompleto(uids, 20, feedCursor, currentUser.uid);
             if (posts.length < 20) feedDone = true;
             if (posts.length > 0)  feedCursor = Number(posts[posts.length-1].timestamp);
+
+            // Cachea encuestas y votos para votarEncuesta()
+            Object.assign(tursoEncuestas, encuestas);
+            Object.assign(tursoMisVotos, misVotos);
+
             const likedSet = await misLikes(currentUser.uid, posts.map(p => p.id));
+
             posts.forEach(p => {
-                if (renderedIds.has(p.id)) return;
+                if (renderedIds.has(p.id)) return;  // nunca duplicar
                 renderedIds.add(p.id);
+
+                // Inyecta datos de encuesta Turso en el objeto del post
+                if (encuestas[p.id]) {
+                    const enc = encuestas[p.id];
+                    p.esEncuesta = true;
+                    p.pregunta   = enc.pregunta;
+                    p.opciones   = enc.opciones.map((texto, i) => ({
+                        texto,
+                        votos: buildFakeVotosObj(enc.votosPorOpcion?.[i] || 0)
+                    }));
+                    p._encId  = enc.id;
+                    p._miVoto = misVotos[enc.id] ?? null;
+                }
+                // Normaliza post de voz
+                if (p.es_voz == 1 || p.es_voz === true) {
+                    p.esVoz        = true;
+                    p.duracionAudio = Number(p.duracion_audio || 0);
+                }
+
                 const card = buildPost(p.id, p);
-                const lc = Number(p.total_likes || 0);
+                const lc   = Number(p.total_likes || 0);
                 card.querySelector(`#likes-count-${p.id}`).innerHTML =
                     lc > 0 ? `<div class="like-bubble">👍</div> <span>${lc} Me gusta</span>` : '';
                 const cc = Number(p.total_comentarios || 0);
@@ -538,81 +555,82 @@ async function initFeed() {
                 feed.appendChild(card);
                 if (likedSet.has(p.id)) applyLikeState(p.id, true);
             });
-        } catch(err) { console.warn('Turso feed error:', err); }
-    }
-
-    // ── PASO 2: Firebase get() — una sola vez, sin listener
-    // Solo inserta lo que Turso NO tiene. renderedIds lo garantiza.
-    try {
-        const fbSnap = await get(query(ref(db, 'publicaciones'), orderByChild('timestamp')));
-        if (fbSnap.exists()) {
-            const all = [];
-            fbSnap.forEach(c => all.push({ id: c.key, ...c.val() }));
-            all
-                .filter(p => p.esAnonimo || p.uid === currentUser.uid || followingSet.has(p.uid))
-                .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
-                .forEach(p => {
-                    if (renderedIds.has(p.id)) return;
-                    renderedIds.add(p.id);
-                    const card = buildPost(p.id, p);
-                    const lc = p.likes ? Object.keys(p.likes).length : 0;
-                    card.querySelector(`#likes-count-${p.id}`).innerHTML =
-                        lc > 0 ? `<div class="like-bubble">👍</div> <span>${lc} Me gusta</span>` : '';
-                    if (p.likes?.[currentUser.uid]) applyLikeState(p.id, true);
-                    feed.appendChild(card);
-                    watchCommentCount(p.id);
-                });
+        } catch(err) {
+            console.warn('Turso feed error:', err);
         }
-    } catch(err) { console.warn('Firebase get error:', err); }
-
-    removeSkeleton();
-
-    if (renderedIds.size === 0) {
-        const em = document.createElement('div');
-        em.className = 'empty-state';
-        em.innerHTML = `<i class="fa-solid fa-users"></i><h3>Sigue a alguien para ver posts</h3><p>Sus publicaciones aparecerán aquí.</p>`;
-        feed.appendChild(em);
     }
 
-    // ── PASO 3: Firebase onValue — SOLO posts NUEVOS
-    // limitToLast(1) + ignorar primer disparo = CERO duplicados posibles.
-    const { limitToLast } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js");
-    const newPostsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'), limitToLast(1));
-    let fbFirstFire = true;
-    fbUnsubscribe = onValue(newPostsRef, snap => {
-        if (fbFirstFire) { fbFirstFire = false; return; }
-        snap.forEach(c => {
-            const p = { id: c.key, ...c.val() };
-            if (renderedIds.has(p.id)) return;
-            if (!p.esAnonimo && p.uid !== currentUser.uid && !followingSet.has(p.uid)) return;
-            renderedIds.add(p.id);
+    // Helper: convierte conteo numérico a objeto fake de votos
+    function buildFakeVotosObj(count) {
+        const obj = {};
+        for (let i = 0; i < count; i++) obj['v'+i] = true;
+        return obj;
+    }
+
+    // ── FUENTE B: Firebase realtime ─────────────────────
+    // Se registra DESPUÉS de que Turso termine. Así renderedIds ya tiene
+    // todos los IDs de Turso y Firebase nunca puede duplicarlos.
+    // Solo inserta posts que NO están en renderedIds (posts nuevos en tiempo real).
+    const postsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'));
+    fbUnsubscribe  = onValue(postsRef, snap => {
+        const all = [];
+        snap.forEach(c => all.push({ id: c.key, ...c.val() }));
+
+        all
+            .filter(p => p.esAnonimo || p.uid === currentUser.uid || followingSet.has(p.uid))
+            .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
+            .forEach(p => {
+                if (renderedIds.has(p.id)) return;  // ya renderizado por Turso o Firebase → ignorar
+                renderedIds.add(p.id);
+
+                const card      = buildPost(p.id, p);
+                const likeCount = p.likes ? Object.keys(p.likes).length : 0;
+                card.querySelector(`#likes-count-${p.id}`).innerHTML =
+                    likeCount > 0 ? `<div class="like-bubble">👍</div> <span>${likeCount} Me gusta</span>` : '';
+                if (p.likes?.[currentUser.uid]) {
+                    const btn  = card.querySelector(`#like-btn-${p.id}`);
+                    const icon = btn?.querySelector('i');
+                    if (btn)  btn.classList.add('liked');
+                    if (icon) icon.className = 'fa-solid fa-thumbs-up';
+                }
+
+                // Posts nuevos van arriba, históricos abajo
+                const first = feed.querySelector('.post-card');
+                if (first) feed.insertBefore(card, first);
+                else        feed.appendChild(card);
+
+                watchCommentCount(p.id);
+            });
+
+        removeSkeleton();
+
+        if (renderedIds.size === 0 && !feed.querySelector('.empty-state')) {
+            const em = document.createElement('div');
+            em.className = 'empty-state';
+            em.innerHTML = `<i class="fa-solid fa-users"></i><h3>Sigue a alguien para ver posts</h3><p>Sus publicaciones aparecerán aquí.</p>`;
+            feed.appendChild(em);
+        } else if (renderedIds.size > 0) {
             feed.querySelector('.empty-state')?.remove();
-            const card = buildPost(p.id, p);
-            const lc = p.likes ? Object.keys(p.likes).length : 0;
-            card.querySelector(`#likes-count-${p.id}`).innerHTML =
-                lc > 0 ? `<div class="like-bubble">👍</div> <span>${lc} Me gusta</span>` : '';
-            if (p.likes?.[currentUser.uid]) applyLikeState(p.id, true);
-            const first = feed.querySelector('.post-card');
-            if (first) feed.insertBefore(card, first);
-            else feed.appendChild(card);
-            watchCommentCount(p.id);
-        });
+        }
     });
 
+    removeSkeleton();
     feedLoading = false;
     if (tursoOK) setupInfiniteScroll();
 }
-
 
 // Infinite scroll — solo carga más desde Turso
 async function loadMore() {
     if (feedLoading || feedDone || !tursoOK) return;
     feedLoading = true;
     try {
-        const uids  = Array.from(followingSet);
-        const posts = await obtenerFeed(uids, 20, feedCursor);
+        const uids = Array.from(followingSet);
+        const { posts, encuestas, misVotos } = await obtenerFeedCompleto(uids, 20, feedCursor, currentUser.uid);
         if (posts.length < 20) feedDone = true;
         if (posts.length > 0)  feedCursor = Number(posts[posts.length-1].timestamp);
+
+        Object.assign(tursoEncuestas, encuestas);
+        Object.assign(tursoMisVotos, misVotos);
 
         const likedSet = await misLikes(currentUser.uid, posts.map(p => p.id));
         const feed     = document.getElementById('feed');
@@ -620,6 +638,22 @@ async function loadMore() {
         posts.forEach(p => {
             if (renderedIds.has(p.id)) return;
             renderedIds.add(p.id);
+
+            if (encuestas[p.id]) {
+                const enc = encuestas[p.id];
+                p.esEncuesta = true;
+                p.pregunta   = enc.pregunta;
+                p.opciones   = enc.opciones.map((texto, i) => ({
+                    texto, votos: buildFakeVotosObj(enc.votosPorOpcion?.[i] || 0)
+                }));
+                p._encId  = enc.id;
+                p._miVoto = misVotos[enc.id] ?? null;
+            }
+            if (p.es_voz == 1 || p.es_voz === true) {
+                p.esVoz = true;
+                p.duracionAudio = Number(p.duracion_audio || 0);
+            }
+
             const card = buildPost(p.id, p);
             const lc   = Number(p.total_likes || 0);
             card.querySelector(`#likes-count-${p.id}`).innerHTML =
@@ -757,6 +791,40 @@ window.sharePost = function(id) {
 
 window.votarEncuesta = async function(postId, idx) {
     if (!currentUser) return;
+
+    // ── Turso primero si hay encuesta en cache ────────────────────
+    const enc = tursoEncuestas[postId];
+    if (enc && tursoOK) {
+        try {
+            const res = await votarEnEncuesta(enc.id, currentUser.uid, idx);
+            if (res.yaVoto) { showToast('Ya votaste en esta encuesta'); return; }
+            tursoMisVotos[enc.id] = idx;
+            // Actualiza UI: incrementa el conteo visual
+            const card = document.querySelector(`.post-card[data-id="${postId}"]`);
+            if (card) {
+                const bars = card.querySelectorAll('.encuesta-bar');
+                const pcts = card.querySelectorAll('.encuesta-opcion span:last-child');
+                // Recalcular con data actualizada
+                if (enc.votosPorOpcion) {
+                    enc.votosPorOpcion[idx] = (enc.votosPorOpcion[idx] || 0) + 1;
+                    enc.totalVotos = (enc.totalVotos || 0) + 1;
+                    bars.forEach((bar, i) => {
+                        const v   = enc.votosPorOpcion[i] || 0;
+                        const pct = enc.totalVotos > 0 ? Math.round(v / enc.totalVotos * 100) : 0;
+                        bar.style.width = pct + '%';
+                        if (pcts[i]) pcts[i].textContent = pct + '%';
+                    });
+                }
+            }
+            showToast('✅ Voto registrado');
+        } catch(e) {
+            console.warn('votarEncuesta Turso:', e);
+            showToast('❌ Error al votar');
+        }
+        return;
+    }
+
+    // ── Fallback Firebase ─────────────────────────────────────────
     const vRef = ref(db, `publicaciones/${postId}/opciones/${idx}/votos/${currentUser.uid}`);
     const snap = await get(vRef);
     if (!snap.exists()) { await set(vRef, true); showToast('✅ Voto registrado'); }
@@ -1076,44 +1144,11 @@ async function runSearch(q) {
 window.goToProfile = function(uid) { document.querySelector('.sheet-overlay')?.remove(); location.href=`Profile.html?uid=${uid}`; };
 window.searchToggleFollow = async function(uid, btn, event) {
     if (event) event.stopPropagation(); if (!currentUser) return; btn.disabled=true;
-
-    // Verificar estado actual desde Turso (o Firebase como fallback)
-    let yaSigue = false;
-    if (tursoOK) {
-        try { yaSigue = await tursoEsSeguidor(uid, currentUser.uid); }
-        catch { yaSigue = followingSet.has(uid); }
-    } else {
-        yaSigue = followingSet.has(uid);
-    }
-
-    const fRef = ref(db, `siguiendo/${currentUser.uid}/${uid}`);
-    const sRef = ref(db, `seguidores/${uid}/${currentUser.uid}`);
-
-    if (yaSigue) {
-        // ── Dejar de seguir ──
-        await Promise.allSettled([
-            remove(fRef),
-            remove(sRef),
-            tursoOK ? tursoDejarDeSeguir(uid, currentUser.uid) : Promise.resolve(),
-        ]);
-        followingSet.delete(uid);
-        btn.textContent = 'Seguir';
-        btn.classList.remove('siguiendo');
-        showToast('✅ Dejaste de seguir');
-    } else {
-        // ── Seguir ──
-        await Promise.allSettled([
-            set(fRef, true),
-            set(sRef, true),
-            tursoOK ? tursoSeguir(uid, currentUser.uid) : Promise.resolve(),
-        ]);
-        followingSet.add(uid);
-        btn.textContent = 'Siguiendo';
-        btn.classList.add('siguiendo');
-        writeNotif(uid, 'follow');
-        showToast('✅ Ahora lo sigues');
-    }
-    btn.disabled = false;
+    const fRef=ref(db,`siguiendo/${currentUser.uid}/${uid}`), sRef=ref(db,`seguidores/${uid}/${currentUser.uid}`);
+    const snap=await get(fRef);
+    if (snap.exists()) { await remove(fRef); await remove(sRef); btn.textContent='Seguir'; btn.classList.remove('siguiendo'); }
+    else { await set(fRef,true); await set(sRef,true); btn.textContent='Siguiendo'; btn.classList.add('siguiendo'); writeNotif(uid,'follow'); showToast('✅ Ahora lo sigues'); }
+    btn.disabled=false;
 };
 
 // ════════════════════════════════════════════════════════

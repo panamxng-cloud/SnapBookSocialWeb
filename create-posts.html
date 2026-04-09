@@ -348,14 +348,16 @@ import { uploadPostVideo, uploadShort, uploadPostAudio } from './cloudinary-conf
 import { logNuevaPublicacion }                      from './sheetdb-config.js';
 
 // ── Imports Turso (dinámico con fallback, igual que Home.html) ───
-let crearPost, crearShort, tursoQuery;
+let crearPost, crearShort, crearEncuesta, crearPostVoz, tursoQuery;
 let tursoOK = false;
 try {
-    const dbMod = await import('./db.js');
-    crearPost   = dbMod.crearPost;
-    crearShort  = dbMod.crearShort;
-    tursoQuery  = dbMod.tursoQuery;
-    tursoOK     = true;
+    const dbMod   = await import('./db.js');
+    crearPost     = dbMod.crearPost;
+    crearShort    = dbMod.crearShort;
+    crearEncuesta = dbMod.crearEncuesta;
+    crearPostVoz  = dbMod.crearPostVoz;
+    tursoQuery    = dbMod.tursoQuery;
+    tursoOK       = true;
     console.log('✅ Turso OK (create-posts)');
 } catch(e) {
     console.warn('⚠️ db.js no disponible, solo Firebase:', e.message);
@@ -853,12 +855,14 @@ btnPub.addEventListener('click', async () => {
             ovLabel.textContent = 'Subiendo nota de voz...';
             const vUrl = await uploadPostAudio(usuario.uid, vozBlob, pct => { ovFill.style.width = pct + '%'; });
 
-            // Turso primero
+            // Turso primero (tabla posts con es_voz=1)
             if (tursoOK) {
                 try {
-                    await crearPost(usuario, {
-                        texto: textarea.value.trim(), audioUrl: vUrl,
-                        esAnonimo: false, firebaseId: sharedId
+                    await crearPostVoz(usuario, {
+                        texto       : textarea.value.trim(),
+                        audioUrl    : vUrl,
+                        duracionSeg : vozSeg,
+                        firebaseId  : sharedId
                     });
                 } catch(e) { logTurso('voz', e); }
             }
@@ -881,11 +885,16 @@ btnPub.addEventListener('click', async () => {
                             .map(i => i.value.trim()).filter(Boolean)
                             .map(texto => ({ texto, votos: {} }));
 
-            // Turso primero
+            // Turso: post raíz + encuesta enlazada
             if (tursoOK) {
                 try {
                     await crearPost(usuario, {
                         texto: preg, esAnonimo: false, firebaseId: sharedId
+                    });
+                    await crearEncuesta(sharedId, usuario.uid, {
+                        pregunta    : preg,
+                        opciones    : opts.map(o => o.texto),
+                        duracionDias: dur
                     });
                 } catch(e) { logTurso('encuesta', e); }
             }

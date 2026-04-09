@@ -89,6 +89,8 @@ async function initTables() {
               id TEXT PRIMARY KEY, uid TEXT NOT NULL,
               nombre TEXT, avatar TEXT, texto TEXT,
               imagen_url TEXT, video_url TEXT, audio_url TEXT,
+              duracion_audio INTEGER DEFAULT 0,
+              es_voz INTEGER DEFAULT 0,
               es_anonimo INTEGER DEFAULT 0,
               timestamp INTEGER NOT NULL,
               total_likes INTEGER DEFAULT 0,
@@ -147,6 +149,27 @@ async function initTables() {
               uid TEXT NOT NULL, visitor_uid TEXT NOT NULL,
               timestamp INTEGER NOT NULL)` },
     { sql: `CREATE INDEX idx_vis_uid ON visitas_perfil(uid)` },
+
+    { sql: `CREATE TABLE encuestas (
+              id TEXT PRIMARY KEY,
+              post_id TEXT NOT NULL,
+              pregunta TEXT NOT NULL,
+              opciones TEXT NOT NULL,
+              duracion_dias INTEGER DEFAULT 1,
+              expira_en INTEGER NOT NULL,
+              timestamp INTEGER NOT NULL,
+              uid TEXT NOT NULL,
+              FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE)` },
+    { sql: `CREATE INDEX idx_enc_post ON encuestas(post_id)` },
+    { sql: `CREATE INDEX idx_enc_uid  ON encuestas(uid)` },
+
+    { sql: `CREATE TABLE votos_encuesta (
+              encuesta_id TEXT NOT NULL,
+              opcion_idx  INTEGER NOT NULL,
+              uid         TEXT NOT NULL,
+              timestamp   INTEGER NOT NULL,
+              PRIMARY KEY (encuesta_id, uid))` },
+    { sql: `CREATE INDEX idx_votos_enc ON votos_encuesta(encuesta_id)` },
 
     { sql: `CREATE TABLE llamadas (
               id TEXT PRIMARY KEY,
@@ -494,4 +517,145 @@ export async function obtenerHistorialLlamadas(uid, limite = 50) {
      ORDER BY timestamp DESC LIMIT ?`,
     [uid, uid, limite]
   );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ENCUESTAS
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Crea una encuesta ligada a un post.
+ * opciones: array de strings  [ "Sí", "No", "Tal vez" ]
+ */
+export async function crearEncuesta(postId, uid, { pregunta, opciones = [], duracionDias = 1 }) {
+  const id      = crypto.randomUUID();
+  const ahora   = Date.now();
+  const expiraEn = ahora + duracionDias * 86400000;
+  await exec(
+    `INSERT OR IGNORE INTO encuestas
+       (id, post_id, pregunta, opciones, duracion_dias, expira_en, timestamp, uid)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, postId, pregunta, JSON.stringify(opciones), duracionDias, expiraEn, ahora, uid]
+  );
+  return id;
+}
+
+/** Devuelve la encuesta del post (si existe) junto con votos por opción. */
+export async function obtenerEncuesta(postId) {
+  const r = await exec("SELECT * FROM encuestas WHERE post_id = ? LIMIT 1", [postId]);
+  if (!r.length) return null;
+  const enc  = r[0];
+  enc.opciones = JSON.parse(enc.opciones || "[]");
+
+  // Conteo de votos por opción
+  const votos = await exec(
+    "SELECT opcion_idx, COUNT(*) as total FROM votos_encuesta WHERE encuesta_id = ? GROUP BY opcion_idx",
+    [enc.id]
+  );
+  enc.votosPorOpcion = {};
+  votos.forEach(v => { enc.votosPorOpcion[Number(v.opcion_idx)] = Number(v.total); });
+  enc.totalVotos = votos.reduce((a, v) => a + Number(v.total), 0);
+  return enc;
+}
+
+/** Vota en una encuesta. Un usuario solo puede votar una vez (PK). */
+export async function votarEnEncuesta(encuestaId, uid, opcionIdx) {
+  // Revisa si ya votó
+  const existe = await exec(
+    "SELECT opcion_idx FROM votos_encuesta WHERE encuesta_id = ? AND uid = ?",
+    [encuestaId, uid]
+  );
+  if (existe.length) return { yaVoto: true, opcionAnterior: Number(existe[0].opcion_idx) };
+
+  await exec(
+    "INSERT INTO votos_encuesta (encuesta_id, opcion_idx, uid, timestamp) VALUES (?, ?, ?, ?)",
+    [encuestaId, opcionIdx, uid, Date.now()]
+  );
+  return { yaVoto: false };
+}
+
+/** Verifica si el usuario ya votó y en qué opción. */
+export async function miVotoEncuesta(encuestaId, uid) {
+  const r = await exec(
+    "SELECT opcion_idx FROM votos_encuesta WHERE encuesta_id = ? AND uid = ?",
+    [encuestaId, uid]
+  );
+  return r.length ? Number(r[0].opcion_idx) : null;
+}
+
+/** Devuelve múltiples encuestas por postIds (para el feed). */
+export async function obtenerEncuestasPorPosts(postIds) {
+  if (!postIds?.length) return {};
+  const ph  = postIds.map(() => "?").join(",");
+  const enc = await exec(`SELECT * FROM encuestas WHERE post_id IN (${ph})`, postIds);
+  const result = {};
+  for (const e of enc) {
+    e.opciones = JSON.parse(e.opciones || "[]");
+    const votos = await exec(
+      "SELECT opcion_idx, COUNT(*) as total FROM votos_encuesta WHERE encuesta_id = ? GROUP BY opcion_idx",
+      [e.id]
+    );
+    e.votosPorOpcion = {};
+    votos.forEach(v => { e.votosPorOpcion[Number(v.opcion_idx)] = Number(v.total); });
+    e.totalVotos = votos.reduce((a, v) => a + Number(v.total), 0);
+    result[e.post_id] = e;
+  }
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// POSTS DE VOZ (helpers sobre la tabla posts existente)
+// ═══════════════════════════════════════════════════════════════════
+
+/** Crea un post de voz. Envuelve crearPost con audioUrl. */
+export async function crearPostVoz(user, { texto = "", audioUrl, duracionSeg = 0, firebaseId = null }) {
+  const uid = user?.uid;
+  if (!uid) throw new Error("crearPostVoz: user.uid es undefined");
+  const id  = firebaseId ?? crypto.randomUUID();
+  await exec(
+    `INSERT OR IGNORE INTO posts
+       (id, uid, nombre, avatar, texto, audio_url, duracion_audio, es_voz, es_anonimo, timestamp, firebase_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?)`,
+    [id, uid, user.displayName ?? "Usuario", user.photoURL ?? "",
+     texto, audioUrl, duracionSeg, Date.now(), firebaseId]
+  );
+  console.log("✅ crearPostVoz guardado con id =", id);
+  return id;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FEED CON SOPORTE ENCUESTA + VOZ (reemplaza obtenerFeed si usas esto)
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Feed completo: posts + encuestas + mis votos.
+ * Retorna { posts, encuestas:{[postId]: enc}, misVotos:{[encuestaId]: opcionIdx} }
+ */
+export async function obtenerFeedCompleto(uids = [], limite = 20, antes = Date.now(), uid = null) {
+  if (!uids.length) return { posts: [], encuestas: {}, misVotos: {} };
+  const ph    = uids.map(() => "?").join(",");
+  const posts = await exec(
+    `SELECT * FROM posts
+     WHERE (uid IN (${ph}) OR es_anonimo = 1)
+     AND timestamp < ?
+     ORDER BY timestamp DESC
+     LIMIT ?`,
+    [...uids, antes, limite]
+  );
+
+  // IDs de posts con encuesta
+  const postIds = posts.map(p => p.id);
+  const encuestas = await obtenerEncuestasPorPosts(postIds);
+
+  // Mis votos
+  let misVotos = {};
+  if (uid) {
+    const encIds = Object.values(encuestas).map(e => e.id);
+    for (const encId of encIds) {
+      const v = await miVotoEncuesta(encId, uid);
+      if (v !== null) misVotos[encId] = v;
+    }
+  }
+
+  return { posts, encuestas, misVotos };
 }
