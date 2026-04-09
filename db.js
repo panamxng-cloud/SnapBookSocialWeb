@@ -243,6 +243,20 @@ export async function obtenerPostsPorUid(uid) {
   return exec("SELECT * FROM posts WHERE uid = ? ORDER BY timestamp DESC", [uid]);
 }
 
+// Feed paginado: posts de los UIDs seguidos + propios
+export async function obtenerFeed(uids = [], limite = 20, antes = Date.now()) {
+  if (!uids.length) return [];
+  const ph = uids.map(() => "?").join(",");
+  return exec(
+    `SELECT * FROM posts
+     WHERE (uid IN (${ph}) OR es_anonimo = 1)
+     AND timestamp < ?
+     ORDER BY timestamp DESC
+     LIMIT ?`,
+    [...uids, antes, limite]
+  );
+}
+
 export async function eliminarPost(postId, uid) {
   const r = await exec("SELECT id FROM posts WHERE id = ? AND uid = ?", [postId, uid]);
   if (!r.length) return;
@@ -258,8 +272,14 @@ export async function toggleLike(postId, uid) {
     await exec("UPDATE posts SET total_likes = MAX(0, total_likes - 1) WHERE id = ?", [postId]);
     return false;
   } else {
-    await exec("INSERT INTO likes (post_id, uid) VALUES (?, ?)",                [postId, uid]);
-    await exec("UPDATE posts SET total_likes = total_likes + 1 WHERE id = ?",  [postId]);
+    // Asegurar que el post existe en Turso antes de insertar el like
+    await exec(
+      `INSERT OR IGNORE INTO posts (id, uid, nombre, avatar, texto, timestamp, firebase_id)
+       VALUES (?, '', '', '', '', ?, ?)`,
+      [postId, Date.now(), postId]
+    );
+    await exec("INSERT OR IGNORE INTO likes (post_id, uid) VALUES (?, ?)", [postId, uid]);
+    await exec("UPDATE posts SET total_likes = total_likes + 1 WHERE id = ?", [postId]);
     return true;
   }
 }
@@ -398,7 +418,6 @@ export async function obtenerSiguiendo(seguidorUid) {
   const r = await exec("SELECT uid FROM seguidores WHERE seguidor_uid = ?", [seguidorUid]);
   return r.map(row => row.uid);
 }
-
 // ═══════════════════════════════════════════════════════════════════
 // VISITAS DE PERFIL
 // ═══════════════════════════════════════════════════════════════════
