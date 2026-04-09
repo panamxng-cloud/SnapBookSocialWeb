@@ -293,7 +293,7 @@ import {
             });
         } catch(e) { console.warn('Turso shorts error:', e); }
 
-        // 2. Firebase — agrega los que no están en Turso
+        // 2. Firebase — agrega los que no están en Turso Y enriquece con likes
         try {
             const snap = await get(ref(db, 'shorts'));
             if (snap.exists()) {
@@ -301,9 +301,14 @@ import {
                     const v = c.val();
                     if (!v.videoUrl) return;
                     const f = fp(v.uid, v.timestamp);
-                    if (seenIds.has(c.key) || seenFp.has(f)) return;
-                    seenIds.add(c.key); seenFp.add(f);
-                    allVideos.push({ id: c.key, ...v });
+                    const existing = allVideos.find(vid => vid.id === c.key);
+                    if (existing) {
+                        // Ya está en Turso — solo agregarle los likes de Firebase
+                        existing.likes = v.likes || {};
+                    } else if (!seenFp.has(f)) {
+                        seenIds.add(c.key); seenFp.add(f);
+                        allVideos.push({ id: c.key, ...v });
+                    }
                 });
             }
         } catch(e) { console.warn('Firebase shorts error:', e); }
@@ -461,13 +466,46 @@ import {
 
         item.querySelector('.like-btn').onclick = async function () {
             if (!currentUser) return;
-            const isLiked = this.classList.contains('liked');
-            await update(ref(db, `shorts/${v.id}/likes`), { [currentUser.uid]: isLiked ? null : true });
-            this.classList.toggle('liked', !isLiked);
-            this.querySelector('i').className = `fa-${!isLiked ? 'solid' : 'regular'} fa-heart`;
-            // Likes desde Firebase (Turso tiene total_likes en el objeto)
-        const s = await get(ref(db, `shorts/${v.id}/likes`));
-            this.querySelector('.lc').textContent = s.exists() ? Object.values(s.val()).filter(Boolean).length : 0;
+            const btn = this;
+            const isLiked = btn.classList.contains('liked');
+            const newLiked = !isLiked;
+            const lcEl = btn.querySelector('.lc');
+            const currentCount = parseInt(lcEl.textContent) || 0;
+
+            // Actualizar UI inmediatamente
+            btn.classList.toggle('liked', newLiked);
+            btn.querySelector('i').className = `fa-${newLiked ? 'solid' : 'regular'} fa-heart`;
+            lcEl.textContent = newLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
+
+            // Firebase — fuente de verdad
+            try {
+                await update(ref(db, `shorts/${v.id}/likes`), {
+                    [currentUser.uid]: newLiked ? true : null
+                });
+                // Actualizar objeto en memoria para que persista al cambiar tab
+                if (!v.likes) v.likes = {};
+                if (newLiked) {
+                    v.likes[currentUser.uid] = true;
+                } else {
+                    delete v.likes[currentUser.uid];
+                }
+            } catch(e) {
+                // Revertir UI si falla
+                btn.classList.toggle('liked', isLiked);
+                btn.querySelector('i').className = `fa-${isLiked ? 'solid' : 'regular'} fa-heart`;
+                lcEl.textContent = currentCount;
+                console.warn('Firebase like error:', e);
+                return;
+            }
+
+            // Turso — sincronizar short si no existe, luego registrar like
+            try {
+                await crearShort(
+                    { uid: v.uid, displayName: v.autor, photoURL: v.avatar },
+                    { videoUrl: v.videoUrl, descripcion: v.descripcion || '', firebaseId: v.id }
+                );
+                await toggleLikeShort(v.id, currentUser.uid);
+            } catch(e) { console.warn('Turso like error:', e); }
         };
 
         item.querySelector('.comment-btn').onclick = () => openComments(v.id);
