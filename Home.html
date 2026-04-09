@@ -455,7 +455,7 @@ function buildPost(id, p) {
             </div>
             <div class="post-menu" onclick="postMenu('${id}','${p.uid}')"><i class="fa-solid fa-ellipsis"></i></div>
         </div>
-        ${contenido ? `<div class="post-content${big}">${contenido}</div>` : ''}
+        ${(contenido && !p.esEncuesta) ? `<div class="post-content${big}">${contenido}</div>` : ''}
         ${extraHTML}${mediaHTML}
         <div class="post-stats">
             <div class="likes-count" id="likes-count-${id}"></div>
