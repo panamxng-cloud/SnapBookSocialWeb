@@ -302,6 +302,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 let sincronizarUsuario, crearPost, obtenerFeed, tursoToggleLike, misLikes;
 let agregarComentario, obtenerComentarios, eliminarComentario, eliminarPost;
 let crearHistoria, obtenerHistorias, eliminarHistoriasExpiradas, tursoQuery;
+let tursoSeguir, tursoDejarDeSeguir, tursoEsSeguidor, tursoObtenerSiguiendo;
 let tursoOK = false;
 
 try {
@@ -319,6 +320,10 @@ try {
     obtenerHistorias           = m.obtenerHistorias;
     eliminarHistoriasExpiradas = m.eliminarHistoriasExpiradas;
     tursoQuery                 = m.tursoQuery;
+    tursoSeguir                = m.seguirUsuario;
+    tursoDejarDeSeguir         = m.dejarDeSeguir;
+    tursoEsSeguidor            = m.esSeguidor;
+    tursoObtenerSiguiendo      = m.obtenerSiguiendo;
     tursoOK = true;
     console.log('✅ Turso OK');
 } catch(e) {
@@ -496,9 +501,20 @@ async function initFeed() {
     feedCursor = Date.now();
     feed.querySelectorAll('.post-card, .empty-state').forEach(el => el.remove());
 
-    // Obtener seguidos
-    const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
-    followingSet  = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
+    // Obtener seguidos — Turso primero, Firebase como fallback
+    if (tursoOK) {
+        try {
+            const uidsT = await tursoObtenerSiguiendo(currentUser.uid);
+            followingSet = new Set(uidsT);
+        } catch(e) {
+            console.warn('Turso siguiendo fallback Firebase:', e);
+            const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
+            followingSet  = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
+        }
+    } else {
+        const sigSnap = await get(ref(db, `siguiendo/${currentUser.uid}`));
+        followingSet  = new Set(sigSnap.exists() ? Object.keys(sigSnap.val()) : []);
+    }
     followingSet.add(currentUser.uid);
 
     // ── PASO 1: Turso — carga histórica paginada
@@ -1060,11 +1076,44 @@ async function runSearch(q) {
 window.goToProfile = function(uid) { document.querySelector('.sheet-overlay')?.remove(); location.href=`Profile.html?uid=${uid}`; };
 window.searchToggleFollow = async function(uid, btn, event) {
     if (event) event.stopPropagation(); if (!currentUser) return; btn.disabled=true;
-    const fRef=ref(db,`siguiendo/${currentUser.uid}/${uid}`), sRef=ref(db,`seguidores/${uid}/${currentUser.uid}`);
-    const snap=await get(fRef);
-    if (snap.exists()) { await remove(fRef); await remove(sRef); btn.textContent='Seguir'; btn.classList.remove('siguiendo'); }
-    else { await set(fRef,true); await set(sRef,true); btn.textContent='Siguiendo'; btn.classList.add('siguiendo'); writeNotif(uid,'follow'); showToast('✅ Ahora lo sigues'); }
-    btn.disabled=false;
+
+    // Verificar estado actual desde Turso (o Firebase como fallback)
+    let yaSigue = false;
+    if (tursoOK) {
+        try { yaSigue = await tursoEsSeguidor(uid, currentUser.uid); }
+        catch { yaSigue = followingSet.has(uid); }
+    } else {
+        yaSigue = followingSet.has(uid);
+    }
+
+    const fRef = ref(db, `siguiendo/${currentUser.uid}/${uid}`);
+    const sRef = ref(db, `seguidores/${uid}/${currentUser.uid}`);
+
+    if (yaSigue) {
+        // ── Dejar de seguir ──
+        await Promise.allSettled([
+            remove(fRef),
+            remove(sRef),
+            tursoOK ? tursoDejarDeSeguir(uid, currentUser.uid) : Promise.resolve(),
+        ]);
+        followingSet.delete(uid);
+        btn.textContent = 'Seguir';
+        btn.classList.remove('siguiendo');
+        showToast('✅ Dejaste de seguir');
+    } else {
+        // ── Seguir ──
+        await Promise.allSettled([
+            set(fRef, true),
+            set(sRef, true),
+            tursoOK ? tursoSeguir(uid, currentUser.uid) : Promise.resolve(),
+        ]);
+        followingSet.add(uid);
+        btn.textContent = 'Siguiendo';
+        btn.classList.add('siguiendo');
+        writeNotif(uid, 'follow');
+        showToast('✅ Ahora lo sigues');
+    }
+    btn.disabled = false;
 };
 
 // ════════════════════════════════════════════════════════

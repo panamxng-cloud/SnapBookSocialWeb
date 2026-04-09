@@ -1197,7 +1197,13 @@ import {
     marcarLeidos as tursoMarcarLeidos,
     contarNoLeidos as tursoContarNoLeidos,
     toggleReaccion as tursoToggleReaccion,
-    eliminarMensaje as tursoEliminarMensaje
+    eliminarMensaje as tursoEliminarMensaje,
+    seguirUsuario as tursoSeguir,
+    dejarDeSeguir as tursoDejarDeSeguir,
+    obtenerSiguiendo as tursoObtenerSiguiendo,
+    registrarLlamada as tursoRegistrarLlamada,
+    actualizarEstadoLlamada as tursoActualizarEstadoLlamada,
+    finalizarLlamada as tursoFinalizarLlamada
 } from './db.js';
 
 // ── STATE ──────────────────────────────────────────────────────────────────
@@ -2961,16 +2967,6 @@ let currentCallType = 'voice'; // 'voice' | 'video'
 let callRole      = null;   // 'caller' | 'callee'
 let incomingCallData = null;
 
-// ── Botones del header de chat ─────────────────
-document.getElementById('cv-call-btn').onclick  = () => {
-    if (activeChatData?.isGroup) startGroupCall('voice');
-    else startCall('voice');
-};
-document.getElementById('cv-video-btn').onclick = () => {
-    if (activeChatData?.isGroup) startGroupCall('video');
-    else startCall('video');
-};
-
 // ── Iniciar llamada ────────────────────────────
 async function startCall(type) {
     if (!activeChatData || activeChatData.isGroup) {
@@ -3035,6 +3031,18 @@ async function startCall(type) {
         oferta: { type: offer.type, sdp: offer.sdp },
         timestamp: Date.now()
     });
+
+    // Registrar en Turso
+    try {
+        await tursoRegistrarLlamada({
+            firebaseId: callId,
+            deUid: currentUser.uid,
+            paraUid: otherUid,
+            chatId: activeChatId,
+            tipo: type,
+            esGrupo: false
+        });
+    } catch(e) { console.warn('Turso registrarLlamada:', e); }
 
     // Notificar al receptor directamente en su nodo
     await set(ref(db, `llamadas_entrantes/${otherUid}`), {
@@ -3205,6 +3213,9 @@ window.acceptCall = async function() {
     await set(ref(db, `llamadas/${callId}/respuesta`), { type: answer.type, sdp: answer.sdp });
     await set(ref(db, `llamadas/${callId}/estado`), 'activa');
 
+    // Turso: marcar como activa
+    try { await tursoActualizarEstadoLlamada(callId, 'activa'); } catch(e) { console.warn('Turso actualizarEstado:', e); }
+
     document.getElementById('call-status').textContent = 'En llamada';
     startCallTimer();
 
@@ -3221,6 +3232,8 @@ window.rejectCall = function() {
     if (!incomingCallData) return;
     set(ref(db, `llamadas/${incomingCallData.id}/estado`), 'rechazada');
     set(ref(db, `llamadas_entrantes/${currentUser.uid}`), null);
+    // Turso: marcar rechazada
+    try { tursoActualizarEstadoLlamada(incomingCallData.id, 'rechazada'); } catch(e) {}
     document.getElementById('incoming-call').classList.remove('show');
     if (navigator.vibrate) navigator.vibrate(0);
     incomingCallData = null;
@@ -3234,6 +3247,9 @@ window.hangUpCall = function() {
 
 // ── Limpiar llamada ────────────────────────────
 function endCallCleanup() {
+    const _callId       = callId;
+    const _callSeconds  = callSeconds;
+
     // Detener streams
     localStream?.getTracks().forEach(t => t.stop());
     localStream = null;
@@ -3265,6 +3281,13 @@ function endCallCleanup() {
     if (currentUser) set(ref(db, `llamadas_entrantes/${currentUser.uid}`), null);
 
     if (navigator.vibrate) navigator.vibrate(0);
+
+    // Turso: guardar duración final
+    if (_callId && _callSeconds > 0) {
+        try { tursoFinalizarLlamada(_callId, _callSeconds); } catch(e) {}
+    } else if (_callId) {
+        try { tursoActualizarEstadoLlamada(_callId, 'terminada'); } catch(e) {}
+    }
 }
 
 // ── Mostrar pantalla de llamada activa ─────────
@@ -3358,6 +3381,18 @@ window.startGroupCall = async function(type) {
         creadoPor: currentUser.uid, timestamp: Date.now(),
         participantes: { [currentUser.uid]: { nombre: currentUser.displayName||'Usuario', avatar: currentUser.photoURL||'', unido: true } }
     });
+
+    // Turso: registrar llamada grupal
+    try {
+        await tursoRegistrarLlamada({
+            firebaseId: gcCallId,
+            deUid: currentUser.uid,
+            paraUid: null,
+            chatId: activeChatId,
+            tipo: type,
+            esGrupo: true
+        });
+    } catch(e) { console.warn('Turso registrarLlamada grupo:', e); }
 
     const participants = Object.keys(activeChatData.participants || {});
     for (const uid of participants) {

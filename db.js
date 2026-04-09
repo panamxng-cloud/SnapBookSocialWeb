@@ -147,6 +147,21 @@ async function initTables() {
               uid TEXT NOT NULL, visitor_uid TEXT NOT NULL,
               timestamp INTEGER NOT NULL)` },
     { sql: `CREATE INDEX idx_vis_uid ON visitas_perfil(uid)` },
+
+    { sql: `CREATE TABLE llamadas (
+              id TEXT PRIMARY KEY,
+              firebase_id TEXT UNIQUE,
+              de_uid TEXT NOT NULL,
+              para_uid TEXT,
+              chat_id TEXT,
+              tipo TEXT DEFAULT 'voice',
+              es_grupo INTEGER DEFAULT 0,
+              estado TEXT DEFAULT 'llamando',
+              duracion_seg INTEGER DEFAULT 0,
+              timestamp INTEGER NOT NULL)` },
+    { sql: `CREATE INDEX idx_llamadas_de   ON llamadas(de_uid)` },
+    { sql: `CREATE INDEX idx_llamadas_para ON llamadas(para_uid)` },
+    { sql: `CREATE INDEX idx_llamadas_chat ON llamadas(chat_id)` },
   ]);
 
   console.log("✅ Turso: tablas listas");
@@ -378,6 +393,12 @@ export async function esSeguidor(uid, seguidorUid) {
   return r.length > 0;
 }
 
+// Devuelve los UIDs que `seguidorUid` sigue
+export async function obtenerSiguiendo(seguidorUid) {
+  const r = await exec("SELECT uid FROM seguidores WHERE seguidor_uid = ?", [seguidorUid]);
+  return r.map(row => row.uid);
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // VISITAS DE PERFIL
 // ═══════════════════════════════════════════════════════════════════
@@ -412,4 +433,46 @@ export async function eliminarMensaje(msgId, uid) {
   try {
     await exec("UPDATE mensajes SET eliminado = 1 WHERE id = ? AND sender_uid = ?", [msgId, uid]);
   } catch(e) { console.warn('eliminarMensaje:', e); }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LLAMADAS
+// ═══════════════════════════════════════════════════════════════════
+
+// Registrar una llamada al iniciarla (caller)
+export async function registrarLlamada({ firebaseId, deUid, paraUid, chatId, tipo, esGrupo = false }) {
+  const id = firebaseId ?? crypto.randomUUID();
+  await exec(
+    `INSERT OR IGNORE INTO llamadas
+       (id, firebase_id, de_uid, para_uid, chat_id, tipo, es_grupo, estado, duracion_seg, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'llamando', 0, ?)`,
+    [id, firebaseId, deUid, paraUid ?? null, chatId ?? null, tipo, esGrupo ? 1 : 0, Date.now()]
+  );
+  return id;
+}
+
+// Actualizar estado: 'activa' | 'rechazada' | 'terminada' | 'perdida'
+export async function actualizarEstadoLlamada(firebaseId, estado) {
+  await exec(
+    `UPDATE llamadas SET estado = ? WHERE firebase_id = ?`,
+    [estado, firebaseId]
+  );
+}
+
+// Guardar duración al terminar
+export async function finalizarLlamada(firebaseId, duracionSeg) {
+  await exec(
+    `UPDATE llamadas SET estado = 'terminada', duracion_seg = ? WHERE firebase_id = ?`,
+    [duracionSeg, firebaseId]
+  );
+}
+
+// Historial de llamadas de un usuario (entrantes + salientes)
+export async function obtenerHistorialLlamadas(uid, limite = 50) {
+  return exec(
+    `SELECT * FROM llamadas
+     WHERE de_uid = ? OR para_uid = ?
+     ORDER BY timestamp DESC LIMIT ?`,
+    [uid, uid, limite]
+  );
 }
