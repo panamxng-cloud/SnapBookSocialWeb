@@ -2146,89 +2146,187 @@ window.openCanalSheet = async function(uid, autorFallback, avatarFallback) {
 
     const ov = document.createElement('div');
     ov.id = 'canal-sheet-ov';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.5);display:flex;flex-direction:column;justify-content:flex-end;animation:fadeIn 0.2s ease;';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);display:flex;flex-direction:column;justify-content:flex-end;animation:fadeIn 0.2s ease;';
     ov.onclick = e => { if (e.target === ov) closeCanalSheet(); };
 
     ov.innerHTML = `
-    <div id="canal-sheet" style="background:var(--surface);border-radius:24px 24px 0 0;max-height:90vh;display:flex;flex-direction:column;animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);">
-        <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
+    <style>
+    #canal-sheet{background:var(--surface);border-radius:0;max-height:100vh;height:100%;display:flex;flex-direction:column;animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);overflow:hidden;}
+    /* ── player ── */
+    #cs-player-wrap{width:100%;background:#000;position:relative;flex-shrink:0;}
+    #cs-player-wrap video{width:100%;aspect-ratio:16/9;display:block;background:#000;max-height:56vw;}
+    #cs-player-wrap .cs-back{position:absolute;top:8px;left:10px;z-index:4;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;cursor:pointer;}
+    /* ── title bar ── */
+    #cs-title-bar{background:var(--surface);padding:12px 14px 0;}
+    #cs-title-txt{font-size:16px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:6px;}
+    #cs-meta-line{font-size:12px;color:var(--text-muted);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
+    /* ── action row (like/dislike/share) ── */
+    #cs-actions{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 14px 12px;border-bottom:1px solid var(--border);background:var(--surface);}
+    #cs-actions::-webkit-scrollbar{display:none;}
+    .cs-act-pill{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:22px;background:var(--surface2);border:none;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap;font-family:inherit;transition:background 0.15s;flex-shrink:0;}
+    .cs-act-pill:active{background:var(--surface3);}
+    .cs-act-pill i{font-size:14px;}
+    .cs-act-pill.red i{color:#cc0000;}
+    .cs-act-pill.liked{background:rgba(204,0,0,0.1);color:#cc0000;}
+    .cs-act-sep{width:1px;background:var(--border);margin:6px 0;flex-shrink:0;}
+    /* ── canal row ── */
+    #cs-channel-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--surface);}
+    #cs-av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--surface3);}
+    #cs-ch-info{flex:1;min-width:0;}
+    #cs-name{font-size:14px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    #cs-subs{font-size:12px;color:var(--text-muted);margin-top:1px;}
+    #cs-follow-btn{height:34px;padding:0 16px;border-radius:17px;border:none;background:#cc0000;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+    #cs-follow-btn .bell{font-size:12px;}
+    #cs-follow-btn .arrow{font-size:10px;opacity:.7;}
+    #cs-follow-btn.siguiendo{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);}
+    /* ── comments ── */
+    #cs-cmt-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;background:var(--surface);border-bottom:1px solid var(--border);}
+    #cs-cmt-title{font-size:14px;font-weight:800;color:var(--text);}
+    #cs-cmt-count{font-size:13px;color:var(--text-muted);margin-left:6px;}
+    .cs-cmt-dots{font-size:18px;color:var(--text-muted);cursor:pointer;display:flex;gap:3px;}
+    .cs-cmt-dots span{width:4px;height:4px;border-radius:50%;background:var(--text-muted);display:block;}
+    #cs-cmt-input-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+    #cs-cmt-av{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+    #cs-cmt-box{flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:22px;padding:9px 16px;font-size:14px;color:var(--text);font-family:inherit;outline:none;}
+    #cs-cmt-box:focus{border-color:#cc0000;}
+    #cs-cmt-box::placeholder{color:var(--text-muted);}
+    #cs-cmt-send{width:36px;height:36px;border-radius:50%;background:#cc0000;border:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;cursor:pointer;flex-shrink:0;}
+    #cs-cmt-list{background:var(--surface);padding:10px 14px 80px;display:flex;flex-direction:column;gap:14px;}
+    .cs-cmt-item{display:flex;gap:10px;}
+    .cs-cmt-uav{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+    .cs-cmt-body{flex:1;min-width:0;}
+    .cs-cmt-author{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+    .cs-cmt-text{font-size:14px;color:var(--text);line-height:1.45;}
+    .cs-cmt-time{font-size:11px;color:var(--text-muted);margin-top:4px;}
+    .cs-cmt-likes{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;color:var(--text-muted);}
+    /* ── scrollable body ── */
+    #cs-scroll-body{flex:1;overflow-y:auto;scrollbar-width:none;}
+    #cs-scroll-body::-webkit-scrollbar{display:none;}
+    </style>
 
-        <!-- Video player -->
-        <div id="cs-video-wrap" style="width:100%;background:#000;position:relative;flex-shrink:0;display:none;">
-            <video id="cs-vid" playsinline autoplay controls
-                style="width:100%;max-height:52vw;display:block;background:#000;"></video>
-            <div id="cs-vid-title" style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.7));padding:24px 14px 10px;font-size:14px;font-weight:700;color:#fff;pointer-events:none;"></div>
+    <div id="canal-sheet">
+      <!-- drag handle -->
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0;"></div>
+
+      <!-- ══ VIDEO PLAYER ══ -->
+      <div id="cs-player-wrap">
+        <video id="cs-vid" playsinline controls autoplay></video>
+        <div class="cs-back" onclick="closeCanalSheet()">
+          <i class="fa-solid fa-chevron-down"></i>
+        </div>
+      </div>
+
+      <!-- ══ SCROLLABLE CONTENT ══ -->
+      <div id="cs-scroll-body">
+
+        <!-- Título + meta -->
+        <div id="cs-title-bar">
+          <div id="cs-title-txt">Cargando...</div>
+          <div id="cs-meta-line">
+            <span id="cs-handle-txt">@canal</span>
+            <span style="opacity:.4;font-size:8px;">•</span>
+            <span id="cs-views-txt"></span>
+            <span id="cs-ago-sep" style="opacity:.4;font-size:8px;display:none;">•</span>
+            <span id="cs-ago-txt"></span>
+          </div>
         </div>
 
-        <!-- Encabezado canal -->
-        <div style="display:flex;align-items:center;gap:12px;padding:16px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
-            <img id="cs-av" src="${avatarFallback||'default-avatar.png'}" onerror="this.src='default-avatar.png'"
-                style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2.5px solid var(--accent);flex-shrink:0;">
-            <div style="flex:1;min-width:0;">
-                <div id="cs-name" style="font-size:16px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${autorFallback||'Canal'}</div>
-                <div id="cs-subs" style="font-size:13px;color:var(--text-muted);margin-top:2px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:11px;"></i></div>
-            </div>
-            <div style="display:flex;gap:8px;flex-shrink:0;">
-                ${uid !== currentUser?.uid ? `
-                <button id="cs-follow-btn" onclick="csToggleFollow('${uid}')"
-                    style="padding:9px 18px;border-radius:22px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;">
-                    <i class="fa-solid fa-plus" id="cs-follow-icon"></i>
-                    <span id="cs-follow-text">Seguir</span>
-                </button>` : ''}
-                <div onclick="closeCanalSheet()"
-                    style="width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:16px;cursor:pointer;flex-shrink:0;">
-                    <i class="fa-solid fa-xmark"></i>
-                </div>
-            </div>
+        <!-- Acciones: Like / Dislike / Compartir / Guardar -->
+        <div id="cs-actions">
+          <!-- like + dislike juntos en una píldora -->
+          <div style="display:flex;align-items:center;background:var(--surface2);border-radius:22px;overflow:hidden;flex-shrink:0;">
+            <button class="cs-act-pill" id="cs-like-btn" onclick="csLike()" style="border-radius:0;border-right:1px solid var(--border);">
+              <i class="fa-regular fa-thumbs-up"></i>
+              <span id="cs-like-cnt">0</span>
+            </button>
+            <button class="cs-act-pill" id="cs-dislike-btn" onclick="csDislike()" style="border-radius:0;padding:8px 14px;">
+              <i class="fa-regular fa-thumbs-down"></i>
+            </button>
+          </div>
+          <button class="cs-act-pill" onclick="csShare()">
+            <i class="fa-solid fa-share"></i> Compartir
+          </button>
+          <button class="cs-act-pill" onclick="showToast('Guardado')">
+            <i class="fa-solid fa-bookmark"></i> Guardar
+          </button>
         </div>
 
-        <!-- Bio -->
-        <div id="cs-bio" style="padding:10px 16px;font-size:13px;color:var(--text-muted);border-bottom:1px solid var(--border);display:none;flex-shrink:0;"></div>
+        <!-- ══ CANAL ROW ══ -->
+        <div id="cs-channel-row">
+          <img id="cs-av" src="${avatarFallback||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+          <div id="cs-ch-info">
+            <div id="cs-name">${autorFallback||'Canal'}</div>
+            <div id="cs-subs"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:10px;"></i></div>
+          </div>
+          ${uid !== (typeof currentUser !== 'undefined' ? currentUser?.uid : 'NONE') ? `
+          <button id="cs-follow-btn" onclick="csToggleFollow('${uid}')">
+            <i class="fa-solid fa-bell bell" id="cs-follow-icon"></i>
+            <span id="cs-follow-text">Suscribirse</span>
+            <i class="fa-solid fa-chevron-down arrow"></i>
+          </button>` : `<span style="font-size:12px;color:var(--text-muted);">Tu canal</span>`}
+        </div>
 
-        <!-- Lista de videos -->
-        <div style="padding:12px 14px 6px;font-size:14px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px;flex-shrink:0;">
-            <i class="fa-solid fa-play" style="color:var(--accent);font-size:12px;"></i> Videos
+        <!-- ══ COMENTARIOS ══ -->
+        <div id="cs-cmt-header">
+          <div style="display:flex;align-items:center;">
+            <span id="cs-cmt-title">Comentarios</span>
+            <span id="cs-cmt-count"></span>
+          </div>
+          <div class="cs-cmt-dots"><span></span><span></span><span></span></div>
         </div>
-        <div id="cs-video-list" style="flex:1;overflow-y:auto;padding:0 14px 24px;display:flex;flex-direction:column;gap:10px;scrollbar-width:none;">
-            <div style="text-align:center;padding:24px;color:var(--text-muted);">
-                <i class="fa-solid fa-circle-notch fa-spin" style="font-size:20px;"></i>
-            </div>
+
+        <div id="cs-cmt-input-row">
+          <img id="cs-cmt-av" src="${typeof currentUser !== 'undefined' && currentUser?.photoURL ? currentUser.photoURL : 'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+          <input id="cs-cmt-box" placeholder="Comentar..." autocomplete="off">
+          <button id="cs-cmt-send" onclick="csSendCmt()"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
+
+        <div id="cs-cmt-list">
+          <div style="text-align:center;padding:20px;color:var(--text-muted);">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+          </div>
+        </div>
+
+      </div><!-- /scroll-body -->
     </div>`;
 
     document.body.appendChild(ov);
 
-    // Cargar datos del canal
+    // ── Cargar datos del canal y video activo ─────────────
+    // currentVideo guarda el video que está sonando ahora mismo
+    window._csCurrentVideo = null;
+    window._csCurrentUid   = uid;
+
     try {
+        // Datos del usuario/canal
         const snap = await get(ref(db, `usuarios/${uid}`)).catch(() => null);
         const u = snap?.exists() ? snap.val() : {};
         const nombre = u.displayName || u.nombre || autorFallback || 'Canal';
-        const avatar = u.photoURL || u.avatar || avatarFallback || 'default-avatar.png';
-        const bio    = u.bio || u.descripcion || '';
+        const avatar = u.photoURL    || u.avatar || avatarFallback || 'default-avatar.png';
 
-        const nameEl = document.getElementById('cs-name');
-        const avEl   = document.getElementById('cs-av');
-        if (nameEl) nameEl.textContent = nombre;
-        if (avEl)   { avEl.src = avatar; avEl.onerror = () => { avEl.src = 'default-avatar.png'; }; }
-
-        if (bio) {
-            const bioEl = document.getElementById('cs-bio');
-            if (bioEl) { bioEl.textContent = bio; bioEl.style.display = 'block'; }
-        }
+        const avEl = document.getElementById('cs-av');
+        const nmEl = document.getElementById('cs-name');
+        const hdEl = document.getElementById('cs-handle-txt');
+        if (avEl) { avEl.src = avatar; avEl.onerror = () => { avEl.src = 'default-avatar.png'; }; }
+        if (nmEl) nmEl.textContent = nombre;
 
         // Seguidores
         const segSnap = await get(ref(db, `seguidores/${uid}`)).catch(() => null);
-        const n = segSnap?.exists() ? Object.keys(segSnap.val()).length : 0;
+        const nsubs = segSnap?.exists() ? Object.keys(segSnap.val()).length : 0;
         const subsEl = document.getElementById('cs-subs');
-        if (subsEl) subsEl.textContent = `${fmtViews(n)} seguidor${n !== 1 ? 'es' : ''}`;
+        if (subsEl) subsEl.textContent = `${fmtViews(nsubs)} suscriptor${nsubs !== 1 ? 'es' : ''}`;
 
-        // Estado follow
+        // Estado suscripción
         if (currentUser && uid !== currentUser.uid) {
             const fSnap = await get(ref(db, `siguiendo/${currentUser.uid}/${uid}`)).catch(() => null);
             if (fSnap?.exists()) _csSetFollow(true);
         }
 
-        // Cargar videos del canal
+        // Avatar del usuario que comenta
+        const cmtAv = document.getElementById('cs-cmt-av');
+        if (cmtAv && currentUser?.photoURL) cmtAv.src = currentUser.photoURL;
+
+        // ── Cargar videos del canal ──
         const mvSnap = await get(ref(db, 'MultiVideos')).catch(() => null);
         const videos = [];
         if (mvSnap?.exists()) {
@@ -2237,72 +2335,173 @@ window.openCanalSheet = async function(uid, autorFallback, avatarFallback) {
                 const processV = (key, val) => {
                     const hasVideo = val.videoUrl || val.video_url || val.cloudinaryUrl;
                     if (hasVideo && (val.uid === uid || val.authorUid === uid)) {
-                        videos.push({ id: key, ...val, videoUrl: val.videoUrl || val.video_url || val.cloudinaryUrl, _node: 'MultiVideos' });
+                        videos.push({ id: key, ...val,
+                            videoUrl: val.videoUrl || val.video_url || val.cloudinaryUrl,
+                            _node: 'MultiVideos' });
                     }
                 };
                 if (v && typeof v === 'object' && !v.videoUrl && !v.video_url && !v.cloudinaryUrl) {
-                    Object.entries(v).forEach(([k, val]) => { if (val && typeof val === 'object') processV(k, val); });
+                    Object.entries(v).forEach(([k2, val2]) => { if (val2 && typeof val2 === 'object') processV(k2, val2); });
                 } else if (v) processV(c.key, v);
             });
         }
         videos.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
 
-        const listEl = document.getElementById('cs-video-list');
-        if (!listEl) return;
-
         if (!videos.length) {
-            listEl.innerHTML = `<div style="text-align:center;padding:32px 24px;color:var(--text-muted);">
-                <i class="fa-solid fa-video-slash" style="font-size:32px;display:block;margin-bottom:10px;opacity:.2;"></i>
-                <p style="font-size:14px;font-weight:700;">Sin videos aún</p></div>`;
+            const listEl = document.getElementById('cs-cmt-list');
+            if (listEl) listEl.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted);"><i class="fa-solid fa-video-slash" style="font-size:32px;display:block;margin-bottom:10px;opacity:.25;"></i><p style="font-weight:700;">Sin videos aún</p></div>`;
             return;
         }
 
-        // Reproducir el primer video automáticamente
-        _csPlayVideo(videos[0]);
-
-        listEl.innerHTML = videos.map((v, i) => {
-            const thumb  = v.thumbnail || v.thumbnailUrl || '';
-            const titulo = v.titulo || v.contenido || v.texto || 'Sin título';
-            const dur    = v.duracion ? `${Math.floor(v.duracion/60)}:${String(v.duracion%60).padStart(2,'0')}` : '';
-            const ago    = v.timestamp ? timeAgo(Number(v.timestamp)) : '';
-            const views  = v.vistas ? fmtViews(v.vistas) + ' vistas' : '';
-            const safe   = JSON.stringify(JSON.stringify(v));
-            return `<div onclick="_csPlayVideo(${safe})"
-                style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;border-radius:12px;padding:6px;transition:background 0.15s;${i === 0 ? 'background:rgba(108,99,255,0.08);' : ''}"
-                id="cs-vitem-${i}">
-                <div style="position:relative;width:120px;min-width:120px;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#111;flex-shrink:0;">
-                    ${thumb
-                        ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">`
-                        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a24;"><i class="fa-solid fa-play" style="color:#fff;font-size:18px;opacity:.3;"></i></div>`}
-                    ${dur ? `<div style="position:absolute;bottom:4px;right:5px;background:rgba(0,0,0,0.82);color:#fff;font-size:10px;font-weight:800;border-radius:4px;padding:1px 5px;">${dur}</div>` : ''}
-                </div>
-                <div style="flex:1;min-width:0;padding-top:2px;">
-                    <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${titulo}</div>
-                    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${views}${views && ago ? ' · ' : ''}${ago}</div>
-                </div>
-            </div>`;
-        }).join('');
+        // Reproducir primer video
+        _csLoadVideo(videos[0], nombre, avatar);
 
     } catch(e) {
         console.error('openCanalSheet:', e);
-        const listEl = document.getElementById('cs-video-list');
-        if (listEl) listEl.innerHTML = `<div style="text-align:center;padding:40px 24px;color:var(--text-muted);">Error al cargar</div>`;
     }
 };
 
-window._csPlayVideo = function(vOrJson) {
-    const v = typeof vOrJson === 'string' ? JSON.parse(vOrJson) : vOrJson;
+// ── Carga un video en el player y actualiza UI ───────────
+window._csLoadVideo = function(v, canalNombre, canalAvatar) {
+    if (!v) return;
+    window._csCurrentVideo = v;
     const url    = v.videoUrl || v.video_url || v.cloudinaryUrl || '';
-    const titulo = v.titulo   || v.contenido || v.texto || '';
-    const wrap   = document.getElementById('cs-video-wrap');
-    const vid    = document.getElementById('cs-vid');
-    const titEl  = document.getElementById('cs-vid-title');
-    if (!wrap || !vid || !url) return;
-    wrap.style.display = 'block';
-    vid.src = url;
-    vid.play().catch(() => {});
-    if (titEl) titEl.textContent = titulo;
+    const titulo = v.titulo   || v.contenido || v.texto || 'Video';
+    const handle = canalNombre ? '@' + canalNombre.toLowerCase().replace(/\s+/g,'') : '';
+    const views  = v.vistas   ? fmtViews(v.vistas) + ' vistas' : '';
+    const ago    = v.timestamp ? timeAgo(Number(v.timestamp)) : '';
+    const likes  = v.likes    ? Object.keys(v.likes).length : (Number(v.total_likes)||0);
+
+    // Player
+    const vid = document.getElementById('cs-vid');
+    if (vid && url) { vid.src = url; vid.play().catch(() => {}); }
+
+    // Title / meta
+    const tEl  = document.getElementById('cs-title-txt');
+    const hdEl = document.getElementById('cs-handle-txt');
+    const vwEl = document.getElementById('cs-views-txt');
+    const agEl = document.getElementById('cs-ago-txt');
+    const sepEl = document.getElementById('cs-ago-sep');
+    if (tEl)  tEl.textContent  = titulo;
+    if (hdEl) hdEl.textContent = handle;
+    if (vwEl) vwEl.textContent = views;
+    if (agEl) agEl.textContent = ago;
+    if (sepEl) sepEl.style.display = (views && ago) ? '' : 'none';
+
+    // Like count
+    const lcEl = document.getElementById('cs-like-cnt');
+    if (lcEl) lcEl.textContent = likes > 0 ? fmtViews(likes) : '0';
+
+    // Reset like/dislike state
+    document.getElementById('cs-like-btn')?.classList.remove('liked');
+    document.getElementById('cs-dislike-btn')?.classList.remove('liked');
+    const likeI = document.querySelector('#cs-like-btn i');
+    if (likeI) likeI.className = 'fa-regular fa-thumbs-up';
+
+    // Check if current user already liked
+    if (currentUser && v.id) {
+        get(ref(db, `MultiVideos/${v.id}/likes/${currentUser.uid}`)).then(s => {
+            if (s.exists()) {
+                document.getElementById('cs-like-btn')?.classList.add('liked');
+                const i2 = document.querySelector('#cs-like-btn i');
+                if (i2) i2.className = 'fa-solid fa-thumbs-up';
+            }
+        }).catch(() => {});
+    }
+
+    // Comentarios
+    _csLoadComments(v.id);
 };
+
+// ── Comentarios ──────────────────────────────────────────
+async function _csLoadComments(postId) {
+    const el = document.getElementById('cs-cmt-list');
+    if (!el) return;
+    try {
+        const snap = await get(ref(db, `comentarios/${postId}`)).catch(() => null);
+        const cntEl = document.getElementById('cs-cmt-count');
+        if (!snap?.exists()) {
+            if (cntEl) cntEl.textContent = '';
+            el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:14px;">Sin comentarios aún. ¡Sé el primero!</div>`;
+            return;
+        }
+        const arr = []; snap.forEach(c => arr.push(c.val())); arr.sort((a,b) => a.timestamp - b.timestamp);
+        if (cntEl) cntEl.textContent = ` ${arr.length}`;
+        el.innerHTML = arr.map(c => `
+            <div class="cs-cmt-item">
+                <img class="cs-cmt-uav" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+                <div class="cs-cmt-body">
+                    <div class="cs-cmt-author">${c.autor||'Usuario'} <span style="font-weight:400;color:var(--text-muted);font-size:11px;">${timeAgo(c.timestamp)}</span></div>
+                    <div class="cs-cmt-text">${c.texto}</div>
+                    <div class="cs-cmt-likes">
+                        <i class="fa-regular fa-thumbs-up" style="font-size:13px;"></i>
+                        <span>${c.likes ? Object.keys(c.likes).length : 0}</span>
+                        <i class="fa-regular fa-thumbs-down" style="font-size:13px;margin-left:8px;"></i>
+                    </div>
+                </div>
+            </div>`).join('');
+    } catch(e) {
+        el.innerHTML = `<div style="padding:16px;color:var(--text-muted);font-size:14px;">Error al cargar comentarios</div>`;
+    }
+}
+
+window.csSendCmt = async function() {
+    const inp = document.getElementById('cs-cmt-box');
+    const txt = inp?.value.trim();
+    const v   = window._csCurrentVideo;
+    if (!txt || !currentUser || !v?.id) { if (!currentUser) showToast('Inicia sesión'); return; }
+    inp.value = '';
+    await push(ref(db, `comentarios/${v.id}`), {
+        autor: currentUser.displayName || 'Usuario',
+        avatar: currentUser.photoURL || '',
+        uid: currentUser.uid, texto: txt, timestamp: Date.now()
+    });
+    _csLoadComments(v.id);
+    showToast('💬 Comentario enviado');
+};
+
+// ── Like / Dislike ───────────────────────────────────────
+window.csLike = async function() {
+    if (!currentUser) { showToast('Inicia sesión'); return; }
+    const v = window._csCurrentVideo;
+    if (!v?.id) return;
+    const btn  = document.getElementById('cs-like-btn');
+    const icon = btn?.querySelector('i');
+    const cnt  = document.getElementById('cs-like-cnt');
+    const liked = btn?.classList.contains('liked');
+    btn?.classList.toggle('liked', !liked);
+    if (icon) icon.className = liked ? 'fa-regular fa-thumbs-up' : 'fa-solid fa-thumbs-up';
+    const lr = ref(db, `MultiVideos/${v.id}/likes/${currentUser.uid}`);
+    const s  = await get(lr);
+    if (s.exists()) await remove(lr); else await set(lr, true);
+    const all = await get(ref(db, `MultiVideos/${v.id}/likes`)).catch(() => null);
+    const n = all?.exists() ? Object.keys(all.val()).length : 0;
+    if (cnt) cnt.textContent = n > 0 ? fmtViews(n) : '0';
+};
+
+window.csDislike = function() {
+    const btn = document.getElementById('cs-dislike-btn');
+    const liked = btn?.classList.contains('liked');
+    btn?.classList.toggle('liked', !liked);
+    const i = btn?.querySelector('i');
+    if (i) i.className = liked ? 'fa-regular fa-thumbs-down' : 'fa-solid fa-thumbs-down';
+    // Quitar like si hay
+    if (!liked) {
+        document.getElementById('cs-like-btn')?.classList.remove('liked');
+        const li = document.querySelector('#cs-like-btn i');
+        if (li) li.className = 'fa-regular fa-thumbs-up';
+    }
+};
+
+window.csShare = function() {
+    const v = window._csCurrentVideo;
+    const title = v?.titulo || v?.contenido || 'Video';
+    if (navigator.share) navigator.share({ title, url: location.href });
+    else { navigator.clipboard?.writeText(location.href); showToast('🔗 Link copiado'); }
+};
+
+// ── csSwitchTab (kept for compatibility) ─────────────────
+window.csSwitchTab = function() {};
 
 window.closeCanalSheet = function() {
     const vid = document.getElementById('cs-vid');
@@ -2316,32 +2515,32 @@ function _csSetFollow(siguiendo) {
     const text = document.getElementById('cs-follow-text');
     if (!btn) return;
     if (siguiendo) {
-        btn.style.background = 'var(--surface2)'; btn.style.color = 'var(--text-muted)'; btn.style.border = '1.5px solid var(--border)';
-        if (icon) icon.className = 'fa-solid fa-check';
-        if (text) text.textContent = 'Siguiendo';
+        btn.classList.add('siguiendo');
+        if (icon) icon.className = 'fa-solid fa-bell-slash bell';
+        if (text) text.textContent = 'Suscrito';
     } else {
-        btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; btn.style.border = 'none';
-        if (icon) icon.className = 'fa-solid fa-plus';
-        if (text) text.textContent = 'Seguir';
+        btn.classList.remove('siguiendo');
+        if (icon) icon.className = 'fa-solid fa-bell bell';
+        if (text) text.textContent = 'Suscribirse';
     }
 }
 
 window.csToggleFollow = async function(uid) {
-    if (!currentUser) { showToast('Inicia sesión para seguir'); return; }
+    if (!currentUser) { showToast('Inicia sesión para suscribirte'); return; }
     const fR = ref(db, `siguiendo/${currentUser.uid}/${uid}`);
     const sR = ref(db, `seguidores/${uid}/${currentUser.uid}`);
     const s  = await get(fR);
     if (s.exists()) {
         await remove(fR); await remove(sR);
-        _csSetFollow(false); showToast('Dejaste de seguir');
+        _csSetFollow(false); showToast('Cancelaste tu suscripción');
     } else {
         await set(fR, true); await set(sR, true);
-        _csSetFollow(true); writeNotif(uid, 'follow'); showToast('✅ Ahora lo sigues');
+        _csSetFollow(true); writeNotif(uid, 'follow'); showToast('✅ ¡Suscrito al canal!');
     }
     const seg = await get(ref(db, `seguidores/${uid}`)).catch(() => null);
     const n   = seg?.exists() ? Object.keys(seg.val()).length : 0;
     const el  = document.getElementById('cs-subs');
-    if (el) el.textContent = `${fmtViews(n)} seguidor${n !== 1 ? 'es' : ''}`;
+    if (el) el.textContent = `${fmtViews(n)} suscriptor${n !== 1 ? 'es' : ''}`;
 };
 </script>
 </body>
