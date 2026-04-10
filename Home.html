@@ -1370,10 +1370,10 @@ function buildVideoCard(v) {
     const thumbEl = thumb
         ? `<img src="${thumb}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=yt-thumb-ph><i class=fa-solid\ fa-play style=color:#fff;font-size:28px;opacity:.3></i></div>'">`
         : `<div class="yt-thumb-ph"><i class="fa-solid fa-play" style="color:#fff;font-size:28px;opacity:.3;"></i></div>`;
-    return `<div class="yt-card" onclick="openVP(${safe})">
+    return `<div class="yt-card" onclick="${uid?`openCanalSheet('${uid}','${autor}','${avatar}')` : `openVP(${safe})`}">
         <div class="yt-thumb">${thumbEl}${dur?`<div class="yt-dur">${dur}</div>`:''}</div>
         <div class="yt-info">
-            <img class="yt-avatar" src="${avatar}" onerror="this.src='default-avatar.png'" onclick="event.stopPropagation();${uid?`openCanalSheet('${uid}','${autor}','${avatar}')`:''}">
+            <img class="yt-avatar" src="${avatar}" onerror="this.src='default-avatar.png'">
             <div class="yt-meta">
                 <div class="yt-title">${titulo}</div>
                 <div class="yt-sub">
@@ -1454,10 +1454,10 @@ function buildMVCard(v) {
         ? `<img src="${thumb}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=yt-thumb-ph><i class=fa-solid\ fa-play style=color:#fff;font-size:32px;opacity:.4></i></div>'">`
         : `<div class="yt-thumb-ph"><i class="fa-solid fa-play" style="color:#fff;font-size:32px;opacity:.4;"></i></div>`;
     const avatarFallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(autor)}&background=6c63ff&color=fff&size=96`;
-    return `<div class="yt-card" onclick="openMV(${safe})">
+    return `<div class="yt-card" onclick="${uid?`openCanalSheet('${uid}','${autor}','${avatar||avatarFallback}')` : `openMV(${safe})`}">
         <div class="yt-thumb">${thumbEl}${dur?`<div class="yt-dur">${dur}</div>`:''}</div>
         <div class="yt-info">
-            <img class="yt-avatar" src="${avatar || avatarFallback}" onerror="this.src='${avatarFallback}'" onclick="event.stopPropagation();${uid?`openCanalSheet('${uid}','${autor}','${avatar||avatarFallback}')`:''}" style="cursor:pointer;">
+            <img class="yt-avatar" src="${avatar || avatarFallback}" onerror="this.src='${avatarFallback}'" style="cursor:pointer;">
             <div class="yt-meta">
                 <div class="yt-title">${titulo}</div>
                 <div class="yt-sub">
@@ -1636,7 +1636,8 @@ window.openMV = function(vJson) {
 
     // ── Estado like ──────────────────────────────────────
     if (currentUser) {
-        get(ref(db, `MultiVideos/${v.id}/likes/${currentUser.uid}`)).then(s => {
+        const rPath = v._path || `MultiVideos/${v.id}`;
+        get(ref(db, `${rPath}/likes/${currentUser.uid}`)).then(s => {
             if (s.exists()) _mvSetLikeState(true, likes);
         }).catch(() => {});
     }
@@ -2224,14 +2225,19 @@ window.openCanalSheet = async function(uid, autorFallback, avatarFallback) {
           <div id="cs-title-txt">Cargando...</div>
           <div id="cs-meta-line">
             <span id="cs-handle-txt">@canal</span>
-            <span style="opacity:.4;font-size:8px;">•</span>
             <span id="cs-views-txt"></span>
             <span id="cs-ago-sep" style="opacity:.4;font-size:8px;display:none;">•</span>
             <span id="cs-ago-txt"></span>
           </div>
         </div>
 
-        <!-- Acciones: Like / Dislike / Compartir / Guardar -->
+        <!-- Descripción -->
+        <div id="cs-desc-wrap" onclick="csOpenDescPanel()" style="display:none;padding:0 16px 10px;cursor:pointer;">
+          <div id="cs-desc-preview" style="font-size:13px;color:var(--text-muted);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;"></div>
+          <span id="cs-desc-more" style="font-size:12px;font-weight:700;color:var(--accent);display:none;">...más</span>
+        </div>
+
+        <!-- Acciones: Like / Dislike -->
         <div id="cs-actions">
           <!-- like + dislike juntos en una píldora -->
           <div style="display:flex;align-items:center;background:var(--surface2);border-radius:22px;overflow:hidden;flex-shrink:0;">
@@ -2243,12 +2249,6 @@ window.openCanalSheet = async function(uid, autorFallback, avatarFallback) {
               <i class="fa-regular fa-thumbs-down"></i>
             </button>
           </div>
-          <button class="cs-act-pill" onclick="csShare()">
-            <i class="fa-solid fa-share"></i> Compartir
-          </button>
-          <button class="cs-act-pill" onclick="showToast('Guardado')">
-            <i class="fa-solid fa-bookmark"></i> Guardar
-          </button>
         </div>
 
         <!-- ══ CANAL ROW ══ -->
@@ -2266,26 +2266,98 @@ window.openCanalSheet = async function(uid, autorFallback, avatarFallback) {
           </button>` : `<span style="font-size:12px;color:var(--text-muted);">Tu canal</span>`}
         </div>
 
-        <!-- ══ COMENTARIOS ══ -->
-        <div id="cs-cmt-header">
-          <div style="display:flex;align-items:center;">
-            <span id="cs-cmt-title">Comentarios</span>
-            <span id="cs-cmt-count"></span>
+        <!-- ══ BOTÓN COMENTARIOS ══ -->
+        <div id="cs-cmt-btn-row" onclick="csOpenCommentPanel()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border-radius:14px;margin:0 14px 14px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+            <i class="fa-regular fa-comment" style="font-size:16px;"></i>
+            <span style="font-size:14px;font-weight:600;">Comentar...</span>
           </div>
-          <div class="cs-cmt-dots"><span></span><span></span><span></span></div>
-        </div>
-
-        <div id="cs-cmt-input-row">
-          <img id="cs-cmt-av" src="${typeof currentUser !== 'undefined' && currentUser?.photoURL ? currentUser.photoURL : 'default-avatar.png'}" onerror="this.src='default-avatar.png'">
-          <input id="cs-cmt-box" placeholder="Comentar..." autocomplete="off">
-          <button id="cs-cmt-send" onclick="csSendCmt()"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-
-        <div id="cs-cmt-list">
-          <div style="text-align:center;padding:20px;color:var(--text-muted);">
-            <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:13px;">
+            <span id="cs-cmt-preview-count"></span>
+            <i class="fa-solid fa-chevron-up" style="font-size:11px;"></i>
           </div>
         </div>
+
+        <!-- ══ TABS Videos | Canal ══ -->
+        <div id="cs-tabs-bar" style="display:flex;border-top:1px solid var(--border);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:5;">
+          <div id="cs-tab-videos" onclick="csSwitchCsTab('videos')" style="flex:1;padding:12px 4px;text-align:center;font-size:14px;font-weight:700;color:var(--accent);border-bottom:3px solid var(--accent);margin-bottom:-2px;cursor:pointer;transition:all 0.2s;">Videos</div>
+          <div id="cs-tab-canal" onclick="csSwitchCsTab('canal')" style="flex:1;padding:12px 4px;text-align:center;font-size:14px;font-weight:700;color:var(--text-muted);border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all 0.2s;">Canal</div>
+        </div>
+
+        <!-- Panel: Videos -->
+        <div id="cs-panel-videos">
+          <div id="cs-channel-videos-list" style="display:flex;flex-direction:column;gap:2px;padding-bottom:16px;">
+            <div style="text-align:center;padding:20px;color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+          </div>
+        </div>
+
+        <!-- Panel: Canal -->
+        <div id="cs-panel-canal" style="display:none;">
+
+          <!-- Avatar + nombre + subs -->
+          <div style="padding:16px 16px 16px;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <img id="cs-canal-av-big" src="default-avatar.png" onerror="this.src='default-avatar.png'" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);flex-shrink:0;">
+              <button id="cs-canal-follow-btn" onclick="csToggleFollow(window._csCurrentUid)" style="padding:8px 20px;border-radius:20px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">Suscribirse</button>
+            </div>
+            <div id="cs-canal-name-big" style="font-size:18px;font-weight:800;color:var(--text);"></div>
+            <div id="cs-canal-handle-big" style="font-size:13px;color:var(--text-muted);margin-top:2px;"></div>
+            <div style="display:flex;gap:16px;margin-top:10px;">
+              <div style="text-align:center;">
+                <div id="cs-canal-subs-num" style="font-size:16px;font-weight:800;color:var(--text);">—</div>
+                <div style="font-size:11px;color:var(--text-muted);">Suscriptores</div>
+              </div>
+              <div style="text-align:center;">
+                <div id="cs-canal-videos-num" style="font-size:16px;font-weight:800;color:var(--text);">—</div>
+                <div style="font-size:11px;color:var(--text-muted);">Videos</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          <div id="cs-canal-desc-wrap" style="padding:14px 16px;border-bottom:1px solid var(--border);display:none;">
+            <div id="cs-canal-desc-big" style="font-size:13px;color:var(--text-muted);line-height:1.6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;"></div>
+            <span id="cs-canal-desc-more" onclick="csOpenDescFromCanal()" style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;display:none;">Más</span>
+          </div>
+
+          <!-- Links / info extra -->
+          <div id="cs-canal-links" style="padding:12px 16px 24px;display:flex;flex-direction:column;gap:8px;"></div>
+
+        </div>
+
+      </div><!-- /scroll-body -->
+    </div>
+
+    <!-- ══ PANEL DE DESCRIPCIÓN ══ -->
+    <div id="cs-desc-panel" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.5);" onclick="csCloseDescPanel(event)">
+      <div id="cs-desc-panel-inner" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:24px 24px 0 0;max-height:80vh;display:flex;flex-direction:column;animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);">
+        <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;">
+          <span style="font-size:16px;font-weight:800;color:var(--text);">Descripción</span>
+          <button onclick="csCloseDescPanel()" style="width:30px;height:30px;border-radius:50%;background:var(--surface2);border:none;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-muted);cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:16px 18px 24px;scrollbar-width:none;">
+          <div id="cs-desc-full" style="font-size:15px;color:var(--text);line-height:1.6;white-space:pre-wrap;word-break:break-word;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PANEL DE COMENTARIOS (bottom sheet) ══ -->
+    <div id="cs-cmt-panel" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.5);" onclick="csCloseCommentPanel(event)">
+      <div id="cs-cmt-panel-inner" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:24px 24px 0 0;max-height:80vh;display:flex;flex-direction:column;animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);">
+        <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;">
+          <span style="font-size:16px;font-weight:800;color:var(--text);">Comentarios <span id="cs-cmt-panel-count" style="color:var(--text-muted);font-weight:600;font-size:14px;"></span></span>
+          <button onclick="csCloseCommentPanel()" style="width:30px;height:30px;border-radius:50%;background:var(--surface2);border:none;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-muted);cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="cs-cmt-panel-list" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:14px;scrollbar-width:none;"></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 16px 20px;border-top:1px solid var(--border);flex-shrink:0;">
+          <img id="cs-cmt-av" src="default-avatar.png" onerror="this.src='default-avatar.png'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;">
+          <input id="cs-cmt-box" placeholder="Escribe un comentario..." autocomplete="off" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:22px;padding:10px 16px;font-size:15px;color:var(--text);font-family:inherit;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          <button onclick="csSendCmt()" style="width:38px;height:38px;min-width:38px;border-radius:50%;border:none;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
 
       </div><!-- /scroll-body -->
     </div>`;
@@ -2316,6 +2388,15 @@ window.openCanalSheet = async function(uid, autorFallback, avatarFallback) {
         const subsEl = document.getElementById('cs-subs');
         if (subsEl) subsEl.textContent = `${fmtViews(nsubs)} suscriptor${nsubs !== 1 ? 'es' : ''}`;
 
+        // Poblar panel Canal
+        const canalDesc = u.descripcion || u.description || u.bio || '';
+        const extra = {
+            banner: u.banner || u.bannerUrl || '',
+            sitio: u.sitio || u.website || u.web || '',
+        };
+        // total de videos se rellena después de cargar la lista
+        _csFillCanalPanel(nombre, avatar, nsubs, canalDesc, extra);
+
         // Estado suscripción
         if (currentUser && uid !== currentUser.uid) {
             const fSnap = await get(ref(db, `siguiendo/${currentUser.uid}/${uid}`)).catch(() => null);
@@ -2332,29 +2413,35 @@ window.openCanalSheet = async function(uid, autorFallback, avatarFallback) {
         if (mvSnap?.exists()) {
             mvSnap.forEach(c => {
                 const v = c.val();
-                const processV = (key, val) => {
+                const processV = (key, val, parentKey) => {
                     const hasVideo = val.videoUrl || val.video_url || val.cloudinaryUrl;
                     if (hasVideo && (val.uid === uid || val.authorUid === uid)) {
+                        const fullPath = parentKey ? `MultiVideos/${parentKey}/${key}` : `MultiVideos/${key}`;
                         videos.push({ id: key, ...val,
                             videoUrl: val.videoUrl || val.video_url || val.cloudinaryUrl,
-                            _node: 'MultiVideos' });
+                            _node: 'MultiVideos', _path: fullPath });
                     }
                 };
                 if (v && typeof v === 'object' && !v.videoUrl && !v.video_url && !v.cloudinaryUrl) {
-                    Object.entries(v).forEach(([k2, val2]) => { if (val2 && typeof val2 === 'object') processV(k2, val2); });
-                } else if (v) processV(c.key, v);
+                    Object.entries(v).forEach(([k2, val2]) => { if (val2 && typeof val2 === 'object') processV(k2, val2, c.key); });
+                } else if (v) processV(c.key, v, null);
             });
         }
         videos.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
 
         if (!videos.length) {
-            const listEl = document.getElementById('cs-cmt-list');
+            const listEl = document.getElementById('cs-channel-videos-list');
             if (listEl) listEl.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted);"><i class="fa-solid fa-video-slash" style="font-size:32px;display:block;margin-bottom:10px;opacity:.25;"></i><p style="font-weight:700;">Sin videos aún</p></div>`;
             return;
         }
 
-        // Reproducir primer video
+        // Reproducir primer video y cargar lista
         _csLoadVideo(videos[0], nombre, avatar);
+        _csLoadChannelVideos(videos, nombre, avatar);
+
+        // Actualizar contador de videos en panel Canal
+        const videosNumEl = document.getElementById('cs-canal-videos-num');
+        if (videosNumEl) videosNumEl.textContent = videos.length;
 
     } catch(e) {
         console.error('openCanalSheet:', e);
@@ -2367,7 +2454,7 @@ window._csLoadVideo = function(v, canalNombre, canalAvatar) {
     window._csCurrentVideo = v;
     const url    = v.videoUrl || v.video_url || v.cloudinaryUrl || '';
     const titulo = v.titulo   || v.contenido || v.texto || 'Video';
-    const handle = canalNombre ? '@' + canalNombre.toLowerCase().replace(/\s+/g,'') : '';
+    const handle = canalNombre ? canalNombre.toLowerCase().replace(/\s+/g,'') : '';
     const views  = v.vistas   ? fmtViews(v.vistas) + ' vistas' : '';
     const ago    = v.timestamp ? timeAgo(Number(v.timestamp)) : '';
     const likes  = v.likes    ? Object.keys(v.likes).length : (Number(v.total_likes)||0);
@@ -2388,45 +2475,226 @@ window._csLoadVideo = function(v, canalNombre, canalAvatar) {
     if (agEl) agEl.textContent = ago;
     if (sepEl) sepEl.style.display = (views && ago) ? '' : 'none';
 
-    // Like count
+    // Descripción
+    const desc = v.descripcion || v.description || v.desc || '';
+    const descWrap = document.getElementById('cs-desc-wrap');
+    const descPrev = document.getElementById('cs-desc-preview');
+    const descMore = document.getElementById('cs-desc-more');
+    const descFull = document.getElementById('cs-desc-full');
+    if (desc && descWrap && descPrev) {
+        descWrap.style.display = 'block';
+        descPrev.textContent = desc;
+        if (descFull) descFull.textContent = desc;
+        // Mostrar "...más" si el texto es largo (más de 100 chars)
+        if (descMore) descMore.style.display = desc.length > 100 ? 'inline' : 'none';
+    } else if (descWrap) {
+        descWrap.style.display = 'none';
+    }
+
+    // Like count — leer desde Firebase para tener el dato real
     const lcEl = document.getElementById('cs-like-cnt');
     if (lcEl) lcEl.textContent = likes > 0 ? fmtViews(likes) : '0';
+    if (v.id) {
+        const likePath = v._path || `MultiVideos/${v.id}`;
+        get(ref(db, `${likePath}/likes`)).then(snap => {
+            const n = snap?.exists() ? Object.keys(snap.val()).length : 0;
+            if (lcEl) lcEl.textContent = n > 0 ? fmtViews(n) : '0';
+        }).catch(() => {});
+    }
 
     // Reset like/dislike state
     document.getElementById('cs-like-btn')?.classList.remove('liked');
     document.getElementById('cs-dislike-btn')?.classList.remove('liked');
     const likeI = document.querySelector('#cs-like-btn i');
     if (likeI) likeI.className = 'fa-regular fa-thumbs-up';
+    const dislikeI = document.querySelector('#cs-dislike-btn i');
+    if (dislikeI) dislikeI.className = 'fa-regular fa-thumbs-down';
 
-    // Check if current user already liked
+    // Restaurar estado real del usuario desde Firebase
     if (currentUser && v.id) {
-        get(ref(db, `MultiVideos/${v.id}/likes/${currentUser.uid}`)).then(s => {
-            if (s.exists()) {
-                document.getElementById('cs-like-btn')?.classList.add('liked');
-                const i2 = document.querySelector('#cs-like-btn i');
-                if (i2) i2.className = 'fa-solid fa-thumbs-up';
+        const rPath = v._path || `MultiVideos/${v.id}`;
+        Promise.all([
+            get(ref(db, `${rPath}/likes/${currentUser.uid}`)).catch(() => null),
+            get(ref(db, `${rPath}/dislikes/${currentUser.uid}`)).catch(() => null)
+        ]).then(([likeSnap, dislikeSnap]) => {
+            const likeBtn    = document.getElementById('cs-like-btn');
+            const dislikeBtn = document.getElementById('cs-dislike-btn');
+            const likeIco    = likeBtn?.querySelector('i');
+            const dislikeIco = dislikeBtn?.querySelector('i');
+            if (likeSnap?.exists()) {
+                likeBtn?.classList.add('liked');
+                if (likeIco) likeIco.className = 'fa-solid fa-thumbs-up';
             }
-        }).catch(() => {});
+            if (dislikeSnap?.exists()) {
+                dislikeBtn?.classList.add('liked');
+                if (dislikeIco) dislikeIco.className = 'fa-solid fa-thumbs-down';
+            }
+        });
     }
 
-    // Comentarios
-    _csLoadComments(v.id);
+    // Actualizar contador de comentarios en el botón
+    get(ref(db, `comentarios/${v.id}`)).then(snap => {
+        const n = snap?.exists() ? Object.keys(snap.val()).length : 0;
+        const previewEl = document.getElementById('cs-cmt-preview-count');
+        if (previewEl) previewEl.textContent = `${n} comentario${n!==1?'s':''}`;
+    }).catch(() => {});
+};
+
+// ── Tabs Videos | Canal ─────────────────────────────────
+window.csSwitchCsTab = function(tab) {
+    const tabVideos  = document.getElementById('cs-tab-videos');
+    const tabCanal   = document.getElementById('cs-tab-canal');
+    const panelVideos = document.getElementById('cs-panel-videos');
+    const panelCanal  = document.getElementById('cs-panel-canal');
+    const active = 'color:var(--accent);border-bottom:3px solid var(--accent);margin-bottom:-2px;';
+    const inactive = 'color:var(--text-muted);border-bottom:3px solid transparent;margin-bottom:-2px;';
+    if (tab === 'videos') {
+        tabVideos.style.cssText += active;
+        tabCanal.style.cssText  += inactive;
+        tabVideos.style.color = 'var(--accent)';
+        tabCanal.style.color  = 'var(--text-muted)';
+        tabVideos.style.borderBottom = '3px solid var(--accent)';
+        tabCanal.style.borderBottom  = '3px solid transparent';
+        panelVideos.style.display = 'block';
+        panelCanal.style.display  = 'none';
+    } else {
+        tabVideos.style.color = 'var(--text-muted)';
+        tabCanal.style.color  = 'var(--accent)';
+        tabVideos.style.borderBottom = '3px solid transparent';
+        tabCanal.style.borderBottom  = '3px solid var(--accent)';
+        panelVideos.style.display = 'none';
+        panelCanal.style.display  = 'block';
+    }
+};
+
+// Poblar panel Canal con datos del usuario
+window._csFillCanalPanel = function(nombre, avatar, nsubs, descripcion, extra) {
+    // Avatar
+    const avEl = document.getElementById('cs-canal-av-big');
+    if (avEl) { avEl.src = avatar || 'default-avatar.png'; avEl.onerror = () => avEl.src = 'default-avatar.png'; }
+
+    // Nombre y handle
+    const nmEl  = document.getElementById('cs-canal-name-big');
+    const hdEl  = document.getElementById('cs-canal-handle-big');
+    if (nmEl) nmEl.textContent = nombre || 'Canal';
+    if (hdEl) hdEl.textContent = nombre ? nombre.toLowerCase().replace(/\s+/g,'') : '';
+
+    // Contadores
+    const subsNumEl   = document.getElementById('cs-canal-subs-num');
+    const videosNumEl = document.getElementById('cs-canal-videos-num');
+    if (subsNumEl)   subsNumEl.textContent   = fmtViews(nsubs);
+    if (videosNumEl) videosNumEl.textContent = extra?.totalVideos ?? '—';
+
+    // Botón suscribir — sincronizar estado
+    const fBtn = document.getElementById('cs-canal-follow-btn');
+    if (fBtn) {
+        const uid = window._csCurrentUid;
+        if (uid && typeof currentUser !== 'undefined' && currentUser?.uid === uid) {
+            fBtn.style.display = 'none';
+        } else {
+            fBtn.style.display = 'block';
+        }
+    }
+
+    // Descripción
+    const descWrap = document.getElementById('cs-canal-desc-wrap');
+    const descEl   = document.getElementById('cs-canal-desc-big');
+    const descMore = document.getElementById('cs-canal-desc-more');
+    if (descripcion && descWrap && descEl) {
+        descWrap.style.display = 'block';
+        descEl.textContent = descripcion;
+        // Guardar para panel completo
+        window._csCurrentCanalDesc = descripcion;
+        if (descMore) descMore.style.display = descripcion.length > 120 ? 'inline' : 'none';
+    } else if (descWrap) {
+        descWrap.style.display = 'none';
+    }
+
+    // Links extra
+    const linksEl = document.getElementById('cs-canal-links');
+    if (linksEl && extra?.sitio) {
+        linksEl.innerHTML = `<a href="${extra.sitio}" target="_blank" style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--accent);text-decoration:none;font-weight:600;"><i class="fa-solid fa-link"></i>${extra.sitio}</a>`;
+    } else if (linksEl) {
+        linksEl.innerHTML = '';
+    }
+};
+
+window.csOpenDescFromCanal = function() {
+    const descFull = document.getElementById('cs-desc-full');
+    if (descFull) descFull.textContent = window._csCurrentCanalDesc || '';
+    document.getElementById('cs-desc-panel').style.display = 'block';
+};
+
+// ── Panel de descripción ─────────────────────────────────
+window.csOpenDescPanel = function() {
+    document.getElementById('cs-desc-panel').style.display = 'block';
+};
+window.csCloseDescPanel = function(e) {
+    if (!e || e.target === document.getElementById('cs-desc-panel')) {
+        document.getElementById('cs-desc-panel').style.display = 'none';
+    }
+};
+
+// ── Panel de comentarios ──────────────────────────────────
+window.csOpenCommentPanel = function() {
+    const panel = document.getElementById('cs-cmt-panel');
+    if (panel) panel.style.display = 'block';
+    const v = window._csCurrentVideo;
+    if (v?.id) _csLoadComments(v.id);
+    // mover avatar del usuario
+    const av = document.getElementById('cs-cmt-av');
+    if (av && typeof currentUser !== 'undefined' && currentUser?.photoURL) av.src = currentUser.photoURL;
+};
+
+window.csCloseCommentPanel = function(e) {
+    if (!e || e.target === document.getElementById('cs-cmt-panel') || e.currentTarget === e.target) {
+        document.getElementById('cs-cmt-panel').style.display = 'none';
+    }
+};
+
+// ── Cargar lista de videos del canal ──────────────────────
+window._csLoadChannelVideos = async function(videos, canalNombre, canalAvatar) {
+    const listEl = document.getElementById('cs-channel-videos-list');
+    if (!listEl) return;
+    if (!videos.length) {
+        listEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:14px;">Sin más videos</div>`;
+        return;
+    }
+    listEl.innerHTML = videos.map((v, i) => {
+        const titulo = v.titulo || v.contenido || v.texto || 'Video';
+        const thumb  = v.thumbnailUrl || v.thumbnail || '';
+        const views  = v.vistas ? fmtViews(v.vistas) + ' vistas' : '';
+        const ago    = v.timestamp ? timeAgo(Number(v.timestamp)) : '';
+        const isActive = i === 0;
+        return `<div onclick="window._csLoadVideo(${JSON.stringify(v).replace(/"/g,'&quot;')}, '${canalNombre}', '${canalAvatar}')" style="display:flex;gap:10px;padding:10px 14px;cursor:pointer;background:${isActive?'var(--surface2)':'transparent'};transition:background 0.15s;border-radius:12px;margin:0 8px;">
+          <div style="width:100px;height:58px;border-radius:8px;background:#111;overflow:hidden;flex-shrink:0;position:relative;">
+            ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a24;"><i class="fa-solid fa-play" style="color:rgba(255,255,255,0.3);font-size:18px;"></i></div>`}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${titulo}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${[views,ago].filter(Boolean).join(' • ')}</div>
+          </div>
+        </div>`;
+    }).join('');
 };
 
 // ── Comentarios ──────────────────────────────────────────
 async function _csLoadComments(postId) {
-    const el = document.getElementById('cs-cmt-list');
+    const el = document.getElementById('cs-cmt-panel-list');
     if (!el) return;
     try {
         const snap = await get(ref(db, `comentarios/${postId}`)).catch(() => null);
-        const cntEl = document.getElementById('cs-cmt-count');
+        const cntEl = document.getElementById('cs-cmt-panel-count');
+        const previewEl = document.getElementById('cs-cmt-preview-count');
         if (!snap?.exists()) {
             if (cntEl) cntEl.textContent = '';
+            if (previewEl) previewEl.textContent = '0 comentarios';
             el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:14px;">Sin comentarios aún. ¡Sé el primero!</div>`;
             return;
         }
         const arr = []; snap.forEach(c => arr.push(c.val())); arr.sort((a,b) => a.timestamp - b.timestamp);
         if (cntEl) cntEl.textContent = ` ${arr.length}`;
+        if (previewEl) previewEl.textContent = `${arr.length} comentario${arr.length!==1?'s':''}`;
         el.innerHTML = arr.map(c => `
             <div class="cs-cmt-item">
                 <img class="cs-cmt-uav" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
@@ -2462,34 +2730,74 @@ window.csSendCmt = async function() {
 
 // ── Like / Dislike ───────────────────────────────────────
 window.csLike = async function() {
-    if (!currentUser) { showToast('Inicia sesión'); return; }
+    if (!currentUser) { showToast('Inicia sesión para reaccionar'); return; }
     const v = window._csCurrentVideo;
     if (!v?.id) return;
-    const btn  = document.getElementById('cs-like-btn');
-    const icon = btn?.querySelector('i');
-    const cnt  = document.getElementById('cs-like-cnt');
-    const liked = btn?.classList.contains('liked');
-    btn?.classList.toggle('liked', !liked);
-    if (icon) icon.className = liked ? 'fa-regular fa-thumbs-up' : 'fa-solid fa-thumbs-up';
-    const lr = ref(db, `MultiVideos/${v.id}/likes/${currentUser.uid}`);
-    const s  = await get(lr);
-    if (s.exists()) await remove(lr); else await set(lr, true);
-    const all = await get(ref(db, `MultiVideos/${v.id}/likes`)).catch(() => null);
-    const n = all?.exists() ? Object.keys(all.val()).length : 0;
+
+    const likeBtn  = document.getElementById('cs-like-btn');
+    const likeIcon = likeBtn?.querySelector('i');
+    const cnt      = document.getElementById('cs-like-cnt');
+    const alreadyLiked = likeBtn?.classList.contains('liked');
+
+    // Animación optimista inmediata
+    likeBtn?.classList.toggle('liked', !alreadyLiked);
+    if (likeIcon) likeIcon.className = alreadyLiked ? 'fa-regular fa-thumbs-up' : 'fa-solid fa-thumbs-up';
+
+    // Si daba like → quitarlo; si no → agregarlo y quitar dislike
+    const basePath   = v._path || `MultiVideos/${v.id}`;
+    const likeRef    = ref(db, `${basePath}/likes/${currentUser.uid}`);
+    const dislikeRef = ref(db, `${basePath}/dislikes/${currentUser.uid}`);
+
+    if (alreadyLiked) {
+        await remove(likeRef).catch(() => {});
+    } else {
+        await set(likeRef, true).catch(() => {});
+        // Quitar dislike si existía
+        await remove(dislikeRef).catch(() => {});
+        const dislikeBtn  = document.getElementById('cs-dislike-btn');
+        const dislikeIcon = dislikeBtn?.querySelector('i');
+        dislikeBtn?.classList.remove('liked');
+        if (dislikeIcon) dislikeIcon.className = 'fa-regular fa-thumbs-down';
+    }
+
+    // Actualizar contador real desde Firebase
+    const all = await get(ref(db, `${basePath}/likes`)).catch(() => null);
+    const n   = all?.exists() ? Object.keys(all.val()).length : 0;
     if (cnt) cnt.textContent = n > 0 ? fmtViews(n) : '0';
 };
 
-window.csDislike = function() {
-    const btn = document.getElementById('cs-dislike-btn');
-    const liked = btn?.classList.contains('liked');
-    btn?.classList.toggle('liked', !liked);
-    const i = btn?.querySelector('i');
-    if (i) i.className = liked ? 'fa-regular fa-thumbs-down' : 'fa-solid fa-thumbs-down';
-    // Quitar like si hay
-    if (!liked) {
-        document.getElementById('cs-like-btn')?.classList.remove('liked');
-        const li = document.querySelector('#cs-like-btn i');
-        if (li) li.className = 'fa-regular fa-thumbs-up';
+window.csDislike = async function() {
+    if (!currentUser) { showToast('Inicia sesión para reaccionar'); return; }
+    const v = window._csCurrentVideo;
+    if (!v?.id) return;
+
+    const dislikeBtn  = document.getElementById('cs-dislike-btn');
+    const dislikeIcon = dislikeBtn?.querySelector('i');
+    const alreadyDisliked = dislikeBtn?.classList.contains('liked');
+
+    // Animación optimista inmediata
+    dislikeBtn?.classList.toggle('liked', !alreadyDisliked);
+    if (dislikeIcon) dislikeIcon.className = alreadyDisliked ? 'fa-regular fa-thumbs-down' : 'fa-solid fa-thumbs-down';
+
+    const basePath2  = v._path || `MultiVideos/${v.id}`;
+    const dislikeRef = ref(db, `${basePath2}/dislikes/${currentUser.uid}`);
+    const likeRef    = ref(db, `${basePath2}/likes/${currentUser.uid}`);
+
+    if (alreadyDisliked) {
+        await remove(dislikeRef).catch(() => {});
+    } else {
+        await set(dislikeRef, true).catch(() => {});
+        // Quitar like si existía
+        await remove(likeRef).catch(() => {});
+        const likeBtn  = document.getElementById('cs-like-btn');
+        const likeIcon = likeBtn?.querySelector('i');
+        const cnt      = document.getElementById('cs-like-cnt');
+        likeBtn?.classList.remove('liked');
+        if (likeIcon) likeIcon.className = 'fa-regular fa-thumbs-up';
+        // Actualizar contador de likes
+        const all = await get(ref(db, `${basePath2}/likes`)).catch(() => null);
+        const n   = all?.exists() ? Object.keys(all.val()).length : 0;
+        if (cnt) cnt.textContent = n > 0 ? fmtViews(n) : '0';
     }
 };
 
