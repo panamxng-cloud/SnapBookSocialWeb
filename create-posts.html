@@ -370,7 +370,22 @@
         <!-- Panel: Canal -->
         <div id="mvp-canal" style="display:none;padding:0 16px;">
             <input id="mv-canal-titulo" oninput="validarMv()" placeholder="📺 Título del video..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;">
-            <input id="mv-canal-desc"   oninput="validarMv()" placeholder="📝 Descripción (opcional)..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;">
+            <input id="mv-canal-desc"   oninput="validarMv()" placeholder="📝 Descripción (opcional)..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;">
+            <input id="mv-canal-playlist" oninput="validarMv()" placeholder="🎬 Playlist / Serie (opcional)..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;">
+            <!-- Thumbnail -->
+            <label for="i-thumb-canal" style="display:block;margin-bottom:12px;cursor:pointer;">
+                <div id="mvz-thumb" style="border:2px dashed var(--border);border-radius:12px;padding:14px 16px;text-align:center;background:var(--surface2);transition:border-color .2s;display:flex;align-items:center;gap:12px;">
+                    <div id="thumb-preview-wrap" style="width:80px;height:45px;border-radius:8px;background:#111;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-image" style="color:#555;font-size:20px;" id="thumb-icon"></i>
+                        <img id="thumb-preview-img" style="display:none;width:100%;height:100%;object-fit:cover;">
+                    </div>
+                    <div style="text-align:left;">
+                        <div style="font-size:13px;font-weight:800;color:var(--text);">🖼️ Portada (thumbnail)</div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Imagen de vista previa · JPG/PNG</div>
+                    </div>
+                </div>
+            </label>
+            <input type="file" id="i-thumb-canal" accept="image/*" style="display:none">
             <label for="i-video-canal">
                 <div id="mvz-canal" style="border:2px dashed var(--border);border-radius:16px;padding:26px 16px;text-align:center;background:var(--surface2);cursor:pointer;transition:border-color .2s;">
                     <i class="fa-solid fa-satellite-dish" style="font-size:36px;color:#f7b731;display:block;margin-bottom:10px;"></i>
@@ -467,6 +482,7 @@ let grabando   = false;
 // MultiVideos (modal)
 let archivoVideoNormal    = null;
 let archivoVideoCanalFile = null;
+let archivoCanalThumb     = null;
 
 // ── DOM refs ──────────────────────────────────────────────────────
 const btnPub    = document.getElementById('btn-publicar');
@@ -657,6 +673,18 @@ document.getElementById('i-video-normal').addEventListener('change', e => {
     validarMv();
 });
 
+document.getElementById('i-thumb-canal').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    archivoCanalThumb = f;
+    const img = document.getElementById('thumb-preview-img');
+    const ico = document.getElementById('thumb-icon');
+    img.src = URL.createObjectURL(f);
+    img.style.display = 'block';
+    ico.style.display = 'none';
+    document.getElementById('mvz-thumb').style.borderColor = 'var(--accent)';
+    validarMv();
+});
+
 document.getElementById('i-video-canal').addEventListener('change', e => {
     const f = e.target.files[0]; if (!f) return;
     archivoVideoCanalFile = f;
@@ -679,6 +707,14 @@ window.quitarMvVideo = function(tipo) {
         document.getElementById('i-video-canal').value = '';
         document.getElementById('mvz-canal').style.borderColor = '';
     }
+    // También resetear thumbnail si se quita el canal
+    if (tipo === 'canal') {
+        archivoCanalThumb = null;
+        document.getElementById('i-thumb-canal').value = '';
+        document.getElementById('thumb-preview-img').style.display = 'none';
+        document.getElementById('thumb-icon').style.display = '';
+        document.getElementById('mvz-thumb').style.borderColor = '';
+    }
     validarMv();
 };
 
@@ -700,9 +736,11 @@ window.publicarDesdeModal = async function(tipoExplicito) {
         const authUser = auth.currentUser;
         if (!authUser) throw new Error('No hay sesión activa. Inicia sesión e intenta de nuevo.');
 
-        // Generar ID único local SIN escribir nada en Firebase todavía
-        // push() escribe un nodo vacío — usamos child(push()) para evitarlo
-        const sharedId = push(ref(db, 'publicaciones')).key;
+        // Para canal usamos su propio nodo para generar el ID (evita entrada vacía en publicaciones/)
+        const idRef   = tipoPublicar === 'canal'
+            ? push(ref(db, 'MultiVideos/canal'))
+            : push(ref(db, 'publicaciones'));
+        const sharedId = idRef.key;
         const base = {
             uid       : authUser.uid,
             autor     : authUser.displayName || usuario.displayName || 'Usuario',
@@ -745,12 +783,24 @@ window.publicarDesdeModal = async function(tipoExplicito) {
             // ── Video de Canal ────────────────────────────────────
             const titulo      = document.getElementById('mv-canal-titulo').value.trim();
             const descripcion = document.getElementById('mv-canal-desc').value.trim();
+            const playlist    = document.getElementById('mv-canal-playlist').value.trim();
 
             if (!titulo) { overlay.classList.remove('visible'); toast('⚠️ Escribe un título para el canal'); return; }
 
+            // Subir thumbnail si existe
+            let thumbUrl = '';
+            if (archivoCanalThumb) {
+                ovLabel.textContent = 'Subiendo portada...';
+                try {
+                    thumbUrl = await uploadPostImage(authUser.uid, archivoCanalThumb, pct => {
+                        ovFill.style.width = (pct * 0.3) + '%';
+                    });
+                } catch(e) { console.warn('Thumb upload error:', e); }
+            }
+
             ovLabel.textContent = 'Subiendo video de canal...';
             const vUrl = await uploadPostVideo(authUser.uid, archivoVideoCanalFile, pct => {
-                ovFill.style.width = (pct * 0.9) + '%';
+                ovFill.style.width = (30 + pct * 0.6) + '%';
             });
 
             ovLabel.textContent = 'Guardando en canal...';
@@ -771,10 +821,31 @@ window.publicarDesdeModal = async function(tipoExplicito) {
                 } catch(e) { console.warn('Turso canal:', e.message); }
             }
 
-            // Guardar SOLO en MultiVideos/canal (no en publicaciones para evitar duplicados en el feed)
-            await set(ref(db, `MultiVideos/canal/${sharedId}`), {
-                ...base, titulo, descripcion, videoUrl: vUrl, tipoVideo: 'canal', canal: true
-            });
+            // Construir objeto del video
+            const canalData = {
+                ...base, titulo, descripcion, videoUrl: vUrl,
+                tipoVideo: 'canal', canal: true
+            };
+            if (thumbUrl)  canalData.thumbnail = thumbUrl;
+            if (playlist)  canalData.playlist  = playlist;
+
+            // Guardar SOLO en MultiVideos/canal
+            await set(ref(db, `MultiVideos/canal/${sharedId}`), canalData);
+
+            // Si tiene playlist, también indexar en PlaylistVideos para fácil consulta
+            if (playlist) {
+                const playlistKey = playlist.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+                try {
+                    await set(ref(db, `Playlists/${authUser.uid}/${playlistKey}/videos/${sharedId}`), {
+                        titulo, thumbUrl: thumbUrl || '', createdAt: Date.now()
+                    });
+                    await set(ref(db, `Playlists/${authUser.uid}/${playlistKey}/info`), {
+                        nombre: playlist, uid: authUser.uid,
+                        autor: base.autor, avatarUrl: base.avatarUrl,
+                        updatedAt: Date.now()
+                    });
+                } catch(e) { console.warn('Playlist index error:', e); }
+            }
 
             logNuevaPublicacion(authUser.uid, base.autor, 'video-canal', titulo, vUrl);
 
@@ -787,8 +858,15 @@ window.publicarDesdeModal = async function(tipoExplicito) {
         // Reset archivos del modal
         archivoVideoNormal    = null;
         archivoVideoCanalFile = null;
+        archivoCanalThumb     = null;
         document.getElementById('i-video-normal').value = '';
         document.getElementById('i-video-canal').value  = '';
+        document.getElementById('i-thumb-canal').value  = '';
+        document.getElementById('mv-canal-playlist').value = '';
+        const tpi = document.getElementById('thumb-preview-img');
+        const tico = document.getElementById('thumb-icon');
+        if (tpi)  { tpi.style.display = 'none'; }
+        if (tico) { tico.style.display = ''; }
 
         ovFill.style.width = '100%';
         overlay.classList.remove('visible');
