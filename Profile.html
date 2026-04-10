@@ -17,47 +17,74 @@
             --accent:#6c63ff;--accent2:#ff6584;--text:#f0f0f5;--text-muted:#7a7a9a;
             --card-shadow:0 4px 24px rgba(0,0,0,0.4);--header-bg:rgba(15,15,19,0.92);--nav-bg:rgba(26,26,36,0.97);
         }
-        *{box-sizing:border-box;margin:0;padding:0;}
+        *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
         body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);padding-bottom:100px;min-height:100vh;}
-        .sb-header{background:var(--header-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:1000;border-bottom:1px solid var(--border);}
-        .logo{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-        .icon-btn{width:38px;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:16px;cursor:pointer;transition:all 0.2s;}
-        .icon-btn:active{transform:scale(0.92);background:var(--accent);color:white;}
-        .profile-cover{margin-top:66px;height:160px;background:linear-gradient(135deg,var(--accent),var(--accent2));position:relative;overflow:hidden;}
+
+        /* ── COVER ── */
+        .profile-cover{height:220px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--accent),var(--accent2));}
         .profile-cover img.cover-img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
-        .cover-edit-btn{position:absolute;bottom:10px;right:14px;background:rgba(0,0,0,0.5);border:none;border-radius:20px;color:white;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;}
-        .profile-surface{background:var(--surface);}
-        .avatar-wrap{position:relative;width:90px;height:90px;margin:-45px 0 0 18px;}
-        .profile-avatar{width:90px;height:90px;border-radius:50%;border:4px solid var(--surface);object-fit:cover;background:var(--surface2);}
-        .avatar-edit{position:absolute;bottom:2px;right:2px;width:26px;height:26px;background:var(--accent);border-radius:50%;border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;color:white;font-size:11px;cursor:pointer;}
-        .profile-info{padding:12px 18px 18px;}
-        .profile-name{font-size:20px;font-weight:800;margin-top:10px;margin-bottom:3px;}
-        .profile-username{font-size:13px;color:var(--text-muted);margin-bottom:8px;}
-        .profile-bio{font-size:14px;line-height:1.5;margin-bottom:14px;}
-        .profile-stats{display:flex;gap:24px;margin-bottom:14px;}
-        .stat-item{text-align:center;cursor:pointer;}
-        .stat-num{font-size:18px;font-weight:800;display:block;}
-        .stat-label{font-size:12px;color:var(--text-muted);}
-        .profile-actions{display:flex;gap:10px;}
-        .btn-action{flex:1;padding:9px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;}
+        .cover-edit-btn{position:absolute;bottom:12px;right:14px;background:rgba(255,255,255,0.92);border:none;border-radius:20px;color:#050505;font-size:13px;font-weight:700;padding:7px 14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+
+        /* ── PERFIL INFO ── */
+        .profile-surface{background:var(--surface);padding-bottom:4px;}
+        .avatar-row{position:relative;padding:0 16px;margin-top:-50px;display:flex;align-items:flex-end;justify-content:space-between;}
+        .avatar-wrap{position:relative;width:110px;height:110px;}
+        .profile-avatar{width:110px;height:110px;border-radius:50%;border:4px solid var(--surface);object-fit:cover;background:var(--surface2);display:block;}
+        .avatar-edit{position:absolute;bottom:4px;right:4px;width:30px;height:30px;background:var(--surface2);border-radius:50%;border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text);font-size:13px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+
+        .profile-info{padding:10px 16px 14px;}
+        .profile-name{font-size:22px;font-weight:800;margin-bottom:2px;}
+        .profile-stats-row{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
+        .stat-chip{font-size:14px;font-weight:700;color:var(--text);}
+        .stat-chip span{color:var(--text-muted);font-weight:400;}
+        .profile-bio{font-size:15px;line-height:1.5;margin-bottom:10px;color:var(--text);}
+        .bio-toggle{color:var(--accent);font-weight:700;cursor:pointer;font-size:14px;}
+
+        /* datos personales */
+        .profile-meta{display:flex;flex-wrap:wrap;gap:8px 16px;margin-bottom:12px;}
+        .meta-item{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-muted);}
+        .meta-item i{font-size:15px;color:var(--text-muted);}
+
+        /* amigos comunes */
+        .mutual-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+        .mutual-avatars{display:flex;}
+        .mutual-avatars img{width:28px;height:28px;border-radius:50%;border:2px solid var(--surface);margin-left:-8px;object-fit:cover;}
+        .mutual-avatars img:first-child{margin-left:0;}
+        .mutual-text{font-size:13px;color:var(--text-muted);}
+
+        /* botones acción */
+        .profile-actions{display:flex;gap:8px;margin-bottom:4px;}
+        .btn-action{flex:1;padding:9px 10px;border-radius:8px;border:none;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.18s;}
         .btn-action:active{transform:scale(0.96);}
-        .btn-action.primary{background:var(--accent);color:white;border-color:var(--accent);}
-        .profile-tabs{background:var(--surface);display:flex;border-bottom:1px solid var(--border);position:sticky;top:66px;z-index:100;}
-        .ptab{flex:1;text-align:center;padding:14px 0;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;}
+        .btn-primary{background:var(--accent);color:#fff;}
+        .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+
+        /* visitas badge */
+        .visits-badge{display:flex;align-items:center;gap:8px;background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.15);border-radius:12px;padding:10px 14px;margin:10px 16px 0;}
+        .visits-icon{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0;}
+        .visits-text{font-size:13px;color:var(--text-muted);}
+        .visits-text strong{color:var(--text);font-size:15px;display:block;}
+
+        /* ── TABS ── */
+        .profile-tabs{background:var(--surface);display:flex;border-bottom:2px solid var(--border);position:sticky;top:0;z-index:100;margin-top:10px;}
+        .ptab{flex:1;text-align:center;padding:14px 4px;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;}
         .ptab.active{color:var(--accent);border-bottom-color:var(--accent);}
-        .posts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
-        .grid-item{aspect-ratio:1;overflow:hidden;position:relative;background:var(--surface2);cursor:pointer;}
-        .grid-item img,.grid-item video{width:100%;height:100%;object-fit:cover;display:block;}
-        .video-badge{position:absolute;top:6px;right:6px;color:white;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,0.7);}
-        .grid-empty{grid-column:span 3;text-align:center;padding:60px 20px;color:var(--text-muted);}
-        .grid-empty i{font-size:48px;opacity:0.3;display:block;margin-bottom:14px;}
-        .grid-empty p{font-size:14px;}
+
+        /* ── DATOS PERSONALES CARD ── */
+        .info-card{background:var(--surface);border-radius:12px;margin:10px 10px 0;padding:16px;box-shadow:var(--card-shadow);}
+        .info-card-title{font-size:17px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+        .info-edit-btn{width:32px;height:32px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:14px;cursor:pointer;}
+        .info-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+        .info-row:last-child{border-bottom:none;padding-bottom:0;}
+        .info-icon{width:38px;height:38px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-muted);flex-shrink:0;}
+        .info-label{font-size:14px;color:var(--text);}
+        .info-sub{font-size:12px;color:var(--text-muted);margin-top:1px;}
 
         /* ── WRAPPED MENSUAL ── */
-        .wrapped-banner{margin:12px 14px 0;border-radius:20px;background:linear-gradient(135deg,#6c63ff,#ff6584,#f7b731);padding:2px;cursor:pointer;box-shadow:0 6px 20px rgba(108,99,255,0.3);}
-        .wrapped-inner{background:var(--surface);border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;}
+        .wrapped-banner{margin:10px 10px 0;border-radius:16px;background:linear-gradient(135deg,#6c63ff,#ff6584,#f7b731);padding:2px;cursor:pointer;box-shadow:0 6px 20px rgba(108,99,255,0.3);}
+        .wrapped-inner{background:var(--surface);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;}
         .wrapped-inner::before{content:'✨';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:32px;opacity:0.15;}
-        .wrapped-emoji{font-size:28px;flex-shrink:0;}
+        .wrapped-emoji{font-size:26px;flex-shrink:0;}
         .wrapped-info{flex:1;}
         .wrapped-title{font-size:14px;font-weight:800;background:linear-gradient(135deg,#6c63ff,#ff6584);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
         .wrapped-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
@@ -90,53 +117,143 @@
         .wrapped-bar-track{width:100%;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;}
         .wrapped-bar-fill{height:100%;border-radius:4px;transition:width 1s ease;}
 
-        .nav-float{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--nav-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);padding:11px 30px;border-radius:44px;display:flex;gap:30px;box-shadow:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);z-index:1000;}
-        .tab{color:var(--text-muted);font-size:19px;cursor:pointer;padding:4px 2px;position:relative;transition:color 0.2s,transform 0.15s;-webkit-tap-highlight-color:transparent;}
+        /* ── GRID POSTS ── */
+        .posts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:2px;}
+        .grid-item{aspect-ratio:1;overflow:hidden;position:relative;background:var(--surface2);cursor:pointer;}
+        .grid-item img,.grid-item video{width:100%;height:100%;object-fit:cover;display:block;}
+        .video-badge{position:absolute;top:6px;right:6px;color:white;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,0.7);}
+        .grid-empty{grid-column:span 3;text-align:center;padding:60px 20px;color:var(--text-muted);}
+        .grid-empty i{font-size:48px;opacity:0.3;display:block;margin-bottom:14px;}
+        .grid-empty p{font-size:14px;}
+
+        /* ── NAV ── */
+        .nav-float{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--nav-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);padding:11px 30px;border-radius:44px;display:flex;gap:30px;box-shadow:0 8px 32px rgba(0,0,0,0.12);z-index:1000;}
+        .tab{color:var(--text-muted);font-size:19px;cursor:pointer;padding:4px 2px;position:relative;transition:color 0.2s,transform 0.15s;text-decoration:none;display:flex;align-items:center;justify-content:center;}
+        .tab:active{transform:scale(0.88);}
         .tab.active{color:var(--accent);}
         .tab.active::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:4px;height:4px;background:var(--accent);border-radius:50%;}
+
+        /* ── POST CARDS (tab Todo) ── */
+        .feed-list{display:flex;flex-direction:column;gap:10px;padding:10px 10px 0;}
+        .post-card{background:var(--surface);border-radius:18px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--card-shadow);}
+        .post-header{display:flex;align-items:center;gap:10px;padding:12px 14px 8px;}
+        .post-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
+        .post-meta{flex:1;}
+        .post-author{font-size:15px;font-weight:700;}
+        .post-time{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-top:2px;}
+        .post-menu{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:18px;cursor:pointer;}
+        .post-menu:active{background:var(--surface2);}
+        .post-content{padding:0 14px 10px;font-size:16px;line-height:1.55;color:var(--text);}
+        .post-content.big{font-size:22px;font-weight:700;}
+        .post-img{width:100%;max-height:400px;object-fit:cover;display:block;cursor:pointer;}
+        .post-video{width:100%;max-height:400px;object-fit:contain;background:#000;display:block;}
+        .post-stats{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+        .likes-count{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:5px;}
+        .like-bubble{width:18px;height:18px;border-radius:50%;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;}
+        .comments-count{font-size:13px;color:var(--text-muted);cursor:pointer;}
+        .post-actions{display:flex;border-top:1px solid var(--border);}
+        .action-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 4px;cursor:pointer;font-size:14px;font-weight:700;color:var(--text-muted);transition:background 0.15s;}
+        .action-btn:active{background:var(--surface2);}
+        .action-btn.liked{color:var(--accent);}
+        .post-mood{padding:0 14px 8px;font-size:13px;color:var(--text-muted);font-weight:600;}
+        .post-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(108,99,255,0.1);border-radius:10px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--accent);margin:0 14px 8px;}
+        .post-audio{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);margin:0 14px 10px;border-radius:14px;}
+        .audio-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0;}
+        .audio-info{flex:1;font-size:13px;font-weight:600;color:var(--text-muted);}
+        .post-encuesta{padding:10px 14px;}
+        .encuesta-pregunta-txt{font-size:15px;font-weight:700;margin-bottom:10px;}
+        .encuesta-opcion{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:14px;font-weight:600;position:relative;overflow:hidden;}
+        .encuesta-bar{position:absolute;left:0;top:0;height:100%;background:rgba(108,99,255,0.1);border-radius:11px;transition:width 0.6s;}
+        .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a24;color:#fff;border-radius:30px;padding:12px 24px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.3);opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
     </style>
 </head>
 <body>
     <script>(function(){var t=localStorage.getItem('snapbook-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
     <script>(function(){var COLORS={Morado:{light:"#6c63ff",dark:"#6c63ff"},Azul:{light:"#1877f2",dark:"#4da3ff"},Rosa:{light:"#e91e8c",dark:"#ff6eb4"},Verde:{light:"#2ecc71",dark:"#43ef7b"},Naranja:{light:"#f39c12",dark:"#ffb347"},Rojo:{light:"#e74c3c",dark:"#ff6b6b"},Cyan:{light:"#00bcd4",dark:"#26d9f0"},Dorado:{light:"#d4a017",dark:"#ffd700"}};var saved=localStorage.getItem("snapbook-accent")||"Morado";var color=COLORS[saved]||COLORS["Morado"];var isDark=document.documentElement.getAttribute("data-theme")==="dark";document.documentElement.style.setProperty("--accent",isDark?color.dark:color.light);})();</script>
 
-    <header class="sb-header">
-        <div class="logo">SnapBook</div>
-        <div class="icon-btn" onclick="window.location.href='settings.html'"><i class="fa-solid fa-gear"></i></div>
-    </header>
-
+    <!-- COVER -->
     <div class="profile-cover" id="cover-wrap">
-        <button class="cover-edit-btn" id="cover-edit-btn"><i class="fa-solid fa-camera"></i> Portada</button>
+        <button class="cover-edit-btn" id="cover-edit-btn"><i class="fa-solid fa-camera"></i> Editar portada</button>
         <input type="file" id="cover-input" accept="image/*" style="display:none">
     </div>
 
+    <!-- SUPERFICIE PERFIL -->
     <div class="profile-surface">
-        <div class="avatar-wrap">
-            <img class="profile-avatar" id="profile-avatar" src="default-avatar.png" onerror="this.src='default-avatar.png'">
-            <div class="avatar-edit" id="avatar-edit-btn"><i class="fa-solid fa-camera"></i></div>
-            <input type="file" id="avatar-input" accept="image/*" style="display:none">
+        <!-- Avatar + botón settings -->
+        <div class="avatar-row">
+            <div class="avatar-wrap">
+                <img class="profile-avatar" id="profile-avatar" src="default-avatar.png" onerror="this.src='default-avatar.png'">
+                <div class="avatar-edit" id="avatar-edit-btn"><i class="fa-solid fa-camera"></i></div>
+                <input type="file" id="avatar-input" accept="image/*" style="display:none">
+            </div>
+            <div style="padding-bottom:8px;">
+                <div class="btn-action btn-secondary" style="width:38px;height:38px;flex:none;border-radius:50%;padding:0;" onclick="location.href='settings.html'">
+                    <i class="fa-solid fa-gear"></i>
+                </div>
+            </div>
         </div>
+
+        <!-- Info -->
         <div class="profile-info">
             <div class="profile-name" id="profile-name">Cargando...</div>
-            <div class="profile-username" id="profile-username">@usuario</div>
-            <div class="profile-bio" id="profile-bio">¡Hola! Estoy usando SnapBook 📸✨</div>
-            <div class="profile-stats">
-                <div class="stat-item"><span class="stat-num" id="stat-posts">0</span><span class="stat-label">Posts</span></div>
-                <div class="stat-item"><span class="stat-num" id="stat-followers">0</span><span class="stat-label">Seguidores</span></div>
-                <div class="stat-item"><span class="stat-num" id="stat-following">0</span><span class="stat-label">Siguiendo</span></div>
-                <div class="stat-item" title="Visitas a tu perfil en los últimos 30 días"><span class="stat-num" id="stat-visits">—</span><span class="stat-label">👁️ Visitas</span></div>
+
+            <!-- Stats tipo Facebook: X amigos · X publicaciones -->
+            <div class="profile-stats-row">
+                <div class="stat-chip"><span id="stat-followers">0</span> <span>seguidores</span></div>
+                <div style="color:var(--text-muted)">·</div>
+                <div class="stat-chip"><span id="stat-posts">0</span> <span>publicaciones</span></div>
+                <div style="color:var(--text-muted)">·</div>
+                <div class="stat-chip"><span id="stat-following">0</span> <span>siguiendo</span></div>
             </div>
+
+            <!-- Bio con "Ver más" -->
+            <div id="bio-wrap">
+                <div class="profile-bio" id="profile-bio">¡Hola! Estoy usando SnapBook 📸✨</div>
+            </div>
+
+            <!-- Datos personales inline (ciudad, trabajo, escuela) -->
+            <div class="profile-meta" id="profile-meta">
+                <!-- se llena dinámicamente -->
+            </div>
+
+            <!-- Botones -->
             <div class="profile-actions">
-                <button class="btn-action primary" onclick="location.href='create-posts.html'"><i class="fa-solid fa-plus"></i> Publicar</button>
-                <button class="btn-action" onclick="location.href='settings.html'"><i class="fa-solid fa-pen"></i> Editar perfil</button>
+                <button class="btn-action btn-primary" onclick="location.href='create-posts.html'">
+                    <i class="fa-solid fa-circle-plus"></i> Agregar a historia
+                </button>
+                <button class="btn-action btn-secondary" onclick="location.href='settings.html'">
+                    <i class="fa-solid fa-pen"></i> Editar perfil
+                </button>
             </div>
+        </div>
+
+        <!-- Visitas badge -->
+        <div class="visits-badge">
+            <div class="visits-icon"><i class="fa-solid fa-eye"></i></div>
+            <div class="visits-text">
+                <strong id="stat-visits">—</strong>
+                visitas a tu perfil en los últimos 30 días
+            </div>
+        </div>
+
+        <!-- Tabs estilo Facebook -->
+        <div class="profile-tabs">
+            <div class="ptab active" data-tab="posts">Todo</div>
+            <div class="ptab" data-tab="fotos">Fotos</div>
+            <div class="ptab" data-tab="videos">Videos</div>
         </div>
     </div>
 
-    <div class="profile-tabs">
-        <div class="ptab active" data-tab="posts"><i class="fa-solid fa-border-all"></i> Posts</div>
-        <div class="ptab" data-tab="fotos"><i class="fa-regular fa-image"></i> Fotos</div>
-        <div class="ptab" data-tab="videos"><i class="fa-solid fa-video"></i> Videos</div>
+    <!-- DATOS PERSONALES CARD (debajo de tabs, tab "Todo") -->
+    <div class="info-card" id="info-card">
+        <div class="info-card-title">
+            Datos personales
+            <div class="info-edit-btn" onclick="location.href='settings.html'"><i class="fa-solid fa-pen"></i></div>
+        </div>
+        <div id="info-rows">
+            <!-- se llena dinámicamente -->
+        </div>
     </div>
 
     <!-- WRAPPED MENSUAL BANNER -->
@@ -154,7 +271,6 @@
     <!-- WRAPPED MODAL -->
     <div class="wrapped-modal" id="wrapped-modal">
         <div class="wrapped-card">
-            <!-- Slide 0: Intro -->
             <div class="wrapped-slide wrapped-slide-0 active" id="wslide-0">
                 <div class="wrapped-close" onclick="closeWrapped()"><i class="fa-solid fa-xmark"></i></div>
                 <div class="wrapped-month-label" id="wlabel-0">Tu mes en SnapBook</div>
@@ -164,7 +280,6 @@
                 <div class="wrapped-dots" id="wrapped-dots"></div>
                 <button class="wrapped-next" onclick="nextSlide()">Empezar →</button>
             </div>
-            <!-- Slide 1: Posts publicados -->
             <div class="wrapped-slide wrapped-slide-1" id="wslide-1">
                 <div class="wrapped-close" onclick="closeWrapped()"><i class="fa-solid fa-xmark"></i></div>
                 <div class="wrapped-month-label">Publicaciones</div>
@@ -175,7 +290,6 @@
                 <div class="wrapped-dots" id="wrapped-dots-1"></div>
                 <button class="wrapped-next" onclick="nextSlide()">Siguiente →</button>
             </div>
-            <!-- Slide 2: Likes recibidos -->
             <div class="wrapped-slide wrapped-slide-2" id="wslide-2">
                 <div class="wrapped-close" onclick="closeWrapped()"><i class="fa-solid fa-xmark"></i></div>
                 <div class="wrapped-month-label">Reacciones</div>
@@ -186,7 +300,6 @@
                 <div class="wrapped-dots" id="wrapped-dots-2"></div>
                 <button class="wrapped-next" onclick="nextSlide()">Siguiente →</button>
             </div>
-            <!-- Slide 3: Tipos de contenido -->
             <div class="wrapped-slide wrapped-slide-3" id="wslide-3">
                 <div class="wrapped-close" onclick="closeWrapped()"><i class="fa-solid fa-xmark"></i></div>
                 <div class="wrapped-month-label">Tipo de contenido</div>
@@ -209,10 +322,17 @@
         </div>
     </div>
 
-    <div class="posts-grid" id="posts-grid">
+    <!-- FEED TODO -->
+    <div class="feed-list" id="feed-list" style="display:flex;flex-direction:column;gap:10px;padding:10px 10px 0;"></div>
+
+    <!-- GRID POSTS -->
+    <div class="posts-grid" id="posts-grid" style="display:none;">
         <div class="grid-empty"><i class="fa-solid fa-images"></i><p>Aún no has publicado nada.</p></div>
     </div>
 
+    <div class="toast" id="toast"></div>
+
+    <!-- NAV FLOTANTE -->
     <nav class="nav-float">
         <div class="tab" onclick="location.href='Home.html'"><i class="fa-solid fa-house"></i></div>
         <div class="tab" onclick="location.href='videos.html'"><i class="fa-solid fa-play"></i></div>
@@ -224,45 +344,31 @@
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-// ── Turso ──
-import {
-    sincronizarUsuario,
-    obtenerPostsPorUid,
-    obtenerShortsPorUid,
-    registrarVisita,
-    contarVisitas30Dias,
-    contarSeguidores,
-    contarSiguiendo
-} from './db.js';
-        // ── Supabase Storage ──
+        import { ref, get, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import {
+            sincronizarUsuario, obtenerPostsPorUid, obtenerShortsPorUid,
+            registrarVisita, contarVisitas30Dias, contarSeguidores, contarSiguiendo
+        } from './db.js';
         import { uploadAvatar, uploadCover } from './supabase-config.js';
         import { updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         let currentUser = null;
-        let allPosts  = [];  // publicaciones del usuario
-        let allShorts = [];  // shorts del usuario
+        let allPosts  = [];
+        let allShorts = [];
         let activeTab = 'posts';
 
-
-        // ── Animación de contadores ──────────────────────────────────
         function animateCount(el, target) {
-            const duration = 600;
-            const start = performance.now();
-            const from = parseInt(el.textContent) || 0;
+            if (!el) return;
+            const duration = 600, start = performance.now(), from = parseInt(el.textContent) || 0;
             if (from === target) return;
-            const step = timestamp => {
-                const progress = Math.min((timestamp - start) / duration, 1);
-                const ease = 1 - Math.pow(1 - progress, 3);
-                el.textContent = Math.round(from + (target - from) * ease);
-                if (progress < 1) requestAnimationFrame(step);
-                else el.textContent = target;
+            const step = ts => {
+                const p = Math.min((ts - start) / duration, 1);
+                el.textContent = Math.round(from + (target - from) * (1 - Math.pow(1-p,3)));
+                if (p < 1) requestAnimationFrame(step); else el.textContent = target;
             };
             requestAnimationFrame(step);
         }
 
-        // ── Skeleton mientras carga ──────────────────────────────────
         function showSkeleton() {
             const grid = document.getElementById('posts-grid');
             grid.innerHTML = '';
@@ -270,64 +376,108 @@ import {
                 const sk = document.createElement('div');
                 sk.className = 'grid-item';
                 sk.style.cssText = 'background:var(--surface2);animation:pulse 1.5s ease-in-out infinite;';
-                if (i % 3 === 1) sk.style.animationDelay = '0.2s';
-                if (i % 3 === 2) sk.style.animationDelay = '0.4s';
+                if (i%3===1) sk.style.animationDelay='0.2s';
+                if (i%3===2) sk.style.animationDelay='0.4s';
                 grid.appendChild(sk);
             }
         }
+
+        // Construir sección de datos personales
+        function buildInfoRows(ud) {
+            const rows = document.getElementById('info-rows');
+            const meta = document.getElementById('profile-meta');
+            if (!ud) return;
+            const items = [];
+            if (ud.ciudad)    items.push({ icon:'fa-location-dot', label: ud.ciudad, sub:'Ciudad actual' });
+            if (ud.hometown)  items.push({ icon:'fa-house',        label: ud.hometown, sub:'Ciudad natal' });
+            if (ud.trabajo)   items.push({ icon:'fa-briefcase',    label: ud.trabajo, sub:'Empleo' });
+            if (ud.escuela)   items.push({ icon:'fa-graduation-cap', label: ud.escuela, sub:'Educación' });
+            if (ud.fechaNacimiento) items.push({ icon:'fa-cake-candles', label: ud.fechaNacimiento, sub:'Cumpleaños' });
+
+            // Info card completa
+            if (items.length) {
+                rows.innerHTML = items.map(it => `
+                    <div class="info-row">
+                        <div class="info-icon"><i class="fa-solid ${it.icon}"></i></div>
+                        <div>
+                            <div class="info-label">${it.label}</div>
+                            <div class="info-sub">${it.sub}</div>
+                        </div>
+                    </div>`).join('');
+            } else {
+                rows.innerHTML = `<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:8px 0;">Sin datos personales aún — <span style="color:var(--accent);cursor:pointer;font-weight:700;" onclick="location.href='settings.html'">Editar perfil</span></div>`;
+            }
+
+            // Meta inline bajo el nombre (solo ciudad + trabajo + escuela)
+            const metaItems = [];
+            if (ud.ciudad)  metaItems.push(`<div class="meta-item"><i class="fa-solid fa-location-dot"></i>${ud.ciudad}</div>`);
+            if (ud.trabajo) metaItems.push(`<div class="meta-item"><i class="fa-solid fa-briefcase"></i>${ud.trabajo}</div>`);
+            if (ud.escuela) metaItems.push(`<div class="meta-item"><i class="fa-solid fa-graduation-cap"></i>${ud.escuela}</div>`);
+            meta.innerHTML = metaItems.join('');
+        }
+
+        // Bio con "Ver más"
+        function setBio(text) {
+            const el = document.getElementById('profile-bio');
+            if (!text) { el.textContent = '¡Hola! Estoy usando SnapBook 📸✨'; return; }
+            if (text.length <= 100) { el.textContent = text; return; }
+            el.innerHTML = `${text.substring(0,100)}<span id="bio-hidden" style="display:none">${text.substring(100)}</span>… <span class="bio-toggle" onclick="expandBio()">Ver más</span>`;
+        }
+        window.expandBio = function() {
+            document.getElementById('bio-hidden').style.display='inline';
+            document.querySelector('.bio-toggle').remove();
+        };
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) { location.href = 'index.html'; return; }
             currentUser = user;
 
-            // Mostrar datos de Auth inmediatamente
             document.getElementById('profile-avatar').src = user.photoURL || 'default-avatar.png';
             document.getElementById('profile-name').textContent = user.displayName || user.email?.split('@')[0] || 'Usuario';
-            document.getElementById('profile-username').textContent = '@' + (user.email?.split('@')[0] || 'usuario');
             showSkeleton();
 
-            // Sync a Turso
-            try { await sincronizarUsuario(user); } catch(e) { console.warn('Turso sync:', e); }
+            try { await sincronizarUsuario(user); } catch(e) {}
 
-            // Cargar datos de DB
+            // Datos de Firebase
             try {
                 const userSnap = await get(ref(db, `usuarios/${user.uid}`));
                 if (userSnap.exists()) {
                     const ud = userSnap.val();
                     document.getElementById('profile-name').textContent = ud.nombre || user.displayName || 'Usuario';
-                    document.getElementById('profile-username').textContent = '@' + (ud.username || user.email?.split('@')[0] || 'usuario');
-                    document.getElementById('profile-bio').textContent = ud.bio || '¡Hola! Estoy usando SnapBook 📸✨';
+                    setBio(ud.bio || '');
                     if (ud.photoURL) document.getElementById('profile-avatar').src = ud.photoURL;
+                    if (ud.coverURL) {
+                        const wrap = document.getElementById('cover-wrap');
+                        wrap.style.background = 'none';
+                        let img = wrap.querySelector('img.cover-img');
+                        if (!img) { img = document.createElement('img'); img.className='cover-img'; wrap.prepend(img); }
+                        img.src = ud.coverURL;
+                    }
+                    buildInfoRows(ud);
                 } else {
                     await set(ref(db, `usuarios/${user.uid}`), {
                         nombre: user.displayName || user.email?.split('@')[0] || 'Usuario',
-                        email: user.email || '',
-                        photoURL: user.photoURL || '',
-                        createdAt: Date.now()
+                        email: user.email || '', photoURL: user.photoURL || '', createdAt: Date.now()
                     });
+                    buildInfoRows({});
                 }
-            } catch(e) { console.warn('DB no disponible'); }
+            } catch(e) { buildInfoRows({}); }
 
-            // Registrar visita y cargar conteo (últimos 30 días)
+            // Visitas
             try {
-                // Firebase
                 await push(ref(db, `visitas_perfil/${user.uid}`), { ts: Date.now(), visitor: user.uid });
-                // Turso
                 try { await registrarVisita(user.uid, user.uid); } catch(e) {}
-                // Contar desde Turso primero, sino Firebase
                 let visitCount = 0;
-                try {
-                    visitCount = await contarVisitas30Dias(user.uid);
-                } catch(e) {
-                    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+                try { visitCount = await contarVisitas30Dias(user.uid); }
+                catch(e) {
+                    const thirtyAgo = Date.now() - 30*24*60*60*1000;
                     const visSnap = await get(ref(db, `visitas_perfil/${user.uid}`));
-                    if (visSnap.exists()) visSnap.forEach(c => { if ((c.val().ts||0) >= thirtyDaysAgo) visitCount++; });
+                    if (visSnap.exists()) visSnap.forEach(c => { if ((c.val().ts||0) >= thirtyAgo) visitCount++; });
                 }
-                document.getElementById('stat-visits').textContent = visitCount > 999
-                    ? Math.floor(visitCount/1000) + 'k' : visitCount;
+                document.getElementById('stat-visits').textContent = visitCount > 999 ? Math.floor(visitCount/1000)+'k' : visitCount;
             } catch(e) {}
 
-            // Cargar seguidores/siguiendo
+            // Seguidores / Siguiendo
             try {
                 const [fwersSnap, fwingSnap] = await Promise.all([
                     get(ref(db, `seguidores/${user.uid}`)),
@@ -337,258 +487,443 @@ import {
                 animateCount(document.getElementById('stat-following'), fwingSnap.exists() ? Object.values(fwingSnap.val()).filter(Boolean).length : 0);
             } catch(e) {}
 
-            // Cargar publicaciones Y shorts — Turso + Firebase combinados sin duplicados
+            // Posts + Shorts — fuente unica Firebase para evitar duplicados y conservar todos los campos
             try {
-                const seenPostIds = new Set();
-                const seenPostFp  = new Set();
-                const seenShortIds = new Set();
-                const seenShortFp  = new Set();
-                const fp = (uid, ts) => `${uid}_${Math.round(Number(ts)/1000)}`;
+                const [postsSnap, shortsSnap] = await Promise.all([
+                    get(ref(db, 'publicaciones')),
+                    get(ref(db, 'shorts'))
+                ]);
 
-                // Turso primero
-                try {
-                    const [tPosts, tShorts] = await Promise.all([
-                        obtenerPostsPorUid(user.uid),
-                        obtenerShortsPorUid(user.uid)
-                    ]);
-                    tPosts.forEach(p => {
-                        const f = fp(p.uid, p.timestamp);
-                        if (seenPostIds.has(p.id) || seenPostFp.has(f)) return;
-                        seenPostIds.add(p.id); seenPostFp.add(f);
+                if (postsSnap.exists()) {
+                    postsSnap.forEach(c => {
+                        const v = c.val();
+                        if (v.uid !== user.uid) return;
+                        // Spread completo: conserva esEncuesta, pregunta, opciones, likes, etc.
                         allPosts.push({
-                            id: p.id, uid: p.uid, autor: p.nombre, avatar: p.avatar,
-                            contenido: p.texto, imagenPost: p.imagen_url,
-                            videoUrl: p.video_url, timestamp: Number(p.timestamp)
+                            ...v,
+                            id: c.key,
+                            autor: v.autor || v.nombre || user.displayName || 'Usuario',
+                            avatar: v.avatar || v.photoURL || user.photoURL || 'default-avatar.png',
+                            contenido: v.contenido || v.texto || '',
+                            imagenPost: v.imagenPost || v.imagen_url || '',
+                            videoUrl: v.videoUrl || v.video_url || '',
+                            timestamp: Number(v.timestamp || 0)
                         });
                     });
-                    tShorts.forEach(s => {
-                        const f = fp(s.uid, s.timestamp);
-                        if (seenShortIds.has(s.id) || seenShortFp.has(f)) return;
-                        seenShortIds.add(s.id); seenShortFp.add(f);
-                        allShorts.push({
-                            id: s.id, uid: s.uid, autor: s.autor, avatar: s.avatar,
-                            videoUrl: s.video_url, descripcion: s.descripcion, timestamp: Number(s.timestamp)
-                        });
-                    });
-                } catch(e) { console.warn('Turso perfil error:', e); }
+                }
 
-                // Firebase — agrega los que no están en Turso
-                try {
-                    const [postsSnap, shortsSnap] = await Promise.all([
-                        get(ref(db, 'publicaciones')),
-                        get(ref(db, 'shorts'))
-                    ]);
-                    if (postsSnap.exists()) postsSnap.forEach(c => {
+                if (shortsSnap.exists()) {
+                    shortsSnap.forEach(c => {
                         const v = c.val();
                         if (v.uid !== user.uid) return;
-                        const f = fp(v.uid, v.timestamp);
-                        if (seenPostIds.has(c.key) || seenPostFp.has(f)) return;
-                        seenPostIds.add(c.key); seenPostFp.add(f);
-                        allPosts.push({ id: c.key, ...v });
+                        allShorts.push({ ...v, id: c.key, videoUrl: v.videoUrl || v.video_url || '', timestamp: Number(v.timestamp || 0) });
                     });
-                    if (shortsSnap.exists()) shortsSnap.forEach(c => {
-                        const v = c.val();
-                        if (v.uid !== user.uid) return;
-                        const f = fp(v.uid, v.timestamp);
-                        if (seenShortIds.has(c.key) || seenShortFp.has(f)) return;
-                        seenShortIds.add(c.key); seenShortFp.add(f);
-                        allShorts.push({ id: c.key, ...v });
-                    });
-                } catch(e) { console.warn('Firebase perfil error:', e); }
+                }
 
-                allPosts.sort((a,b)  => (b.timestamp||0) - (a.timestamp||0));
-                allShorts.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+                allPosts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                allShorts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 animateCount(document.getElementById('stat-posts'), allPosts.length + allShorts.length);
                 renderGrid('posts');
             } catch(e) { console.error(e); }
         });
 
-        // ── Iconos y labels por tab ──────────────────────────────────
         const TAB_EMPTY = {
-            posts:  { icon: 'fa-images',     msg: 'Aún no has publicado nada.' },
-            fotos:  { icon: 'fa-image',       msg: 'No has publicado fotos todavía.' },
-            videos: { icon: 'fa-circle-play', msg: 'No has publicado videos ni shorts todavía.' }
+            posts:  { icon:'fa-images',      msg:'Aún no has publicado nada.' },
+            fotos:  { icon:'fa-image',        msg:'No has publicado fotos todavía.' },
+            videos: { icon:'fa-circle-play',  msg:'No has publicado videos ni shorts todavía.' }
+        };
+
+        function timeAgo(ts) {
+            const d = Math.floor((Date.now() - Number(ts)) / 1000);
+            if (d < 60) return 'Hace un momento';
+            if (d < 3600) return `Hace ${Math.floor(d/60)} min`;
+            if (d < 86400) return `Hace ${Math.floor(d/3600)} h`;
+            return new Date(Number(ts)).toLocaleDateString('es-MX', { day:'numeric', month:'short' });
+        }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+        function openImgFull(url) {
+            const ov = document.createElement('div');
+            ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+            ov.innerHTML = `<img src="${url}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+            ov.onclick = () => ov.remove();
+            document.body.appendChild(ov);
+        }
+
+        function buildPostCard(post) {
+            const id       = post.id;
+            const autor    = post.autor || post.nombre || 'Usuario';
+            const avatar   = post.avatar || 'default-avatar.png';
+            const contenido= post.contenido || post.texto || '';
+            const imgUrl   = post.imagenPost || post.imagen_url || '';
+            const videoUrl = post.videoUrl   || post.video_url  || '';
+            const audioUrl = post.audioUrl   || post.audio_url  || '';
+            const ts       = Number(post.timestamp || 0);
+            const isVoz    = post.esVoz || !!audioUrl;
+
+            let mediaHTML = '';
+            if (imgUrl)        mediaHTML = `<img class="post-img" src="${imgUrl}" loading="lazy" onclick="openImgFull('${imgUrl}')">`;
+            else if (videoUrl) mediaHTML = `<video class="post-video" src="${videoUrl}" controls playsinline></video>`;
+
+            let extraHTML = '';
+            if (post.humor) extraHTML += `<div class="post-mood"><i class="fa-solid fa-face-smile"></i> Se siente: ${post.humor}</div>`;
+            if (post.esMomento && post.tipoMomento) extraHTML += `<div class="post-tag"><i class="fa-solid fa-sun"></i> ${post.tipoMomento}</div>`;
+            if (isVoz && audioUrl) {
+                const dur = post.duracionAudio ? `${Math.floor(post.duracionAudio/60)}:${String(post.duracionAudio%60).padStart(2,'0')}` : '–';
+                extraHTML += `<div class="post-audio"><div class="audio-icon"><i class="fa-solid fa-microphone"></i></div><div class="audio-info">Nota de voz · ${dur}<br><audio controls src="${audioUrl}" style="width:100%;margin-top:6px;"></audio></div></div>`;
+            }
+
+            const isEncuesta = post.esEncuesta && post.pregunta;
+            if (isEncuesta) {
+                // Normalizar opciones igual que Home.html: objeto Firebase → array
+                let opcionesArr = post.opciones || [];
+                if (!Array.isArray(opcionesArr))
+                    opcionesArr = Object.keys(opcionesArr).sort((a,b)=>Number(a)-Number(b)).map(k=>post.opciones[k]);
+                opcionesArr = opcionesArr.filter(o => o != null).map(o => typeof o === 'string' ? {texto: o} : o);
+
+                const uid = currentUser ? currentUser.uid : null;
+                const totalV = opcionesArr.reduce((a, o) => a + (o.votos ? Object.keys(o.votos).length : 0), 0);
+                const miVotoIdx = uid ? opcionesArr.findIndex(o => o.votos && o.votos[uid]) : -1;
+
+                const optsH = opcionesArr.map((o, i) => {
+                    if (!o || !o.texto) return '';
+                    const v   = o.votos ? Object.keys(o.votos).length : 0;
+                    const pct = totalV > 0 ? Math.round(v / totalV * 100) : 0;
+                    const yaVoto = i === miVotoIdx;
+                    return `<div class="encuesta-opcion${yaVoto ? ' voted' : ''}" onclick="votarEncuesta('${id}',${i})" style="${yaVoto ? 'border-color:var(--accent);' : ''}">
+                        <div class="encuesta-bar" style="width:${pct}%;background:${yaVoto ? 'rgba(108,99,255,0.2)' : 'rgba(108,99,255,0.1)'}"></div>
+                        <span style="position:relative;font-weight:${yaVoto ? '700' : '600'};color:${yaVoto ? 'var(--accent)' : 'var(--text)'}">${o.texto}</span>
+                        <span style="margin-left:auto;font-size:12px;color:${yaVoto ? 'var(--accent)' : 'var(--text-muted)'};position:relative">${pct}%</span>
+                        ${yaVoto ? '<i class="fa-solid fa-check" style="margin-left:6px;font-size:11px;color:var(--accent);position:relative"></i>' : ''}
+                    </div>`;
+                }).join('');
+                if (optsH) extraHTML += `<div class="post-encuesta"><div class="encuesta-pregunta-txt">${post.pregunta}</div>${optsH}<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${totalV} voto${totalV !== 1 ? 's' : ''}</div></div>`;
+            }
+
+            const big = contenido.length < 100 && !imgUrl && !videoUrl ? ' big' : '';
+            const likes = post.likes || {};
+            const likeCount = Object.keys(likes).length;
+            const yaLike = currentUser && likes[currentUser.uid];
+
+            const card = document.createElement('div');
+            card.className = 'post-card';
+            card.dataset.id = id;
+            card.innerHTML = `
+                <div class="post-header">
+                    <img class="post-avatar" src="${avatar}" onerror="this.src='default-avatar.png'">
+                    <div class="post-meta">
+                        <div class="post-author">${autor}</div>
+                        <div class="post-time">${timeAgo(ts)} <i class="fa-solid fa-earth-americas"></i></div>
+                    </div>
+                    <div class="post-menu" onclick="deleteMyPost('${id}')"><i class="fa-solid fa-ellipsis"></i></div>
+                </div>
+                ${(!isEncuesta && contenido) ? `<div class="post-content${big}">${contenido}</div>` : ''}
+                ${extraHTML}${mediaHTML}
+                <div class="post-stats">
+                    <div class="likes-count" id="lc-${id}">${likeCount>0?`<div class="like-bubble">👍</div> <span>${likeCount} Me gusta</span>`:''}</div>
+                    <div class="comments-count" onclick="abrirComentarios('${id}')">Ver comentarios</div>
+                </div>
+                <div class="post-actions">
+                    <div class="action-btn${yaLike?' liked':''}" id="lb-${id}" onclick="toggleLike('${id}')">
+                        <i class="${yaLike?'fa-solid':'fa-regular'} fa-thumbs-up"></i> Me gusta
+                    </div>
+                    <div class="action-btn" onclick="abrirComentarios('${id}')"><i class="fa-regular fa-comment"></i> Comentar</div>
+                    <div class="action-btn" onclick="shareMyPost('${id}')"><i class="fa-solid fa-share"></i> Compartir</div>
+                </div>`;
+            return card;
+        }
+
+        // ── LIKE funcional ──
+        window.toggleLike = async function(id) {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+            const likeRef = ref(db, `publicaciones/${id}/likes/${uid}`);
+            const btn = document.getElementById(`lb-${id}`);
+            const lcEl = document.getElementById(`lc-${id}`);
+            try {
+                const snap = await get(likeRef);
+                const post = allPosts.find(p=>p.id===id);
+                if (!post) return;
+                if (!post.likes) post.likes = {};
+                if (snap.exists()) {
+                    await remove(likeRef);
+                    delete post.likes[uid];
+                    if (btn) { btn.classList.remove('liked'); btn.innerHTML = '<i class="fa-regular fa-thumbs-up"></i> Me gusta'; }
+                } else {
+                    await set(likeRef, true);
+                    post.likes[uid] = true;
+                    if (btn) { btn.classList.add('liked'); btn.innerHTML = '<i class="fa-solid fa-thumbs-up"></i> Me gusta'; }
+                }
+                const count = Object.keys(post.likes).length;
+                if (lcEl) lcEl.innerHTML = count > 0 ? `<div class="like-bubble">👍</div> <span>${count} Me gusta</span>` : '';
+            } catch(e) { console.error(e); }
+        };
+
+        // ── VOTAR ENCUESTA (misma lógica que Home.html) ──
+        window.votarEncuesta = async function(postId, opcionIdx) {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+
+            // Verificar voto previo directo en Firebase (igual que Home fallback)
+            const vRef = ref(db, `publicaciones/${postId}/opciones/${opcionIdx}/votos/${uid}`);
+            try {
+                // Revisar si ya votó en CUALQUIER opción de esta encuesta
+                const postSnap = await get(ref(db, `publicaciones/${postId}`));
+                if (!postSnap.exists()) return;
+                const data = postSnap.val();
+                let opciones = data.opciones || [];
+                if (!Array.isArray(opciones))
+                    opciones = Object.keys(opciones).sort((a,b)=>Number(a)-Number(b)).map(k=>data.opciones[k]);
+
+                const yaVotoEn = opciones.findIndex(o => o && o.votos && o.votos[uid]);
+                if (yaVotoEn !== -1 && yaVotoEn !== opcionIdx) {
+                    showToast('Ya votaste en esta encuesta'); return;
+                }
+
+                if (yaVotoEn === opcionIdx) {
+                    await remove(ref(db, `publicaciones/${postId}/opciones/${opcionIdx}/votos/${uid}`));
+                } else {
+                    await set(ref(db, `publicaciones/${postId}/opciones/${opcionIdx}/votos/${uid}`), true);
+                }
+
+                showToast('✅ Voto registrado');
+
+                // Refrescar card con datos actualizados de Firebase
+                const freshSnap = await get(ref(db, `publicaciones/${postId}`));
+                if (!freshSnap.exists()) return;
+                const postIdx = allPosts.findIndex(p => p.id === postId);
+                if (postIdx !== -1) {
+                    allPosts[postIdx] = { ...allPosts[postIdx], ...freshSnap.val(), id: postId };
+                    // Normalizar opciones (objeto → array)
+                    let ops = allPosts[postIdx].opciones || [];
+                    if (!Array.isArray(ops))
+                        ops = Object.keys(ops).sort((a,b)=>Number(a)-Number(b)).map(k=>allPosts[postIdx].opciones[k]);
+                    allPosts[postIdx].opciones = ops;
+                    const oldCard = document.querySelector(`.post-card[data-id="${postId}"]`);
+                    if (oldCard) oldCard.replaceWith(buildPostCard(allPosts[postIdx]));
+                }
+            } catch(e) { console.error(e); showToast('❌ Error al votar'); }
+        };
+
+        // ── COMENTARIOS ──
+        window.abrirComentarios = async function(postId) {
+            const sheet = document.createElement('div');
+            sheet.style.cssText = 'position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.5);';
+            sheet.innerHTML = `
+                <div style="background:var(--surface);border-radius:24px 24px 0 0;max-height:70vh;display:flex;flex-direction:column;font-family:inherit;">
+                    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-size:16px;font-weight:800;">Comentarios</span>
+                        <span onclick="this.closest('[style*=fixed]').remove()" style="cursor:pointer;font-size:20px;color:var(--text-muted);">✕</span>
+                    </div>
+                    <div id="comments-list-${postId}" style="overflow-y:auto;flex:1;padding:12px 16px;"></div>
+                    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;">
+                        <img src="${currentUser?.photoURL||'default-avatar.png'}" onerror="this.src='default-avatar.png'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                        <input id="comment-input-${postId}" placeholder="Escribe un comentario..." style="flex:1;border:1px solid var(--border);border-radius:20px;padding:9px 16px;font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;">
+                        <button onclick="enviarComentario('${postId}')" style="background:var(--accent);border:none;border-radius:50%;width:38px;height:38px;color:#fff;font-size:16px;cursor:pointer;flex-shrink:0;"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>`;
+            sheet.onclick = e => { if(e.target===sheet) sheet.remove(); };
+            document.body.appendChild(sheet);
+            // Cargar comentarios
+            try {
+                const snap = await get(ref(db, `comentarios/${postId}`));
+                const listEl = document.getElementById(`comments-list-${postId}`);
+                if (!listEl) return;
+                if (!snap.exists()) { listEl.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Sin comentarios aún. ¡Sé el primero!</div>`; return; }
+                const comments = [];
+                snap.forEach(c => comments.push({id:c.key,...c.val()}));
+                comments.sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+                listEl.innerHTML = comments.map(c=>`
+                    <div style="display:flex;gap:10px;margin-bottom:14px;">
+                        <img src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                        <div style="flex:1;">
+                            <div style="background:var(--surface2);border-radius:0 14px 14px 14px;padding:10px 14px;">
+                                <div style="font-size:13px;font-weight:700;margin-bottom:3px;">${c.autor||'Usuario'}</div>
+                                <div style="font-size:14px;line-height:1.45;">${c.texto||''}</div>
+                            </div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;padding-left:4px;">${timeAgo(c.timestamp||0)}</div>
+                        </div>
+                    </div>`).join('');
+                listEl.scrollTop = listEl.scrollHeight;
+            } catch(e) {}
+        };
+
+        window.enviarComentario = async function(postId) {
+            if (!currentUser) return;
+            const input = document.getElementById(`comment-input-${postId}`);
+            const texto = input?.value?.trim();
+            if (!texto) return;
+            input.value = '';
+            try {
+                const userSnap = await get(ref(db, `usuarios/${currentUser.uid}`));
+                const ud = userSnap.exists() ? userSnap.val() : {};
+                await push(ref(db, `comentarios/${postId}`), {
+                    uid: currentUser.uid,
+                    autor: ud.nombre || currentUser.displayName || 'Usuario',
+                    avatar: ud.photoURL || currentUser.photoURL || 'default-avatar.png',
+                    texto, timestamp: Date.now()
+                });
+                const listEl = document.getElementById(`comments-list-${postId}`);
+                if (listEl) {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'display:flex;gap:10px;margin-bottom:14px;';
+                    div.innerHTML = `
+                        <img src="${ud.photoURL||currentUser.photoURL||'default-avatar.png'}" onerror="this.src='default-avatar.png'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                        <div style="flex:1;">
+                            <div style="background:var(--surface2);border-radius:0 14px 14px 14px;padding:10px 14px;">
+                                <div style="font-size:13px;font-weight:700;margin-bottom:3px;">${ud.nombre||currentUser.displayName||'Usuario'}</div>
+                                <div style="font-size:14px;line-height:1.45;">${texto}</div>
+                            </div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;padding-left:4px;">Hace un momento</div>
+                        </div>`;
+                    const emptyMsg = listEl.querySelector('div[style*="text-align:center"]');
+                    if (emptyMsg) emptyMsg.remove();
+                    listEl.appendChild(div);
+                    listEl.scrollTop = listEl.scrollHeight;
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        window.deleteMyPost = function(id) {
+            const sheet = document.createElement('div');
+            sheet.style.cssText = 'position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.4);';
+            sheet.innerHTML = `<div style="background:var(--surface);border-radius:24px 24px 0 0;padding:20px 0 32px;font-family:inherit;">
+                <div onclick="confirmDeletePost('${id}');this.closest('[style]').remove();" style="padding:16px 24px;font-size:16px;font-weight:700;color:#e74c3c;cursor:pointer;"><i class="fa-solid fa-trash" style="margin-right:10px;"></i>Eliminar publicación</div>
+                <div onclick="this.closest('[style]').remove();" style="padding:16px 24px;font-size:16px;font-weight:700;color:var(--text-muted);cursor:pointer;border-top:1px solid var(--border);">Cancelar</div>
+            </div>`;
+            sheet.onclick = e => { if(e.target===sheet) sheet.remove(); };
+            document.body.appendChild(sheet);
+        };
+        window.confirmDeletePost = async function(id) {
+            try { await remove(ref(db, `publicaciones/${id}`)); } catch(e) {}
+            document.querySelector(`.post-card[data-id="${id}"]`)?.remove();
+            allPosts = allPosts.filter(p => p.id !== id);
+            showToast('🗑️ Publicación eliminada');
+        };
+        window.shareMyPost = function(id) {
+            const url = `${location.origin}${location.pathname}?post=${id}`;
+            if (navigator.share) navigator.share({ url });
+            else { navigator.clipboard?.writeText(url); showToast('🔗 Link copiado'); }
         };
 
         function renderGrid(tab) {
             activeTab = tab;
-            const grid = document.getElementById('posts-grid');
+            const grid        = document.getElementById('posts-grid');
+            const feedList    = document.getElementById('feed-list');
+            const infoCard    = document.getElementById('info-card');
+            const wrappedBanner = document.getElementById('wrapped-banner');
+
+            // Tab "Todo" → feed de cards; otras tabs → cuadrícula
+            const isTodo = tab === 'posts';
+            feedList.style.display = isTodo  ? 'flex'  : 'none';
+            grid.style.display     = !isTodo ? 'grid'  : 'none';
+            infoCard.style.display      = isTodo ? 'block' : 'none';
+            wrappedBanner.style.display = isTodo ? 'block' : 'none';
+
             let list = [];
+            if (tab === 'posts')       list = allPosts;
+            else if (tab === 'fotos')  list = allPosts.filter(p => p.imagenPost && !p.videoUrl);
+            else if (tab === 'videos') list = [...allPosts.filter(p => p.videoUrl), ...allShorts].sort((a,b) => (b.timestamp||0)-(a.timestamp||0));
 
-            if (tab === 'posts') {
-                list = allPosts;
-            } else if (tab === 'fotos') {
-                list = allPosts.filter(p => p.imagenPost && !p.videoUrl);
-            } else if (tab === 'videos') {
-                // Videos de publicaciones + todos los shorts
-                const vidPosts = allPosts.filter(p => p.videoUrl);
-                list = [...vidPosts, ...allShorts].sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
-            }
+            const emptyMsg = TAB_EMPTY[tab] || TAB_EMPTY.posts;
 
-            if (!list.length) {
-                const e = TAB_EMPTY[tab] || TAB_EMPTY.posts;
-                grid.innerHTML = `<div class="grid-empty"><i class="fa-solid ${e.icon}"></i><p>${e.msg}</p></div>`;
-                return;
-            }
-
-            grid.innerHTML = '';
-            list.forEach((post, idx) => {
-                const item = document.createElement('div');
-                item.className = 'grid-item';
-                item.style.animationDelay = (idx * 0.03) + 's';
-
-                const isVideo = !!(post.videoUrl || post.isShort);
-                const isShort = !!post.descripcion && !post.contenido; // distinguir short de publicación
-
-                if (isVideo) {
-                    const src = post.videoUrl || '';
-                    item.innerHTML = `
-                        <video src="${src}" muted preload="none" playsinline></video>
-                        <span class="video-badge">
-                            <i class="fa-solid ${isShort ? 'fa-bolt' : 'fa-play'}"></i>
-                        </span>
-                        <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px;color:rgba(255,255,255,0.7);font-weight:700">
-                            ${isShort ? 'SHORT' : ''}
-                        </div>`;
-                } else if (post.imagenPost) {
-                    item.innerHTML = `<img src="${post.imagenPost}" loading="lazy" onerror="this.style.display='none'">`;
-                } else {
-                    // Post de texto — mostrar extracto
-                    const words = (post.contenido || '').substring(0, 60);
-                    item.innerHTML = `
-                        <div style="display:flex;align-items:center;justify-content:center;height:100%;
-                            padding:10px;background:linear-gradient(135deg,var(--surface2),var(--surface));
-                            position:relative;">
-                            <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical">
-                                ${words}${words.length >= 60 ? '…' : ''}
-                            </div>
-                            <div style="position:absolute;top:5px;right:5px;font-size:9px;color:var(--accent);font-weight:800">Aa</div>
-                        </div>`;
+            if (isTodo) {
+                // Renderizar como feed de cards
+                feedList.innerHTML = '';
+                if (!list.length) {
+                    feedList.innerHTML = `<div style="text-align:center;padding:48px 24px;color:var(--text-muted);"><i class="fa-solid fa-images" style="font-size:48px;opacity:0.3;display:block;margin-bottom:14px;"></i><p style="font-size:14px;">Aún no has publicado nada.</p></div>`;
+                    return;
                 }
-
-                // Al hacer tap, ir al post (se puede expandir más adelante)
-                item.onclick = () => {
-                    if (post.videoUrl && isShort) {
-                        location.href = 'videos.html';
+                list.forEach(post => feedList.appendChild(buildPostCard(post)));
+            } else {
+                // Renderizar como cuadrícula
+                if (!list.length) {
+                    grid.innerHTML = `<div class="grid-empty"><i class="fa-solid ${emptyMsg.icon}"></i><p>${emptyMsg.msg}</p></div>`;
+                    return;
+                }
+                grid.innerHTML = '';
+                list.forEach((post, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'grid-item';
+                    item.style.animationDelay = (idx*0.03)+'s';
+                    const isVideo = !!(post.videoUrl || post.isShort);
+                    const isShort = !!post.descripcion && !post.contenido;
+                    if (isVideo) {
+                        item.innerHTML = `<video src="${post.videoUrl||''}" muted preload="none" playsinline></video><span class="video-badge"><i class="fa-solid ${isShort?'fa-bolt':'fa-play'}"></i></span>${isShort?'<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px;color:rgba(255,255,255,0.7);font-weight:700">SHORT</div>':''}`;
+                    } else if (post.imagenPost) {
+                        item.innerHTML = `<img src="${post.imagenPost}" loading="lazy" onerror="this.style.display='none'">`;
+                    } else {
+                        const words = (post.contenido||'').substring(0,60);
+                        item.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:10px;background:linear-gradient(135deg,var(--surface2),var(--surface));position:relative;"><div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical">${words}${words.length>=60?'…':''}</div><div style="position:absolute;top:5px;right:5px;font-size:9px;color:var(--accent);font-weight:800">Aa</div></div>`;
                     }
-                };
-
-                grid.appendChild(item);
-            });
+                    item.onclick = () => { if(post.videoUrl && isShort) location.href='videos.html'; };
+                    grid.appendChild(item);
+                });
+            }
         }
 
         document.querySelectorAll('.ptab').forEach(tab => {
             tab.onclick = () => {
-                document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
                 tab.classList.add('active');
                 renderGrid(tab.dataset.tab);
             };
         });
 
-        // ── WRAPPED MENSUAL ──
-        const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-        const mesActual = new Date().getMonth();
-        const anioActual = new Date().getFullYear();
-        document.getElementById('wrapped-month-name').textContent = MESES[mesActual];
-        document.getElementById('wlabel-0').textContent = `Tu ${MESES[mesActual]} en SnapBook`;
+        // ── WRAPPED ──
+        const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        const mesActual=new Date().getMonth(), anioActual=new Date().getFullYear();
+        document.getElementById('wrapped-month-name').textContent=MESES[mesActual];
+        document.getElementById('wlabel-0').textContent=`Tu ${MESES[mesActual]} en SnapBook`;
 
-        // Calcular stats del mes actual
         function calcWrappedStats() {
-            const inicioMes = new Date(anioActual, mesActual, 1).getTime();
-            const finMes    = new Date(anioActual, mesActual + 1, 0, 23, 59, 59).getTime();
-            const postsMes  = allPosts.filter(p => p.timestamp >= inicioMes && p.timestamp <= finMes);
-            const textos    = postsMes.filter(p => !p.imagenPost && !p.videoUrl).length;
-            const fotos     = postsMes.filter(p => !!p.imagenPost).length;
-            const videos    = postsMes.filter(p => !!p.videoUrl).length;
-            const totalLikes = postsMes.reduce((acc, p) => acc + Object.keys(p.likes || {}).length, 0);
-            return { total: postsMes.length, textos, fotos, videos, totalLikes };
+            const ini=new Date(anioActual,mesActual,1).getTime(), fin=new Date(anioActual,mesActual+1,0,23,59,59).getTime();
+            const pm=allPosts.filter(p=>p.timestamp>=ini&&p.timestamp<=fin);
+            return { total:pm.length, textos:pm.filter(p=>!p.imagenPost&&!p.videoUrl).length, fotos:pm.filter(p=>!!p.imagenPost).length, videos:pm.filter(p=>!!p.videoUrl).length, totalLikes:pm.reduce((a,p)=>a+Object.keys(p.likes||{}).length,0) };
         }
-
         window.openWrapped = function() {
-            const stats = calcWrappedStats();
-            // Slide 1
-            document.getElementById('w-posts-count').textContent = stats.total;
-            document.getElementById('w-posts-sub').textContent = stats.total === 0 ? 'Aún sin posts este mes 👀' :
-                stats.total === 1 ? '¡Empezaste bien!' : stats.total >= 10 ? '¡Increíble constancia! 🔥' : '¡Sigue así! 💪';
-            // Slide 2
-            document.getElementById('w-likes-count').textContent = stats.totalLikes;
-            document.getElementById('w-likes-sub').textContent = stats.totalLikes === 0 ? 'Publica más para recibir reacciones 💡' :
-                stats.totalLikes >= 50 ? '¡Eres una estrella! ⭐' : '¡Tu contenido gusta! ❤️';
-            // Slide 3 barras
-            const total = stats.total || 1;
-            const tp = Math.round((stats.textos/total)*100);
-            const fp = Math.round((stats.fotos/total)*100);
-            const vp = Math.round((stats.videos/total)*100);
-            document.getElementById('w-bar-text-pct').textContent  = tp + '%';
-            document.getElementById('w-bar-photo-pct').textContent = fp + '%';
-            document.getElementById('w-bar-video-pct').textContent = vp + '%';
-            setTimeout(() => {
-                document.getElementById('w-bar-text').style.width  = tp + '%';
-                document.getElementById('w-bar-photo').style.width = fp + '%';
-                document.getElementById('w-bar-video').style.width = vp + '%';
-            }, 400);
-            const tipo = fp >= vp && fp >= tp ? '📸 fotógrafa/o' : vp >= tp ? '🎥 creador/a de video' : '✍️ escritor/a';
-            document.getElementById('w-content-msg').textContent = `Este mes eres más ${tipo}`;
-            // Dots
-            currentSlide = 0;
-            totalSlides = 4;
-            buildDots();
-            showSlide(0);
+            const s=calcWrappedStats();
+            document.getElementById('w-posts-count').textContent=s.total;
+            document.getElementById('w-posts-sub').textContent=s.total===0?'Aún sin posts este mes 👀':s.total>=10?'¡Increíble constancia! 🔥':'¡Sigue así! 💪';
+            document.getElementById('w-likes-count').textContent=s.totalLikes;
+            document.getElementById('w-likes-sub').textContent=s.totalLikes===0?'Publica más para recibir reacciones 💡':s.totalLikes>=50?'¡Eres una estrella! ⭐':'¡Tu contenido gusta! ❤️';
+            const tot=s.total||1, tp=Math.round((s.textos/tot)*100), fp2=Math.round((s.fotos/tot)*100), vp=Math.round((s.videos/tot)*100);
+            document.getElementById('w-bar-text-pct').textContent=tp+'%';
+            document.getElementById('w-bar-photo-pct').textContent=fp2+'%';
+            document.getElementById('w-bar-video-pct').textContent=vp+'%';
+            setTimeout(()=>{ document.getElementById('w-bar-text').style.width=tp+'%'; document.getElementById('w-bar-photo').style.width=fp2+'%'; document.getElementById('w-bar-video').style.width=vp+'%'; },400);
+            document.getElementById('w-content-msg').textContent=`Este mes eres más ${fp2>=vp&&fp2>=tp?'📸 fotógrafa/o':vp>=tp?'🎥 creador/a de video':'✍️ escritor/a'}`;
+            currentSlide=0; totalSlides=4; buildDots(); showSlide(0);
             document.getElementById('wrapped-modal').classList.add('open');
         };
+        window.closeWrapped=()=>document.getElementById('wrapped-modal').classList.remove('open');
+        let currentSlide=0, totalSlides=4;
+        function buildDots(){['','1','2','3'].forEach((s,i)=>{const el=document.getElementById('wrapped-dots'+(s?'-'+s:''));if(!el)return;el.innerHTML='';for(let j=0;j<totalSlides;j++){const d=document.createElement('div');d.className='wrapped-dot'+(j===i?' active':'');el.appendChild(d);}});}
+        function showSlide(n){document.querySelectorAll('.wrapped-slide').forEach((s,i)=>s.classList.toggle('active',i===n));}
+        window.nextSlide=()=>{currentSlide=Math.min(currentSlide+1,totalSlides-1);buildDots();showSlide(currentSlide);};
+        window.shareWrapped=function(){const s=calcWrappedStats();const text=`🎬 Mi SnapBook Wrapped de ${MESES[mesActual]}:\n📝 ${s.total} posts publicados\n❤️ ${s.totalLikes} likes recibidos\n¡Únete a SnapBook!`;if(navigator.share)navigator.share({title:'Mi Wrapped de SnapBook',text});else navigator.clipboard.writeText(text).then(()=>alert('¡Copiado!'));};
 
-        window.closeWrapped = function() {
-            document.getElementById('wrapped-modal').classList.remove('open');
+        // ── UPLOAD AVATAR / COVER ──
+        document.getElementById('avatar-edit-btn').onclick=()=>document.getElementById('avatar-input').click();
+        document.getElementById('avatar-input').onchange=async(e)=>{
+            if(!currentUser||!e.target.files[0])return;
+            try { const url=await uploadAvatar(currentUser.uid,e.target.files[0]); document.getElementById('profile-avatar').src=url; }
+            catch(err){alert('Error: '+err.message);}
         };
-
-        let currentSlide = 0, totalSlides = 4;
-        function buildDots() {
-            ['','1','2','3'].forEach((s, i) => {
-                const el = document.getElementById('wrapped-dots' + (s ? '-'+s : ''));
-                if (!el) return;
-                el.innerHTML = '';
-                for (let j = 0; j < totalSlides; j++) {
-                    const d = document.createElement('div');
-                    d.className = 'wrapped-dot' + (j === i ? ' active' : '');
-                    el.appendChild(d);
-                }
-            });
-        }
-        function showSlide(n) {
-            document.querySelectorAll('.wrapped-slide').forEach((s,i) => s.classList.toggle('active', i === n));
-        }
-        window.nextSlide = function() {
-            currentSlide = Math.min(currentSlide + 1, totalSlides - 1);
-            buildDots();
-            showSlide(currentSlide);
-        };
-        window.shareWrapped = function() {
-            const stats = calcWrappedStats();
-            const text = `🎬 Mi SnapBook Wrapped de ${MESES[mesActual]}:\n📝 ${stats.total} posts publicados\n❤️ ${stats.totalLikes} likes recibidos\n¡Únete a SnapBook!`;
-            if (navigator.share) { navigator.share({ title: 'Mi Wrapped de SnapBook', text }); }
-            else { navigator.clipboard.writeText(text).then(() => alert('¡Copiado al portapapeles!')); }
-        };
-
-        document.getElementById('avatar-edit-btn').onclick = () => document.getElementById('avatar-input').click();
-        document.getElementById('avatar-input').onchange = async (e) => {
-            if (!currentUser || !e.target.files[0]) return;
+        document.getElementById('cover-edit-btn').onclick=()=>document.getElementById('cover-input').click();
+        document.getElementById('cover-input').onchange=async(e)=>{
+            if(!currentUser||!e.target.files[0])return;
             try {
-                const avatarUrl = await uploadAvatar(currentUser.uid, e.target.files[0]);
-                document.getElementById('profile-avatar').src = avatarUrl;
-            } catch(err) { alert('Error: '+err.message); }
-        };
-
-        document.getElementById('cover-edit-btn').onclick = () => document.getElementById('cover-input').click();
-        document.getElementById('cover-input').onchange = async (e) => {
-            if (!currentUser || !e.target.files[0]) return;
-            try {
-                const url = await uploadCover(currentUser.uid, e.target.files[0]);
-                const wrap = document.getElementById('cover-wrap');
-                wrap.style.background = 'none';
-                let img = wrap.querySelector('img.cover-img');
-                if (!img) { img = document.createElement('img'); img.className='cover-img'; wrap.prepend(img); }
-                img.src = url;
-            } catch(err) { alert('Error: '+err.message); }
+                const url=await uploadCover(currentUser.uid,e.target.files[0]);
+                const wrap=document.getElementById('cover-wrap');
+                wrap.style.background='none';
+                let img=wrap.querySelector('img.cover-img');
+                if(!img){img=document.createElement('img');img.className='cover-img';wrap.prepend(img);}
+                img.src=url;
+            } catch(err){alert('Error: '+err.message);}
         };
     </script>
 </body>
