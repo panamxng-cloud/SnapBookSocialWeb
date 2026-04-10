@@ -148,6 +148,10 @@
         /* TOAST */
         #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1a1a24; color: #fff; border-radius: 30px; padding: 12px 24px; font-size: 14px; font-weight: 700; z-index: 9999; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis; }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* MODAL VIDEO */
+        #modal-video.open { display: flex !important; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -313,13 +317,78 @@
 <input type="file" id="i-foto"  accept="image/*" style="display:none">
 <input type="file" id="i-video" accept="video/*" style="display:none">
 <input type="file" id="i-short" accept="video/*" style="display:none">
+<input type="file" id="i-video-normal" accept="video/*" style="display:none">
+<input type="file" id="i-video-canal"  accept="video/*" style="display:none">
 
 <!-- BARRA INFERIOR -->
 <div id="media-bar">
     <label class="media-chip" for="i-foto"  id="chip-foto" ><i class="fa-solid fa-image ic-f"></i> Foto</label>
-    <label class="media-chip" for="i-video" id="chip-video"><i class="fa-solid fa-video ic-v"></i> Video</label>
+    <div  class="media-chip"  id="chip-video" onclick="abrirModalVideo()"><i class="fa-solid fa-video ic-v"></i> Video</div>
     <div  class="media-chip"  id="chip-estado"><i class="fa-solid fa-face-smile ic-e"></i> Estado</div>
     <label class="media-chip" for="i-short" id="chip-short" style="display:none"><i class="fa-solid fa-bolt ic-v"></i> Elegir video</label>
+</div>
+
+<!-- MODAL SELECTOR DE VIDEO -->
+<div id="modal-video" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;">
+    <div id="modal-video-inner" style="background:var(--surface);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:0 0 32px;animation:slideUp .28s ease;">
+
+        <!-- Handle -->
+        <div style="display:flex;justify-content:center;padding:12px 0 4px;">
+            <div style="width:38px;height:4px;border-radius:3px;background:var(--border);"></div>
+        </div>
+
+        <!-- Título -->
+        <div style="font-size:16px;font-weight:800;text-align:center;padding:6px 16px 14px;">📹 Subir Video</div>
+
+        <!-- Sub-tabs Video | Canal -->
+        <div id="mv-tabs" style="display:flex;border-bottom:1.5px solid var(--border);margin:0 16px 18px;">
+            <button class="mv-tab activo" id="mv-tab-video" onclick="switchMvTab('video')" style="flex:1;padding:10px 0;font-size:14px;font-weight:700;font-family:inherit;background:none;border:none;border-bottom:3px solid var(--accent);color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;">
+                <i class="fa-solid fa-video"></i> Video
+            </button>
+            <button class="mv-tab" id="mv-tab-canal" onclick="switchMvTab('canal')" style="flex:1;padding:10px 0;font-size:14px;font-weight:700;font-family:inherit;background:none;border:none;border-bottom:3px solid transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;">
+                <i class="fa-solid fa-satellite-dish"></i> Canal
+            </button>
+        </div>
+
+        <!-- Panel: Video normal -->
+        <div id="mvp-video" style="padding:0 16px;">
+            <label for="i-video-normal">
+                <div id="mvz-video" style="border:2px dashed var(--border);border-radius:16px;padding:26px 16px;text-align:center;background:var(--surface2);cursor:pointer;transition:border-color .2s;">
+                    <i class="fa-solid fa-photo-film" style="font-size:36px;color:var(--accent2);display:block;margin-bottom:10px;"></i>
+                    <div style="font-size:15px;font-weight:800;margin-bottom:4px;">Video de Publicación</div>
+                    <div style="font-size:12px;color:var(--text-muted);">Se publicará en el feed · MP4, MOV · máx. 500 MB</div>
+                </div>
+            </label>
+            <!-- Preview video normal -->
+            <div id="mvprev-video" style="display:none;margin-top:12px;border-radius:12px;overflow:hidden;background:#000;position:relative;">
+                <video id="mvprev-vid-video" controls playsinline style="width:100%;max-height:200px;display:block;"></video>
+                <div onclick="quitarMvVideo('video')" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <button id="mv-publicar-video" onclick="publicarDesdeModal()" style="width:100%;margin-top:14px;padding:13px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;opacity:.4;pointer-events:none;transition:all .2s;">Publicar Video</button>
+        </div>
+
+        <!-- Panel: Canal -->
+        <div id="mvp-canal" style="display:none;padding:0 16px;">
+            <input id="mv-canal-titulo" oninput="validarMv()" placeholder="📺 Título del video..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;">
+            <input id="mv-canal-desc"   oninput="validarMv()" placeholder="📝 Descripción (opcional)..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;">
+            <label for="i-video-canal">
+                <div id="mvz-canal" style="border:2px dashed var(--border);border-radius:16px;padding:26px 16px;text-align:center;background:var(--surface2);cursor:pointer;transition:border-color .2s;">
+                    <i class="fa-solid fa-satellite-dish" style="font-size:36px;color:#f7b731;display:block;margin-bottom:10px;"></i>
+                    <div style="font-size:15px;font-weight:800;margin-bottom:4px;">Video de Canal</div>
+                    <div style="font-size:12px;color:var(--text-muted);">Sección <strong>Canales</strong> de SnapBookSocial · máx. 2 GB</div>
+                </div>
+            </label>
+            <!-- Preview canal -->
+            <div id="mvprev-canal" style="display:none;margin-top:12px;border-radius:12px;overflow:hidden;background:#000;position:relative;">
+                <video id="mvprev-vid-canal" controls playsinline style="width:100%;max-height:200px;display:block;"></video>
+                <div onclick="quitarMvVideo('canal')" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <button id="mv-publicar-canal" onclick="publicarDesdeModal()" style="width:100%;margin-top:14px;padding:13px;border-radius:14px;background:linear-gradient(135deg,#f7b731,#ff6584);color:#fff;border:none;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;opacity:.4;pointer-events:none;transition:all .2s;">Publicar en Canal</button>
+        </div>
+
+        <!-- Cerrar -->
+        <div onclick="cerrarModalVideo()" style="text-align:center;margin-top:18px;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;">Cancelar</div>
+    </div>
 </div>
 
 <!-- OVERLAY DE PROGRESO -->
@@ -395,6 +464,9 @@ let vozSeg     = 0;
 let vozInt     = null;
 let mediaRec   = null;
 let grabando   = false;
+// MultiVideos (modal)
+let archivoVideoNormal    = null;
+let archivoVideoCanalFile = null;
 
 // ── DOM refs ──────────────────────────────────────────────────────
 const btnPub    = document.getElementById('btn-publicar');
@@ -533,6 +605,89 @@ document.getElementById('remove-media').addEventListener('click', () => {
     ['i-foto','i-video','i-short'].forEach(id => document.getElementById(id).value = '');
     validar();
 });
+
+// ── Modal Video: abrir / cerrar / tabs ───────────────────────────
+let mvTabActiva = 'video'; // 'video' | 'canal'
+
+window.abrirModalVideo = function() {
+    document.getElementById('modal-video').classList.add('open');
+};
+window.cerrarModalVideo = function() {
+    document.getElementById('modal-video').classList.remove('open');
+};
+// Cerrar al tocar fondo
+document.getElementById('modal-video').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalVideo();
+});
+
+window.switchMvTab = function(sec) {
+    mvTabActiva = sec;
+    // Estilos activo/inactivo
+    ['video','canal'].forEach(s => {
+        const btn = document.getElementById('mv-tab-' + s);
+        const panel = document.getElementById('mvp-' + s);
+        const isActive = s === sec;
+        btn.style.color           = isActive ? 'var(--accent)' : 'var(--text-muted)';
+        btn.style.borderBottom    = isActive ? '3px solid var(--accent)' : '3px solid transparent';
+        panel.style.display       = isActive ? 'block' : 'none';
+    });
+    validarMv();
+};
+
+window.validarMv = function() {
+    const btnVid   = document.getElementById('mv-publicar-video');
+    const btnCanal = document.getElementById('mv-publicar-canal');
+    const okVid    = !!archivoVideoNormal;
+    const titulo   = (document.getElementById('mv-canal-titulo')?.value || '').trim();
+    const okCanal  = !!archivoVideoCanalFile && titulo.length > 0;
+    btnVid.style.opacity        = okVid   ? '1'    : '0.4';
+    btnVid.style.pointerEvents  = okVid   ? 'all'  : 'none';
+    btnCanal.style.opacity      = okCanal ? '1'    : '0.4';
+    btnCanal.style.pointerEvents= okCanal ? 'all'  : 'none';
+};
+
+// ── Modal Video: inputs de archivo ──────────────────────────────
+document.getElementById('i-video-normal').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    archivoVideoNormal = f;
+    const vid = document.getElementById('mvprev-vid-video');
+    vid.src = URL.createObjectURL(f);
+    document.getElementById('mvprev-video').style.display = 'block';
+    document.getElementById('mvz-video').style.borderColor = 'var(--accent)';
+    validarMv();
+});
+
+document.getElementById('i-video-canal').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    archivoVideoCanalFile = f;
+    const vid = document.getElementById('mvprev-vid-canal');
+    vid.src = URL.createObjectURL(f);
+    document.getElementById('mvprev-canal').style.display = 'block';
+    document.getElementById('mvz-canal').style.borderColor = '#f7b731';
+    validarMv();
+});
+
+window.quitarMvVideo = function(tipo) {
+    if (tipo === 'video') {
+        archivoVideoNormal = null;
+        document.getElementById('mvprev-video').style.display = 'none';
+        document.getElementById('i-video-normal').value = '';
+        document.getElementById('mvz-video').style.borderColor = '';
+    } else {
+        archivoVideoCanalFile = null;
+        document.getElementById('mvprev-canal').style.display = 'none';
+        document.getElementById('i-video-canal').value = '';
+        document.getElementById('mvz-canal').style.borderColor = '';
+    }
+    validarMv();
+};
+
+// ── Modal Video: publicar desde modal ────────────────────────────
+window.publicarDesdeModal = function() {
+    cerrarModalVideo();
+    // Disparar el botón Publicar principal
+    document.getElementById('btn-publicar').click();
+};
 
 // ── Comprimir imagen ──────────────────────────────────────────────
 function comprimir(file, maxW = 1280, q = 0.82) {
@@ -941,6 +1096,33 @@ btnPub.addEventListener('click', async () => {
             }
 
             logNuevaPublicacion(usuario.uid, base.autor, 'publicacion', d.contenido, mediaUrl || '');
+        }
+
+        // ── MultiVideos desde modal ────────────────────────────────
+        if (archivoVideoNormal || archivoVideoCanalFile) {
+            if (archivoVideoNormal && mvTabActiva === 'video') {
+                // — Video Normal de Publicación —
+                ovLabel.textContent = 'Subiendo video de publicación...';
+                const vUrl = await uploadPostVideo(archivoVideoNormal, pct => { ovFill.style.width = pct + '%'; });
+                if (tursoOK) {
+                    try {
+                        await crearPost(usuario, { texto: textarea.value.trim(), videoUrl: vUrl, esAnonimo: false, firebaseId: sharedId });
+                    } catch(e) { logTurso('video-normal', e); }
+                }
+                await set(ref(db, `publicaciones/${sharedId}`), { ...base, contenido: textarea.value.trim(), videoUrl: vUrl, esVideo: true, tipoVideo: 'normal' });
+                await set(ref(db, `multiVideos/normal/${sharedId}`), { ...base, videoUrl: vUrl, descripcion: textarea.value.trim(), tipoVideo: 'normal' });
+                logNuevaPublicacion(usuario.uid, base.autor, 'video-normal', textarea.value.trim(), vUrl);
+
+            } else if (archivoVideoCanalFile && mvTabActiva === 'canal') {
+                // — Video de Canal —
+                const titulo      = document.getElementById('mv-canal-titulo').value.trim();
+                const descripcion = document.getElementById('mv-canal-desc').value.trim();
+                ovLabel.textContent = 'Subiendo video de canal...';
+                const vUrl = await uploadPostVideo(archivoVideoCanalFile, pct => { ovFill.style.width = pct + '%'; });
+                await set(ref(db, `multiVideos/canal/${sharedId}`), { ...base, titulo, descripcion, videoUrl: vUrl, tipoVideo: 'canal', canal: true });
+                await set(ref(db, `publicaciones/${sharedId}`), { ...base, contenido: descripcion || titulo, videoUrl: vUrl, esVideo: true, tipoVideo: 'canal', tituloVideo: titulo });
+                logNuevaPublicacion(usuario.uid, base.autor, 'video-canal', titulo, vUrl);
+            }
         }
 
         // ── 3. Éxito ───────────────────────────────────────────────

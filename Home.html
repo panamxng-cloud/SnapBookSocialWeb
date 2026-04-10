@@ -217,6 +217,59 @@
         .story-sheet-label{font-size:16px;font-weight:700;color:var(--text);}
         .story-sheet-desc{font-size:13px;color:var(--text-muted);margin-top:2px;}
         @media(min-width:600px){.feed,.compose-box,.stories-wrap,.header{max-width:600px;margin-left:auto;margin-right:auto;}}
+
+        /* ══ CONTENT TABS ══ */
+        .content-tabs{display:flex;background:var(--surface);border-bottom:2px solid var(--border);position:sticky;top:61px;z-index:90;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+        .ctab{flex:1;padding:14px 4px;text-align:center;font-size:14px;font-weight:700;color:var(--text-muted);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;letter-spacing:0.1px;margin-bottom:-2px;}
+        .ctab.active{color:var(--accent);border-bottom-color:var(--accent);}
+        .ctab:active{background:var(--surface2);}
+        .home-panel{display:none;}
+        .home-panel.active{display:block;}
+
+        /* ══ VIDEOS estilo YouTube ══ */
+        .yt-card{background:var(--surface);border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+        .yt-card:active{background:var(--surface2);}
+        .yt-thumb{position:relative;width:100%;aspect-ratio:16/9;background:#111;overflow:hidden;}
+        .yt-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+        .yt-thumb-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a24;}
+        .yt-dur{position:absolute;bottom:7px;right:8px;background:rgba(0,0,0,0.82);color:#fff;font-size:11px;font-weight:800;border-radius:5px;padding:2px 6px;}
+        .yt-info{display:flex;gap:10px;padding:10px 12px 14px;align-items:flex-start;}
+        .yt-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;cursor:pointer;}
+        .yt-meta{flex:1;min-width:0;}
+        .yt-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-bottom:4px;}
+        .yt-sub{font-size:12px;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:2px 5px;align-items:center;}
+        .yt-dot{font-size:8px;opacity:0.4;}
+        .yt-menu{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:16px;flex-shrink:0;border-radius:50%;}
+        .yt-empty{text-align:center;padding:64px 24px;color:var(--text-muted);}
+        .yt-empty i{font-size:48px;margin-bottom:16px;display:block;opacity:0.2;}
+        .yt-empty p{font-size:15px;font-weight:700;margin-bottom:4px;}
+        .yt-empty span{font-size:13px;opacity:0.55;}
+
+        /* ══ VIDEO PLAYER OVERLAY ══ */
+        .vp-overlay{position:fixed;inset:0;z-index:9995;background:#000;display:flex;flex-direction:column;animation:fadeIn 0.2s ease;}
+        .vp-video-wrap{width:100%;background:#000;position:relative;flex-shrink:0;}
+        .vp-video-wrap video{width:100%;max-height:56vw;display:block;background:#000;}
+        .vp-close{position:absolute;top:10px;right:10px;z-index:2;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;cursor:pointer;}
+        .vp-body{flex:1;overflow-y:auto;background:var(--surface);scrollbar-width:none;}
+        .vp-body::-webkit-scrollbar{display:none;}
+        .vp-info{padding:14px 16px 0;}
+        .vp-title{font-size:17px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:12px;}
+        .vp-author-row{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+        .vp-author-av{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;cursor:pointer;}
+        .vp-author-info{flex:1;}
+        .vp-author-name{font-size:15px;font-weight:700;color:var(--text);cursor:pointer;}
+        .vp-author-subs{font-size:12px;color:var(--text-muted);}
+        .vp-follow{padding:8px 18px;border-radius:20px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;flex-shrink:0;transition:all 0.2s;}
+        .vp-follow.sig{background:var(--surface2);color:var(--text-muted);border:1.5px solid var(--border);}
+        .vp-actions{display:flex;border-bottom:1px solid var(--border);}
+        .vp-act{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 4px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);transition:background 0.15s;}
+        .vp-act:active{background:var(--surface2);}
+        .vp-act.liked{color:var(--accent);}
+        .vp-desc{padding:12px 16px;font-size:14px;color:var(--text-muted);line-height:1.55;border-bottom:1px solid var(--border);overflow:hidden;max-height:64px;}
+        .vp-desc-toggle{font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;margin-top:6px;display:block;}
+        .vp-cmts-hdr{padding:12px 16px 8px;font-size:15px;font-weight:800;color:var(--text);border-bottom:1px solid var(--border);}
+        .vp-cmt-input-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);}
+        .vp-cmt-list{padding:12px 16px;display:flex;flex-direction:column;gap:12px;}
     </style>
 </head>
 <body>
@@ -233,6 +286,15 @@
         <a class="hbtn" href="settings.html"><i class="fa-solid fa-gear"></i></a>
     </div>
 </div>
+
+<!-- ═══ TABS ═══ -->
+<div class="content-tabs">
+    <div class="ctab active" id="ctab-posts" onclick="switchHomeTab('posts')">Publicaciones</div>
+    <div class="ctab" id="ctab-videos" onclick="switchHomeTab('videos')">Videos</div>
+</div>
+
+<!-- ═══ PANEL: Publicaciones (todo el contenido original intacto) ═══ -->
+<div class="home-panel active" id="panel-posts">
 
 <div class="stories-wrap" id="stories-wrap">
     <div class="story-add-box" onclick="openAddStorySheet()">
@@ -256,6 +318,15 @@
 <div class="feed" id="feed">
     <div class="skeleton" id="sk1"><div class="sk-row"><div class="sk-circle"></div><div class="sk-lines"><div class="sk-line w70"></div><div class="sk-line w40"></div></div></div><div class="sk-img"></div></div>
     <div class="skeleton" id="sk2"><div class="sk-row"><div class="sk-circle"></div><div class="sk-lines"><div class="sk-line w70"></div><div class="sk-line w40"></div></div></div><div class="sk-line" style="height:14px;margin-bottom:6px;"></div></div>
+</div>
+
+</div><!-- fin panel-posts -->
+
+<!-- ═══ PANEL: Videos estilo YouTube ═══ -->
+<div class="home-panel" id="panel-videos">
+    <div id="yt-list-container">
+        <div class="yt-empty"><i class="fa-solid fa-circle-notch fa-spin"></i><p>Cargando videos...</p></div>
+    </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1239,6 +1310,507 @@ onAuthStateChanged(auth, async user => {
         listenNotifications(user.uid);
     }
 });
+
+// ════════════════════════════════════════════════════════
+//  TABS — Publicaciones | Videos
+// ════════════════════════════════════════════════════════
+let _ytLoaded = false;
+
+window.switchHomeTab = function(tab) {
+    document.querySelectorAll('.ctab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.home-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('ctab-' + tab).classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+    if (tab === 'videos' && !_ytLoaded) { _ytLoaded = true; loadYTVideos(); }
+};
+
+// ════════════════════════════════════════════════════════
+//  VIDEOS — carga estilo YouTube
+// ════════════════════════════════════════════════════════
+function fmtDur(s) { s=Math.floor(s||0); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+function fmtViews(n) {
+    n=Number(n||0);
+    if(n>=1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M';
+    if(n>=1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'')+'K';
+    return String(n);
+}
+
+function buildVideoCard(v) {
+    const thumb  = v.thumbnail || v.thumbnailUrl || '';
+    const titulo = v.titulo || v.contenido || v.texto || 'Sin título';
+    const autor  = v.autor  || v.nombre   || 'Usuario';
+    const avatar = v.avatar || 'default-avatar.png';
+    const uid    = v.uid    || '';
+    const views  = v.vistas ? fmtViews(v.vistas)+' vistas' : '';
+    const dur    = v.duracion ? fmtDur(v.duracion) : '';
+    const ago    = v.timestamp ? timeAgo(Number(v.timestamp)) : '';
+    const safe   = JSON.stringify(JSON.stringify(v));
+    const thumbEl = thumb
+        ? `<img src="${thumb}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=yt-thumb-ph><i class=fa-solid\ fa-play style=color:#fff;font-size:28px;opacity:.3></i></div>'">`
+        : `<div class="yt-thumb-ph"><i class="fa-solid fa-play" style="color:#fff;font-size:28px;opacity:.3;"></i></div>`;
+    return `<div class="yt-card" onclick="openVP(${safe})">
+        <div class="yt-thumb">${thumbEl}${dur?`<div class="yt-dur">${dur}</div>`:''}</div>
+        <div class="yt-info">
+            <img class="yt-avatar" src="${avatar}" onerror="this.src='default-avatar.png'" onclick="event.stopPropagation();${uid?`location.href='Infocanal.html?uid=${uid}'`:''}">
+            <div class="yt-meta">
+                <div class="yt-title">${titulo}</div>
+                <div class="yt-sub">
+                    <span onclick="event.stopPropagation();${uid?`location.href='Infocanal.html?uid=${uid}'`:''}" style="cursor:pointer;">${autor}</span>
+                    ${views?`<span class="yt-dot">•</span><span>${views}</span>`:''}
+                    ${ago?`<span class="yt-dot">•</span><span>${ago}</span>`:''}
+                </div>
+            </div>
+            <div class="yt-menu" onclick="event.stopPropagation()"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+        </div>
+    </div>`;
+}
+
+async function loadYTVideos() {
+    // Este panel muestra SOLO el nodo MultiVideos de Firebase
+    const el = document.getElementById('yt-list-container');
+    el.innerHTML = `<div class="yt-empty"><i class="fa-solid fa-circle-notch fa-spin"></i><p>Cargando...</p></div>`;
+
+    const mvCollected = [];
+    try {
+        const mvSnap = await get(ref(db, 'MultiVideos'));
+        if (mvSnap.exists()) {
+            mvSnap.forEach(c => {
+                const v = c.val();
+                const hasVideo = v.videoUrl || v.video_url || v.cloudinaryUrl;
+                if (hasVideo) mvCollected.push({
+                    id: c.key, ...v,
+                    videoUrl: v.videoUrl || v.video_url || v.cloudinaryUrl,
+                    _node: 'MultiVideos'
+                });
+            });
+            mvCollected.sort((a,b) => Number(b.timestamp||0) - Number(a.timestamp||0));
+        }
+    } catch(e) { console.warn('MultiVideos', e); }
+
+    el.innerHTML = mvCollected.length
+        ? mvCollected.map(buildMVCard).join('')
+        : `<div class="yt-empty"><i class="fa-solid fa-film"></i><p>No hay MultiVideos aún</p><span>El contenido largo aparecerá aquí</span></div>`;
+}
+
+
+
+// ════════════════════════════════════════════════════════
+//  MULTIVIDEOS — card y player estilo YouTube completo
+// ════════════════════════════════════════════════════════
+function buildMVCard(v) {
+    const thumb  = v.thumbnail || v.thumbnailUrl || '';
+    const titulo = v.titulo || v.contenido || v.texto || 'Sin título';
+    const autor  = v.autor  || v.nombre   || 'Usuario';
+    const avatar = v.avatar || 'default-avatar.png';
+    const uid    = v.uid    || '';
+    const views  = v.vistas ? fmtViews(v.vistas)+' vistas' : '';
+    const dur    = v.duracion ? fmtDur(v.duracion) : '';
+    const ago    = v.timestamp ? timeAgo(Number(v.timestamp)) : '';
+    const safe   = JSON.stringify(JSON.stringify(v));
+    const thumbEl = thumb
+        ? `<img src="${thumb}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=yt-thumb-ph><i class=fa-solid\ fa-play style=color:#fff;font-size:32px;opacity:.4></i></div>'">`
+        : `<div class="yt-thumb-ph"><i class="fa-solid fa-play" style="color:#fff;font-size:32px;opacity:.4;"></i></div>`;
+    return `<div class="yt-card" onclick="openMV(${safe})">
+        <div class="yt-thumb">${thumbEl}${dur?`<div class="yt-dur">${dur}</div>`:''}</div>
+        <div class="yt-info">
+            <img class="yt-avatar" src="${avatar}" onerror="this.src='default-avatar.png'" onclick="event.stopPropagation();${uid?`location.href='Infocanal.html?uid=${uid}'`:''}">
+            <div class="yt-meta">
+                <div class="yt-title">${titulo}</div>
+                <div class="yt-sub">
+                    <span onclick="event.stopPropagation();${uid?`location.href='Infocanal.html?uid=${uid}'`:''}" style="cursor:pointer;">${autor}</span>
+                    ${views?`<span class="yt-dot">•</span><span>${views}</span>`:''}
+                    ${ago?`<span class="yt-dot">•</span><span>${ago}</span>`:''}
+                </div>
+            </div>
+            <div class="yt-menu" onclick="event.stopPropagation()"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+        </div>
+    </div>`;
+}
+
+window.openMV = function(vJson) {
+    const v      = JSON.parse(vJson);
+    const url    = v.videoUrl || v.video_url || v.cloudinaryUrl || '';
+    const titulo = v.titulo   || v.contenido || v.texto || 'Video';
+    const autor  = v.autor    || v.nombre    || 'Usuario';
+    const avatar = v.avatar   || 'default-avatar.png';
+    const uid    = v.uid      || '';
+    const desc   = v.descripcion || v.descripcion_larga || '';
+    const likes  = v.likes ? Object.keys(v.likes).length : (Number(v.total_likes)||0);
+    const views  = v.vistas ? fmtViews(v.vistas)+' vistas' : '';
+
+    // Quitar overlay anterior si existe
+    document.getElementById('mv-overlay')?.remove();
+
+    const ov = document.createElement('div');
+    ov.id = 'mv-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9996;background:var(--bg);display:flex;flex-direction:column;animation:fadeIn 0.2s ease;overflow-y:auto;';
+    ov.innerHTML = `
+        <!-- VIDEO -->
+        <div style="width:100%;background:#000;position:sticky;top:0;z-index:2;flex-shrink:0;">
+            <video id="mv-vid" src="${url}" playsinline controls autoplay
+                style="width:100%;max-height:56vw;display:block;background:#000;"></video>
+            <div onclick="closeMV()" style="position:absolute;top:8px;left:10px;z-index:3;
+                width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.6);
+                display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;cursor:pointer;">
+                <i class="fa-solid fa-arrow-left"></i>
+            </div>
+        </div>
+
+        <!-- INFO -->
+        <div style="background:var(--surface);padding:14px 14px 0;flex:1;">
+
+            <!-- Título -->
+            <div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.35;margin-bottom:6px;">${titulo}</div>
+
+            <!-- Vistas + fecha -->
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">
+                ${views}${views?'  ·  ':''}${v.timestamp ? timeAgo(Number(v.timestamp)) : ''}
+            </div>
+
+            <!-- Canal row -->
+            <div style="display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+                <img src="${avatar}" onerror="this.src='default-avatar.png'"
+                    style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;cursor:pointer;"
+                    onclick="${uid?`location.href='Infocanal.html?uid=${uid}'`:''}">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:15px;font-weight:700;color:var(--text);cursor:pointer;"
+                        onclick="${uid?`location.href='Infocanal.html?uid=${uid}'`:''}">${autor}</div>
+                    <div style="font-size:12px;color:var(--text-muted);" id="mv-subs">Cargando...</div>
+                </div>
+                ${uid && uid !== currentUser?.uid
+                    ? `<button id="mv-follow-btn" onclick="mvToggleFollow('${uid}')"
+                        style="padding:8px 18px;border-radius:20px;border:none;background:var(--accent);
+                        color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">Suscribirse</button>`
+                    : ''}
+            </div>
+
+            <!-- Acciones: like, comentar, compartir -->
+            <div style="display:flex;border-bottom:1px solid var(--border);">
+                <div id="mv-like-btn" onclick="mvLike('${v.id}')"
+                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                    padding:12px 4px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);">
+                    <i class="fa-regular fa-thumbs-up"></i>
+                    <span id="mv-like-cnt">${likes}</span>
+                </div>
+                <div onclick="document.getElementById('mv-cmt-inp').focus()"
+                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                    padding:12px 4px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);">
+                    <i class="fa-regular fa-comment"></i> Comentar
+                </div>
+                <div onclick="navigator.share?navigator.share({url:location.href}):showToast('🔗 Comparte el link')"
+                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                    padding:12px 4px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text-muted);">
+                    <i class="fa-solid fa-share"></i> Compartir
+                </div>
+            </div>
+
+            <!-- Descripción -->
+            ${desc ? `<div id="mv-desc"
+                style="padding:12px 0;font-size:14px;color:var(--text-muted);line-height:1.55;
+                border-bottom:1px solid var(--border);overflow:hidden;max-height:60px;cursor:pointer;"
+                onclick="this.style.maxHeight=this.style.maxHeight==='none'?'60px':'none'">
+                ${desc}
+                <span style="font-size:13px;font-weight:700;color:var(--accent);display:block;margin-top:4px;">Ver más</span>
+            </div>` : ''}
+
+            <!-- Comentarios -->
+            <div style="font-size:15px;font-weight:800;color:var(--text);padding:14px 0 8px;">
+                💬 Comentarios
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+                <img src="${currentUser?.photoURL||'default-avatar.png'}" onerror="this.src='default-avatar.png'"
+                    style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                <input id="mv-cmt-inp" placeholder="Añade un comentario..."
+                    style="flex:1;background:var(--surface2);border:1.5px solid var(--border);
+                    border-radius:22px;padding:10px 16px;font-size:14px;color:var(--text);
+                    font-family:inherit;outline:none;"
+                    autocomplete="off">
+                <button onclick="mvSendCmt('${v.id}')"
+                    style="width:36px;height:36px;min-width:36px;border-radius:50%;border:none;
+                    background:var(--accent);color:#fff;display:flex;align-items:center;
+                    justify-content:center;font-size:15px;cursor:pointer;">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+            <div id="mv-cmt-list" style="display:flex;flex-direction:column;gap:12px;padding:12px 0 32px;">
+                <div style="text-align:center;color:var(--text-muted);font-size:14px;padding:16px 0;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                </div>
+            </div>
+        </div>`;
+
+    document.body.appendChild(ov);
+    document.body.style.overflow = 'hidden';
+
+    document.getElementById('mv-cmt-inp')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') mvSendCmt(v.id);
+    });
+
+    // Cargar seguidores
+    if (uid) {
+        get(ref(db, `seguidores/${uid}`)).then(s => {
+            const n = s.exists() ? Object.keys(s.val()).length : 0;
+            const el = document.getElementById('mv-subs');
+            if (el) el.textContent = `${n.toLocaleString()} suscriptor${n !== 1 ? 'es' : ''}`;
+        }).catch(() => {});
+        if (currentUser && uid !== currentUser.uid) {
+            get(ref(db, `siguiendo/${currentUser.uid}/${uid}`)).then(s => {
+                const btn = document.getElementById('mv-follow-btn');
+                if (btn && s.exists()) {
+                    btn.textContent = 'Suscrito';
+                    btn.style.background = 'var(--surface2)';
+                    btn.style.color = 'var(--text-muted)';
+                    btn.style.border = '1.5px solid var(--border)';
+                }
+            }).catch(() => {});
+        }
+    }
+
+    // Cargar like state
+    if (currentUser) {
+        get(ref(db, `MultiVideos/${v.id}/likes/${currentUser.uid}`)).then(s => {
+            if (s.exists()) {
+                const btn = document.getElementById('mv-like-btn');
+                if (btn) { btn.style.color = 'var(--accent)'; btn.querySelector('i').className = 'fa-solid fa-thumbs-up'; }
+            }
+        }).catch(() => {});
+    }
+
+    mvLoadCmts(v.id);
+};
+
+window.closeMV = function() {
+    const vid = document.getElementById('mv-vid');
+    if (vid) { vid.pause(); vid.src = ''; }
+    document.getElementById('mv-overlay')?.remove();
+    document.body.style.overflow = '';
+};
+
+window.mvLike = async function(id) {
+    if (!currentUser) return;
+    const btn = document.getElementById('mv-like-btn');
+    const cnt = document.getElementById('mv-like-cnt');
+    const liked = btn?.querySelector('i')?.className.includes('fa-solid');
+    const icon = btn?.querySelector('i');
+    if (btn) { btn.style.color = liked ? 'var(--text-muted)' : 'var(--accent)'; }
+    if (icon) icon.className = liked ? 'fa-regular fa-thumbs-up' : 'fa-solid fa-thumbs-up';
+    const lr = ref(db, `MultiVideos/${id}/likes/${currentUser.uid}`);
+    const s  = await get(lr);
+    if (s.exists()) await remove(lr); else await set(lr, true);
+    const all = await get(ref(db, `MultiVideos/${id}/likes`)).catch(() => null);
+    if (cnt) cnt.textContent = all?.exists() ? Object.keys(all.val()).length : 0;
+};
+
+window.mvToggleFollow = async function(uid) {
+    if (!currentUser) return;
+    const btn = document.getElementById('mv-follow-btn');
+    const fR  = ref(db, `siguiendo/${currentUser.uid}/${uid}`);
+    const sR  = ref(db, `seguidores/${uid}/${currentUser.uid}`);
+    const s   = await get(fR);
+    if (s.exists()) {
+        await remove(fR); await remove(sR);
+        if (btn) { btn.textContent = 'Suscribirse'; btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; btn.style.border = 'none'; }
+        showToast('Dejaste de suscribirte');
+    } else {
+        await set(fR, true); await set(sR, true);
+        if (btn) { btn.textContent = 'Suscrito'; btn.style.background = 'var(--surface2)'; btn.style.color = 'var(--text-muted)'; btn.style.border = '1.5px solid var(--border)'; }
+        writeNotif(uid, 'follow');
+        showToast('✅ Suscrito');
+    }
+};
+
+async function mvLoadCmts(postId) {
+    const el = document.getElementById('mv-cmt-list');
+    if (!el) return;
+    try {
+        const snap = await get(ref(db, `comentarios/${postId}`)).catch(() => null);
+        if (!snap?.exists()) {
+            el.innerHTML = `<div style="text-align:center;color:var(--text-muted);font-size:14px;padding:16px 0;">Sin comentarios aún. ¡Sé el primero!</div>`;
+            return;
+        }
+        const arr = []; snap.forEach(c => arr.push(c.val())); arr.sort((a, b) => a.timestamp - b.timestamp);
+        el.innerHTML = arr.map(c => `
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+                <img src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'"
+                    style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;">
+                <div style="flex:1;background:var(--surface2);border-radius:14px;padding:9px 13px;">
+                    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;">${c.autor||'Usuario'}</div>
+                    <div style="font-size:14px;color:var(--text);line-height:1.4;">${c.texto}</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${timeAgo(c.timestamp)}</div>
+                </div>
+            </div>`).join('');
+    } catch(e) {
+        el.innerHTML = `<div style="text-align:center;color:var(--text-muted);font-size:14px;">Error al cargar comentarios</div>`;
+    }
+}
+
+window.mvSendCmt = async function(postId) {
+    const inp = document.getElementById('mv-cmt-inp');
+    const txt = inp?.value.trim();
+    if (!txt || !currentUser) return;
+    inp.value = '';
+    await push(ref(db, `comentarios/${postId}`), {
+        autor: currentUser.displayName || 'Usuario',
+        avatar: currentUser.photoURL || '',
+        uid: currentUser.uid,
+        texto: txt,
+        timestamp: Date.now()
+    });
+    mvLoadCmts(postId);
+    showToast('💬 Comentario enviado');
+};
+
+// ════════════════════════════════════════════════════════
+//  VIDEO PLAYER OVERLAY
+// ════════════════════════════════════════════════════════
+window.openVP = function(vJson) {
+    const v      = JSON.parse(vJson);
+    const url    = v.videoUrl || v.video_url || '';
+    const titulo = v.titulo   || v.contenido || v.texto || 'Video';
+    const autor  = v.autor    || v.nombre    || 'Usuario';
+    const avatar = v.avatar   || 'default-avatar.png';
+    const uid    = v.uid      || '';
+    const desc   = v.descripcion || '';
+    const likes  = v.likes ? Object.keys(v.likes).length : (Number(v.total_likes)||0);
+    const views  = v.vistas ? fmtViews(v.vistas) : '';
+    const node   = v._node || 'publicaciones';
+
+    const ov = document.createElement('div');
+    ov.className = 'vp-overlay';
+    ov.id = 'vp-overlay';
+    ov.innerHTML = `
+        <div class="vp-video-wrap">
+            <video id="vp-vid" src="${url}" playsinline controls autoplay style="width:100%;max-height:56vw;display:block;background:#000;"></video>
+            <div class="vp-close" onclick="closeVP()"><i class="fa-solid fa-xmark"></i></div>
+        </div>
+        <div class="vp-body">
+            <div class="vp-info">
+                <div class="vp-title">${titulo}</div>
+                <div class="vp-author-row">
+                    <img class="vp-author-av" src="${avatar}" onerror="this.src='default-avatar.png'" onclick="${uid?`location.href='Infocanal.html?uid=${uid}'`:''}">
+                    <div class="vp-author-info">
+                        <div class="vp-author-name" onclick="${uid?`location.href='Infocanal.html?uid=${uid}'`:''}">${autor}</div>
+                        <div class="vp-author-subs" id="vp-subs">Cargando...</div>
+                    </div>
+                    ${uid && uid !== currentUser?.uid ? `<button class="vp-follow" id="vp-follow" onclick="vpToggleFollow('${uid}')">Seguir</button>` : ''}
+                </div>
+            </div>
+            <div class="vp-actions">
+                <div class="vp-act" id="vp-like" onclick="vpLike('${v.id}','${node}')"><i class="fa-regular fa-thumbs-up"></i> <span id="vp-like-cnt">${likes}</span></div>
+                <div class="vp-act" onclick="document.getElementById('vp-cmt-inp').focus()"><i class="fa-regular fa-comment"></i> Comentar</div>
+                <div class="vp-act" onclick="navigator.share?navigator.share({url:location.href}):showToast('🔗 Comparte el link')"><i class="fa-solid fa-share"></i> Compartir</div>
+                ${views?`<div class="vp-act" style="cursor:default;pointer-events:none;"><i class="fa-regular fa-eye"></i> ${views}</div>`:''}
+            </div>
+            ${desc?`<div class="vp-desc" id="vp-desc">${desc}<span class="vp-desc-toggle" onclick="vpToggleDesc()">Ver más</span></div>`:''}
+            <div class="vp-cmts-hdr">💬 Comentarios</div>
+            <div class="vp-cmt-input-row">
+                <img class="cs-input-avatar" src="${currentUser?.photoURL||'default-avatar.png'}" onerror="this.src='default-avatar.png'" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                <input class="cs-input" id="vp-cmt-inp" placeholder="Añade un comentario..." autocomplete="off" style="flex:1;">
+                <button class="cs-send" onclick="vpSendCmt('${v.id}')"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+            <div class="vp-cmt-list" id="vp-cmt-list"><div class="cs-empty"><i class="fa-solid fa-circle-notch fa-spin"></i></div></div>
+        </div>`;
+
+    document.body.appendChild(ov);
+    document.body.style.overflow = 'hidden';
+
+    document.getElementById('vp-cmt-inp')?.addEventListener('keydown', e => { if(e.key==='Enter') vpSendCmt(v.id); });
+
+    // seguidores + follow state
+    if (uid) {
+        get(ref(db,`seguidores/${uid}`)).then(s => {
+            const n = s.exists() ? Object.keys(s.val()).length : 0;
+            const el = document.getElementById('vp-subs');
+            if(el) el.textContent = `${n} seguidor${n!==1?'es':''}`;
+        }).catch(()=>{});
+        if (currentUser && uid !== currentUser.uid) {
+            get(ref(db,`siguiendo/${currentUser.uid}/${uid}`)).then(s => {
+                const btn = document.getElementById('vp-follow');
+                if(btn && s.exists()){ btn.textContent='Siguiendo'; btn.classList.add('sig'); }
+            }).catch(()=>{});
+        }
+    }
+    vpLoadCmts(v.id);
+};
+
+window.closeVP = function() {
+    const vid = document.getElementById('vp-vid');
+    if(vid){ vid.pause(); vid.src=''; }
+    document.getElementById('vp-overlay')?.remove();
+    document.body.style.overflow = '';
+};
+
+window.vpToggleDesc = function() {
+    const d = document.getElementById('vp-desc');
+    const b = d?.querySelector('.vp-desc-toggle');
+    if(!d) return;
+    const exp = d.style.maxHeight === 'none';
+    d.style.maxHeight = exp ? '' : 'none';
+    if(b) b.textContent = exp ? 'Ver más' : 'Ver menos';
+};
+
+window.vpLike = async function(id, node) {
+    if(!currentUser) return;
+    const btn = document.getElementById('vp-like');
+    const cnt = document.getElementById('vp-like-cnt');
+    const liked = btn.classList.contains('liked');
+    btn.classList.toggle('liked', !liked);
+    btn.querySelector('i').className = liked ? 'fa-regular fa-thumbs-up' : 'fa-solid fa-thumbs-up';
+    const lr = ref(db,`${node}/${id}/likes/${currentUser.uid}`);
+    const s  = await get(lr);
+    if(s.exists()) await remove(lr); else await set(lr, true);
+    const all = await get(ref(db,`${node}/${id}/likes`)).catch(()=>null);
+    if(cnt) cnt.textContent = all?.exists() ? Object.keys(all.val()).length : 0;
+};
+
+window.vpToggleFollow = async function(uid) {
+    if(!currentUser) return;
+    const btn = document.getElementById('vp-follow');
+    const fR  = ref(db,`siguiendo/${currentUser.uid}/${uid}`);
+    const sR  = ref(db,`seguidores/${uid}/${currentUser.uid}`);
+    const s   = await get(fR);
+    if(s.exists()){
+        await remove(fR); await remove(sR);
+        btn.textContent='Seguir'; btn.classList.remove('sig'); showToast('Dejaste de seguir');
+    } else {
+        await set(fR,true); await set(sR,true);
+        btn.textContent='Siguiendo'; btn.classList.add('sig');
+        writeNotif(uid,'follow'); showToast('✅ Ahora lo sigues');
+    }
+};
+
+async function vpLoadCmts(postId) {
+    const el = document.getElementById('vp-cmt-list');
+    if(!el) return;
+    const snap = await get(ref(db,`comentarios/${postId}`)).catch(()=>null);
+    if(!snap?.exists()){ el.innerHTML=`<div class="cs-empty">Sin comentarios aún. ¡Sé el primero!</div>`; return; }
+    const arr=[]; snap.forEach(c=>arr.push(c.val())); arr.sort((a,b)=>a.timestamp-b.timestamp);
+    el.innerHTML = arr.map(c=>`
+        <div class="cs-comment">
+            <img class="cs-avatar" src="${c.avatar||'default-avatar.png'}" onerror="this.src='default-avatar.png'">
+            <div class="cs-bubble">
+                <div class="cs-author">${c.autor||'Usuario'}</div>
+                <div class="cs-text">${c.texto}</div>
+                <div class="cs-time">${timeAgo(c.timestamp)}</div>
+            </div>
+        </div>`).join('');
+}
+
+window.vpSendCmt = async function(postId) {
+    const inp = document.getElementById('vp-cmt-inp');
+    const txt = inp?.value.trim();
+    if(!txt||!currentUser) return;
+    inp.value = '';
+    await push(ref(db,`comentarios/${postId}`),{
+        autor: currentUser.displayName||'Usuario',
+        avatar: currentUser.photoURL||'',
+        uid: currentUser.uid,
+        texto: txt,
+        timestamp: Date.now()
+    });
+    vpLoadCmts(postId);
+    showToast('💬 Comentario enviado');
+};
 </script>
 </body>
 </html>
