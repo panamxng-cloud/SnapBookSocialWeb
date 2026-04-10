@@ -707,7 +707,7 @@ window.publicarDesdeModal = async function() {
         if (mvTabActiva === 'video' && archivoVideoNormal) {
             // ── Video Normal ──────────────────────────────────────
             ovLabel.textContent = 'Subiendo video...';
-            const vUrl = await uploadPostVideo(archivoVideoNormal, pct => {
+            const vUrl = await uploadPostVideo(usuario.uid, archivoVideoNormal, pct => {
                 ovFill.style.width = pct + '%';
             });
 
@@ -733,7 +733,7 @@ window.publicarDesdeModal = async function() {
             const descripcion = document.getElementById('mv-canal-desc').value.trim();
 
             ovLabel.textContent = 'Subiendo video de canal...';
-            const vUrl = await uploadPostVideo(archivoVideoCanalFile, pct => {
+            const vUrl = await uploadPostVideo(usuario.uid, archivoVideoCanalFile, pct => {
                 ovFill.style.width = pct + '%';
             });
 
