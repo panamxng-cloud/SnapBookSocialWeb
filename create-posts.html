@@ -695,11 +695,15 @@ window.publicarDesdeModal = async function() {
     ovFill.style.width = '0%';
 
     try {
+        // Verificar auth activa
+        const authUser = auth.currentUser;
+        if (!authUser) throw new Error('No hay sesión activa. Inicia sesión e intenta de nuevo.');
+
         const sharedId = push(ref(db, 'publicaciones')).key;
         const base = {
-            uid       : usuario.uid,
-            autor     : usuario.displayName || 'Usuario',
-            avatarUrl : usuario.photoURL    || '',
+            uid       : authUser.uid,
+            autor     : authUser.displayName || usuario.displayName || 'Usuario',
+            avatarUrl : authUser.photoURL    || usuario.photoURL    || '',
             createdAt : Date.now(),
             likes     : {}, comentarios: {}, compartidos: 0
         };
@@ -707,41 +711,49 @@ window.publicarDesdeModal = async function() {
         if (mvTabActiva === 'video' && archivoVideoNormal) {
             // ── Video Normal ──────────────────────────────────────
             ovLabel.textContent = 'Subiendo video...';
-            const vUrl = await uploadPostVideo(usuario.uid, archivoVideoNormal, pct => {
-                ovFill.style.width = pct + '%';
+            const vUrl = await uploadPostVideo(authUser.uid, archivoVideoNormal, pct => {
+                ovFill.style.width = (pct * 0.9) + '%';
             });
 
+            ovLabel.textContent = 'Guardando...';
+            ovFill.style.width  = '92%';
+
             if (tursoOK) {
-                try {
-                    await crearPost(usuario, {
-                        texto: '', videoUrl: vUrl, esAnonimo: false, firebaseId: sharedId
-                    });
-                } catch(e) {}
+                try { await crearPost(usuario, { texto: '', videoUrl: vUrl, esAnonimo: false, firebaseId: sharedId }); } catch(e) {}
             }
 
+            // Guardar en publicaciones (nodo principal — siempre disponible)
             await set(ref(db, `publicaciones/${sharedId}`), {
                 ...base, contenido: '', videoUrl: vUrl, esVideo: true, tipoVideo: 'normal'
             });
-            await set(ref(db, `multiVideos/normal/${sharedId}`), {
-                ...base, videoUrl: vUrl, descripcion: '', tipoVideo: 'normal'
-            });
-            logNuevaPublicacion(usuario.uid, base.autor, 'video-normal', '', vUrl);
+
+            // Guardar en multiVideos — con fallback si hay permisos denegados
+            try {
+                await set(ref(db, `MultiVideos/normal/${sharedId}`), {
+                    ...base, videoUrl: vUrl, descripcion: '', tipoVideo: 'normal'
+                });
+            } catch(e) {
+                console.warn('⚠️ multiVideos/normal sin permiso, solo guardado en publicaciones:', e.message);
+            }
+
+            logNuevaPublicacion(authUser.uid, base.autor, 'video-normal', '', vUrl);
 
         } else if (mvTabActiva === 'canal' && archivoVideoCanalFile) {
             // ── Video de Canal ────────────────────────────────────
             const titulo      = document.getElementById('mv-canal-titulo').value.trim();
             const descripcion = document.getElementById('mv-canal-desc').value.trim();
 
+            if (!titulo) { overlay.classList.remove('visible'); toast('⚠️ Escribe un título para el canal'); return; }
+
             ovLabel.textContent = 'Subiendo video de canal...';
-            const vUrl = await uploadPostVideo(usuario.uid, archivoVideoCanalFile, pct => {
-                ovFill.style.width = pct + '%';
+            const vUrl = await uploadPostVideo(authUser.uid, archivoVideoCanalFile, pct => {
+                ovFill.style.width = (pct * 0.9) + '%';
             });
 
-            await set(ref(db, `multiVideos/canal/${sharedId}`), {
-                ...base,
-                titulo, descripcion, videoUrl: vUrl,
-                tipoVideo: 'canal', canal: true
-            });
+            ovLabel.textContent = 'Guardando en canal...';
+            ovFill.style.width  = '92%';
+
+            // Guardar en publicaciones (nodo principal)
             await set(ref(db, `publicaciones/${sharedId}`), {
                 ...base,
                 contenido   : descripcion || titulo,
@@ -750,7 +762,22 @@ window.publicarDesdeModal = async function() {
                 tipoVideo   : 'canal',
                 tituloVideo : titulo
             });
-            logNuevaPublicacion(usuario.uid, base.autor, 'video-canal', titulo, vUrl);
+
+            // Guardar en multiVideos/canal — con fallback
+            try {
+                await set(ref(db, `MultiVideos/canal/${sharedId}`), {
+                    ...base, titulo, descripcion, videoUrl: vUrl, tipoVideo: 'canal', canal: true
+                });
+            } catch(e) {
+                console.warn('⚠️ multiVideos/canal sin permiso, solo guardado en publicaciones:', e.message);
+            }
+
+            logNuevaPublicacion(authUser.uid, base.autor, 'video-canal', titulo, vUrl);
+
+        } else {
+            overlay.classList.remove('visible');
+            toast('⚠️ Selecciona un video primero');
+            return;
         }
 
         // Reset archivos del modal
