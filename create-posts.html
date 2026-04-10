@@ -753,24 +753,25 @@ window.publicarDesdeModal = async function() {
             ovLabel.textContent = 'Guardando en canal...';
             ovFill.style.width  = '92%';
 
-            // Guardar en publicaciones (nodo principal)
-            await set(ref(db, `publicaciones/${sharedId}`), {
-                ...base,
-                contenido   : descripcion || titulo,
-                videoUrl    : vUrl,
-                esVideo     : true,
-                tipoVideo   : 'canal',
-                tituloVideo : titulo
-            });
-
-            // Guardar en multiVideos/canal — con fallback
-            try {
-                await set(ref(db, `MultiVideos/canal/${sharedId}`), {
-                    ...base, titulo, descripcion, videoUrl: vUrl, tipoVideo: 'canal', canal: true
-                });
-            } catch(e) {
-                console.warn('⚠️ multiVideos/canal sin permiso, solo guardado en publicaciones:', e.message);
+            // Guardar en Turso
+            if (tursoOK) {
+                try {
+                    await crearPost(usuario, {
+                        texto      : titulo,
+                        videoUrl   : vUrl,
+                        descripcion: descripcion,
+                        esAnonimo  : false,
+                        tipoVideo  : 'canal',
+                        canal      : true,
+                        firebaseId : sharedId
+                    });
+                } catch(e) { console.warn('Turso canal:', e.message); }
             }
+
+            // Guardar SOLO en MultiVideos/canal (no en publicaciones para evitar duplicados en el feed)
+            await set(ref(db, `MultiVideos/canal/${sharedId}`), {
+                ...base, titulo, descripcion, videoUrl: vUrl, tipoVideo: 'canal', canal: true
+            });
 
             logNuevaPublicacion(authUser.uid, base.autor, 'video-canal', titulo, vUrl);
 
