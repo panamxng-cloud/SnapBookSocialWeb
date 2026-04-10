@@ -682,11 +682,93 @@ window.quitarMvVideo = function(tipo) {
     validarMv();
 };
 
-// ── Modal Video: publicar desde modal ────────────────────────────
-window.publicarDesdeModal = function() {
+// ── Modal Video: publicar directamente desde modal ───────────────
+window.publicarDesdeModal = async function() {
+    if (!usuario) { toast('⚠️ Debes iniciar sesión'); return; }
+
+    const overlay  = document.getElementById('overlay');
+    const ovLabel  = document.getElementById('ov-label');
+    const ovFill   = document.getElementById('ov-fill');
+
     cerrarModalVideo();
-    // Disparar el botón Publicar principal
-    document.getElementById('btn-publicar').click();
+    overlay.classList.add('visible');
+    ovFill.style.width = '0%';
+
+    try {
+        const sharedId = push(ref(db, 'publicaciones')).key;
+        const base = {
+            uid       : usuario.uid,
+            autor     : usuario.displayName || 'Usuario',
+            avatarUrl : usuario.photoURL    || '',
+            createdAt : Date.now(),
+            likes     : {}, comentarios: {}, compartidos: 0
+        };
+
+        if (mvTabActiva === 'video' && archivoVideoNormal) {
+            // ── Video Normal ──────────────────────────────────────
+            ovLabel.textContent = 'Subiendo video...';
+            const vUrl = await uploadPostVideo(archivoVideoNormal, pct => {
+                ovFill.style.width = pct + '%';
+            });
+
+            if (tursoOK) {
+                try {
+                    await crearPost(usuario, {
+                        texto: '', videoUrl: vUrl, esAnonimo: false, firebaseId: sharedId
+                    });
+                } catch(e) {}
+            }
+
+            await set(ref(db, `publicaciones/${sharedId}`), {
+                ...base, contenido: '', videoUrl: vUrl, esVideo: true, tipoVideo: 'normal'
+            });
+            await set(ref(db, `multiVideos/normal/${sharedId}`), {
+                ...base, videoUrl: vUrl, descripcion: '', tipoVideo: 'normal'
+            });
+            logNuevaPublicacion(usuario.uid, base.autor, 'video-normal', '', vUrl);
+
+        } else if (mvTabActiva === 'canal' && archivoVideoCanalFile) {
+            // ── Video de Canal ────────────────────────────────────
+            const titulo      = document.getElementById('mv-canal-titulo').value.trim();
+            const descripcion = document.getElementById('mv-canal-desc').value.trim();
+
+            ovLabel.textContent = 'Subiendo video de canal...';
+            const vUrl = await uploadPostVideo(archivoVideoCanalFile, pct => {
+                ovFill.style.width = pct + '%';
+            });
+
+            await set(ref(db, `multiVideos/canal/${sharedId}`), {
+                ...base,
+                titulo, descripcion, videoUrl: vUrl,
+                tipoVideo: 'canal', canal: true
+            });
+            await set(ref(db, `publicaciones/${sharedId}`), {
+                ...base,
+                contenido   : descripcion || titulo,
+                videoUrl    : vUrl,
+                esVideo     : true,
+                tipoVideo   : 'canal',
+                tituloVideo : titulo
+            });
+            logNuevaPublicacion(usuario.uid, base.autor, 'video-canal', titulo, vUrl);
+        }
+
+        // Reset archivos del modal
+        archivoVideoNormal    = null;
+        archivoVideoCanalFile = null;
+        document.getElementById('i-video-normal').value = '';
+        document.getElementById('i-video-canal').value  = '';
+
+        ovFill.style.width = '100%';
+        overlay.classList.remove('visible');
+        toast('✅ ¡Video publicado!');
+        setTimeout(() => { location.href = 'Home.html'; }, 1200);
+
+    } catch(err) {
+        overlay.classList.remove('visible');
+        toast('❌ Error: ' + (err.message || 'Intenta de nuevo'));
+        console.error('❌ Error publicar video modal:', err);
+    }
 };
 
 // ── Comprimir imagen ──────────────────────────────────────────────
@@ -1096,33 +1178,6 @@ btnPub.addEventListener('click', async () => {
             }
 
             logNuevaPublicacion(usuario.uid, base.autor, 'publicacion', d.contenido, mediaUrl || '');
-        }
-
-        // ── MultiVideos desde modal ────────────────────────────────
-        if (archivoVideoNormal || archivoVideoCanalFile) {
-            if (archivoVideoNormal && mvTabActiva === 'video') {
-                // — Video Normal de Publicación —
-                ovLabel.textContent = 'Subiendo video de publicación...';
-                const vUrl = await uploadPostVideo(archivoVideoNormal, pct => { ovFill.style.width = pct + '%'; });
-                if (tursoOK) {
-                    try {
-                        await crearPost(usuario, { texto: textarea.value.trim(), videoUrl: vUrl, esAnonimo: false, firebaseId: sharedId });
-                    } catch(e) { logTurso('video-normal', e); }
-                }
-                await set(ref(db, `publicaciones/${sharedId}`), { ...base, contenido: textarea.value.trim(), videoUrl: vUrl, esVideo: true, tipoVideo: 'normal' });
-                await set(ref(db, `multiVideos/normal/${sharedId}`), { ...base, videoUrl: vUrl, descripcion: textarea.value.trim(), tipoVideo: 'normal' });
-                logNuevaPublicacion(usuario.uid, base.autor, 'video-normal', textarea.value.trim(), vUrl);
-
-            } else if (archivoVideoCanalFile && mvTabActiva === 'canal') {
-                // — Video de Canal —
-                const titulo      = document.getElementById('mv-canal-titulo').value.trim();
-                const descripcion = document.getElementById('mv-canal-desc').value.trim();
-                ovLabel.textContent = 'Subiendo video de canal...';
-                const vUrl = await uploadPostVideo(archivoVideoCanalFile, pct => { ovFill.style.width = pct + '%'; });
-                await set(ref(db, `multiVideos/canal/${sharedId}`), { ...base, titulo, descripcion, videoUrl: vUrl, tipoVideo: 'canal', canal: true });
-                await set(ref(db, `publicaciones/${sharedId}`), { ...base, contenido: descripcion || titulo, videoUrl: vUrl, esVideo: true, tipoVideo: 'canal', tituloVideo: titulo });
-                logNuevaPublicacion(usuario.uid, base.autor, 'video-canal', titulo, vUrl);
-            }
         }
 
         // ── 3. Éxito ───────────────────────────────────────────────
