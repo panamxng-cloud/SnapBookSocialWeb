@@ -364,7 +364,7 @@
                 <video id="mvprev-vid-video" controls playsinline style="width:100%;max-height:200px;display:block;"></video>
                 <div onclick="quitarMvVideo('video')" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;"><i class="fa-solid fa-xmark"></i></div>
             </div>
-            <button id="mv-publicar-video" onclick="publicarDesdeModal()" style="width:100%;margin-top:14px;padding:13px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;opacity:.4;pointer-events:none;transition:all .2s;">Publicar Video</button>
+            <button id="mv-publicar-video" onclick="publicarDesdeModal('video')" style="width:100%;margin-top:14px;padding:13px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;opacity:.4;pointer-events:none;transition:all .2s;">Publicar Video</button>
         </div>
 
         <!-- Panel: Canal -->
@@ -383,7 +383,7 @@
                 <video id="mvprev-vid-canal" controls playsinline style="width:100%;max-height:200px;display:block;"></video>
                 <div onclick="quitarMvVideo('canal')" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;"><i class="fa-solid fa-xmark"></i></div>
             </div>
-            <button id="mv-publicar-canal" onclick="publicarDesdeModal()" style="width:100%;margin-top:14px;padding:13px;border-radius:14px;background:linear-gradient(135deg,#f7b731,#ff6584);color:#fff;border:none;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;opacity:.4;pointer-events:none;transition:all .2s;">Publicar en Canal</button>
+            <button id="mv-publicar-canal" onclick="publicarDesdeModal('canal')" style="width:100%;margin-top:14px;padding:13px;border-radius:14px;background:linear-gradient(135deg,#f7b731,#ff6584);color:#fff;border:none;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;opacity:.4;pointer-events:none;transition:all .2s;">Publicar en Canal</button>
         </div>
 
         <!-- Cerrar -->
@@ -683,7 +683,8 @@ window.quitarMvVideo = function(tipo) {
 };
 
 // ── Modal Video: publicar directamente desde modal ───────────────
-window.publicarDesdeModal = async function() {
+window.publicarDesdeModal = async function(tipoExplicito) {
+    const tipoPublicar = tipoExplicito || mvTabActiva;
     if (!usuario) { toast('⚠️ Debes iniciar sesión'); return; }
 
     const overlay  = document.getElementById('overlay');
@@ -708,7 +709,7 @@ window.publicarDesdeModal = async function() {
             likes     : {}, comentarios: {}, compartidos: 0
         };
 
-        if (mvTabActiva === 'video' && archivoVideoNormal) {
+        if (tipoPublicar === 'video' && archivoVideoNormal) {
             // ── Video Normal ──────────────────────────────────────
             ovLabel.textContent = 'Subiendo video...';
             const vUrl = await uploadPostVideo(authUser.uid, archivoVideoNormal, pct => {
@@ -738,7 +739,7 @@ window.publicarDesdeModal = async function() {
 
             logNuevaPublicacion(authUser.uid, base.autor, 'video-normal', '', vUrl);
 
-        } else if (mvTabActiva === 'canal' && archivoVideoCanalFile) {
+        } else if (tipoPublicar === 'canal' && archivoVideoCanalFile) {
             // ── Video de Canal ────────────────────────────────────
             const titulo      = document.getElementById('mv-canal-titulo').value.trim();
             const descripcion = document.getElementById('mv-canal-desc').value.trim();
