@@ -1,160 +1,205 @@
 /**
- * avatar-frames.js — Aplica marcos/auras/efectos de la tienda en avatares del feed
+ * avatar-frames.js — Marcos, auras y partículas en avatares
+ *
+ * ENFOQUE LIMPIO (desde 0):
+ *  - El wrapper mide EXACTAMENTE igual que el avatar (ej. 44×44px)
+ *  - overflow:visible → el marco y partículas desbordan sin cortar
+ *  - La imagen llena el 100% del wrapper (sin position:absolute en img)
+ *  - Sin márgenes negativos → el layout del post no se rompe
+ *  - El marco SVG usa viewBox normalizado (0 0 1 1) → escala perfecta
  */
 
 import { db } from './firebase-config.js';
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+// ─── Cache ────────────────────────────────────────────────────────
 const _cache   = new Map();
 const _pending = new Map();
 
 async function fetchEquipped(uid) {
     if (_cache.has(uid))   return _cache.get(uid);
     if (_pending.has(uid)) return _pending.get(uid);
-    const promise = get(ref(db, `usuarios/${uid}/avatarShop`)).then(snap => {
-        const val = snap.exists() ? snap.val() : null;
-        _cache.set(uid, val); _pending.delete(uid); return val;
-    }).catch(() => { _cache.set(uid, null); _pending.delete(uid); return null; });
-    _pending.set(uid, promise);
-    return promise;
+    const p = get(ref(db, `usuarios/${uid}/avatarShop`))
+        .then(s => { const v = s.exists() ? s.val() : null; _cache.set(uid,v); _pending.delete(uid); return v; })
+        .catch(()=> { _cache.set(uid,null); _pending.delete(uid); return null; });
+    _pending.set(uid, p);
+    return p;
 }
 
 export async function precargarFrames(uids) {
-    const nuevos = [...new Set(uids)].filter(u => u && !_cache.has(u));
-    if (!nuevos.length) return;
-    await Promise.all(nuevos.map(uid => fetchEquipped(uid)));
+    const n = [...new Set(uids)].filter(u => u && !_cache.has(u));
+    if (!n.length) return;
+    await Promise.all(n.map(fetchEquipped));
 }
-
 export function invalidarCache(uid) { _cache.delete(uid); }
 
-const FRAME_RENDERS = {
-    frame_none:     () => '',
-    frame_gold:     () => `<circle cx="22" cy="22" r="20" stroke="url(#fGold)" stroke-width="2.5" fill="none"/><defs><linearGradient id="fGold" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#f7b731"/><stop offset=".5" stop-color="#ffd700"/><stop offset="1" stop-color="#d4a017"/></linearGradient></defs>`,
-    frame_neon:     () => `<circle cx="22" cy="22" r="20" stroke="#00f5ff" stroke-width="2" fill="none" filter="url(#fglow)"/><defs><filter id="fglow"><feGaussianBlur stdDeviation="2" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`,
-    frame_gradient: () => `<circle cx="22" cy="22" r="20" stroke="url(#fGrad)" stroke-width="2.5" fill="none"/><defs><linearGradient id="fGrad" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#6c63ff"/><stop offset="1" stop-color="#ff6584"/></linearGradient></defs>`,
-    frame_rainbow:  () => `<circle cx="22" cy="22" r="20" stroke="url(#fRain)" stroke-width="2.5" fill="none" stroke-dasharray="4 3"/><defs><linearGradient id="fRain" x1="0" y1="44" x2="44" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ff0000"/><stop offset="20%" stop-color="#ff9900"/><stop offset="40%" stop-color="#ffee00"/><stop offset="60%" stop-color="#33cc33"/><stop offset="80%" stop-color="#0099ff"/><stop offset="100%" stop-color="#9933ff"/></linearGradient></defs>`,
-    frame_fire:     () => `<circle cx="22" cy="22" r="20" stroke="url(#fFire)" stroke-width="2.5" fill="none"/><defs><linearGradient id="fFire" x1="22" y1="0" x2="22" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#ff4500"/><stop offset=".5" stop-color="#ff9800"/><stop offset="1" stop-color="#ffeb3b"/></linearGradient></defs>`,
-    frame_ice:      () => `<circle cx="22" cy="22" r="20" stroke="url(#fIce)" stroke-width="2.5" fill="none"/><defs><linearGradient id="fIce" x1="22" y1="0" x2="22" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#a8edea"/><stop offset="1" stop-color="#48c6ef"/></linearGradient></defs>`,
-    frame_stars:    () => `<circle cx="22" cy="22" r="20" stroke="#ffd700" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>`,
-    frame_xmas:     () => `<circle cx="22" cy="22" r="20" stroke="url(#fXmas)" stroke-width="2.5" fill="none" stroke-dasharray="6 4"/><defs><linearGradient id="fXmas" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#e74c3c"/><stop offset="1" stop-color="#2ecc71"/></linearGradient></defs>`,
-    frame_hallo:    () => `<circle cx="22" cy="22" r="20" stroke="url(#fHallo)" stroke-width="2.5" fill="none"/><defs><linearGradient id="fHallo" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6600"/><stop offset="1" stop-color="#1a0033"/></linearGradient></defs>`,
-};
+// ─── Tamaños (solo el diámetro real de la foto) ───────────────────
+const SIZES = { post:44, comment:36, story:56, search:44 };
 
-const AURA_COLORS = {
-    aura_none:    null,
-    aura_purple:  'rgba(108,99,255,0.5)',
-    aura_pink:    'rgba(255,101,132,0.5)',
-    aura_gold:    'rgba(247,183,49,0.55)',
-    aura_cyan:    'rgba(0,245,255,0.5)',
-    aura_fire:    'rgba(255,69,0,0.55)',
-    aura_ice:     'rgba(168,237,234,0.6)',
+// ─── Marco SVG ────────────────────────────────────────────────────
+// viewBox "0 0 1 1" normalizado → se escala al 100% del wrapper.
+// r=0.47 → el círculo queda justo sobre el borde del avatar.
+// stroke-width = 3px / size → siempre 3px visuales sin importar tamaño.
+function buildFrame(frame, size) {
+    const sw = +(3 / size).toFixed(4);
+    const r  = 0.47;
+
+    const grads = {
+        frame_gold:     `<linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7b731"/><stop offset=".5" stop-color="#ffd700"/><stop offset="1" stop-color="#d4a017"/></linearGradient>`,
+        frame_neon:     `<linearGradient id="fg"><stop stop-color="#00f5ff"/></linearGradient>`,
+        frame_gradient: `<linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6c63ff"/><stop offset="1" stop-color="#ff6584"/></linearGradient>`,
+        frame_rainbow:  `<linearGradient id="fg" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#ff0000"/><stop offset="20%" stop-color="#ff9900"/><stop offset="40%" stop-color="#ffee00"/><stop offset="60%" stop-color="#33cc33"/><stop offset="80%" stop-color="#0099ff"/><stop offset="100%" stop-color="#9933ff"/></linearGradient>`,
+        frame_fire:     `<linearGradient id="fg" x1=".5" y1="0" x2=".5" y2="1"><stop stop-color="#ff4500"/><stop offset=".5" stop-color="#ff9800"/><stop offset="1" stop-color="#ffeb3b"/></linearGradient>`,
+        frame_ice:      `<linearGradient id="fg" x1=".5" y1="0" x2=".5" y2="1"><stop stop-color="#a8edea"/><stop offset="1" stop-color="#48c6ef"/></linearGradient>`,
+        frame_stars:    `<linearGradient id="fg"><stop stop-color="#ffd700"/></linearGradient>`,
+        frame_xmas:     `<linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e74c3c"/><stop offset="1" stop-color="#2ecc71"/></linearGradient>`,
+        frame_hallo:    `<linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff6600"/><stop offset="1" stop-color="#1a0033"/></linearGradient>`,
+    };
+    if (!grads[frame]) return '';
+
+    const dash = {
+        frame_rainbow: `stroke-dasharray="${(0.06).toFixed(3)} ${(0.04).toFixed(3)}"`,
+        frame_stars:   `stroke-dasharray="${(0.05).toFixed(3)} ${(0.03).toFixed(3)}"`,
+        frame_xmas:    `stroke-dasharray="${(0.09).toFixed(3)} ${(0.06).toFixed(3)}"`,
+    }[frame] || '';
+
+    const glow = frame === 'frame_neon'
+        ? `<filter id="glow"><feGaussianBlur stdDeviation="0.05" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+        : '';
+    const filt = frame === 'frame_neon' ? `filter="url(#glow)"` : '';
+
+    return `<svg viewBox="0 0 1 1" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible;"><defs>${grads[frame]}${glow}</defs><circle cx=".5" cy=".5" r="${r}" stroke="url(#fg)" stroke-width="${sw}" ${dash} ${filt}/></svg>`;
+}
+
+// ─── Aura ─────────────────────────────────────────────────────────
+const AURAS = {
+    aura_purple:  'rgba(108,99,255,.6)',
+    aura_pink:    'rgba(255,101,132,.6)',
+    aura_gold:    'rgba(247,183,49,.65)',
+    aura_cyan:    'rgba(0,245,255,.6)',
+    aura_fire:    'rgba(255,69,0,.65)',
+    aura_ice:     'rgba(168,237,234,.7)',
     aura_rainbow: 'rainbow',
 };
+function auraStyle(aura) {
+    const c = AURAS[aura];
+    if (!c) return '';
+    if (c === 'rainbow') return 'box-shadow:0 0 8px 3px rgba(255,0,0,.5),0 0 16px 6px rgba(0,255,100,.35),0 0 24px 9px rgba(0,100,255,.3)';
+    return `box-shadow:0 0 10px 4px ${c},0 0 22px 8px ${c.replace(/[\d.]+\)$/,'0.2)')}`;
+}
 
-const FILTER_MAP = {
-    filter_none:    '',
-    filter_vintage: 'sepia(0.6) contrast(1.1)',
+// ─── Filtros ──────────────────────────────────────────────────────
+const FILTERS = {
+    filter_vintage: 'sepia(.6) contrast(1.1)',
     filter_bw:      'grayscale(1) contrast(1.1)',
     filter_neon:    'saturate(2) hue-rotate(20deg) brightness(1.1)',
-    filter_warm:    'sepia(0.3) saturate(1.4) brightness(1.05)',
+    filter_warm:    'sepia(.3) saturate(1.4) brightness(1.05)',
     filter_cool:    'hue-rotate(200deg) saturate(1.3)',
     filter_glitch:  'hue-rotate(90deg) saturate(3) contrast(1.3)',
 };
 
-const SIZES = {
-    post:    { wrap: 44, vb: 44 },
-    comment: { wrap: 36, vb: 44 },
-    story:   { wrap: 56, vb: 44 },
-    search:  { wrap: 44, vb: 44 },
+// ─── Partículas ───────────────────────────────────────────────────
+const FX = {
+    fx_hearts:   { e:['❤️','💕','💗'], n:5 },
+    fx_stars:    { e:['⭐','✨','💫'], n:5 },
+    fx_fire:     { e:['🔥','✨'],       n:5 },
+    fx_snow:     { e:['❄️','🌨️'],       n:5 },
+    fx_confetti: { e:['🎉','🎊','✨'],  n:6 },
+    fx_crowns:   { e:['👑'],             n:3 },
+    fx_music:    { e:['🎵','🎶'],        n:5 },
+    fx_flowers:  { e:['🌸','🌺','🌼'],  n:5 },
 };
 
-const FX_PARTICLES = {
-    fx_hearts:   { emojis: ['❤️','💕','💗'], count: 4 },
-    fx_stars:    { emojis: ['⭐','✨','💫'], count: 4 },
-    fx_fire:     { emojis: ['🔥','✨'],       count: 4 },
-    fx_snow:     { emojis: ['❄️','🌨️'],       count: 4 },
-    fx_confetti: { emojis: ['🎉','🎊','✨'],  count: 5 },
-    fx_crowns:   { emojis: ['👑'],             count: 3 },
-    fx_music:    { emojis: ['🎵','🎶'],        count: 4 },
-    fx_flowers:  { emojis: ['🌸','🌺','🌼'],  count: 4 },
-};
-
-// Inyectar animación av-float una sola vez
-(function() {
-    if (typeof document === 'undefined' || document.getElementById('av-frame-styles')) return;
-    const s = document.createElement('style');
-    s.id = 'av-frame-styles';
-    s.textContent = '@keyframes av-float{0%{transform:translateY(0) scale(1)}100%{transform:translateY(-5px) scale(1.15)}}';
+// Inyecta keyframes una sola vez
+(function(){
+    if (typeof document==='undefined'||document.getElementById('avfs')) return;
+    const s=document.createElement('style'); s.id='avfs';
+    s.textContent=`@keyframes avF{0%{transform:translateY(0) scale(1) rotate(-4deg);opacity:.85}50%{transform:translateY(-4px) scale(1.2) rotate(5deg);opacity:1}100%{transform:translateY(-7px) scale(.95) rotate(-2deg);opacity:.9}}`;
     document.head.appendChild(s);
 })();
 
-function buildFxParticles(fx, wrapSize) {
-    const cfg = FX_PARTICLES[fx];
+/**
+ * Partículas posicionadas alrededor del avatar.
+ * CLAVE: el wrapper mide `size`px, las partículas usan
+ * position:absolute relativo a él. overflow:visible las muestra
+ * aunque estén fuera de los límites del div.
+ * orbitR = radio del avatar + 6px → justo pegadas al marco.
+ */
+function buildParticles(fx, size) {
+    const cfg = FX[fx];
     if (!cfg) return '';
-    const r = wrapSize / 2;
-    return Array.from({ length: cfg.count }, (_, i) => {
-        const angle = (i / cfg.count) * Math.PI * 2;
-        const x     = Math.round(r + (r + 4) * Math.cos(angle) - 7);
-        const y     = Math.round(r + (r + 4) * Math.sin(angle) - 7);
-        const emoji = cfg.emojis[i % cfg.emojis.length];
-        const delay = (i * 0.3).toFixed(1);
-        return `<span style="position:absolute;left:${x}px;top:${y}px;font-size:11px;line-height:1;animation:av-float 2.4s ease-in-out ${delay}s infinite alternate;pointer-events:none;z-index:3;">${emoji}</span>`;
+    const cx     = size / 2;
+    const cy     = size / 2;
+    const orbitR = size / 2 + 6;          // 6px fuera del borde del avatar
+    const ep     = Math.round(size * 0.25); // tamaño del emoji: 25% del avatar
+    return Array.from({length: cfg.n}, (_,i) => {
+        const angle = (2*Math.PI*i/cfg.n) - Math.PI/2;
+        const left  = Math.round(cx + orbitR*Math.cos(angle) - ep/2);
+        const top   = Math.round(cy + orbitR*Math.sin(angle) - ep/2);
+        const emoji = cfg.e[i % cfg.e.length];
+        const delay = (i*(2/cfg.n)).toFixed(2);
+        return `<span style="position:absolute;left:${left}px;top:${top}px;width:${ep}px;height:${ep}px;font-size:${ep}px;line-height:1;text-align:center;animation:avF 2s ease-in-out ${delay}s infinite alternate;pointer-events:none;z-index:4;user-select:none;">${emoji}</span>`;
     }).join('');
 }
 
-function _hasEquipped(e) {
+// ─── Helpers ──────────────────────────────────────────────────────
+function _has(e) {
     if (!e) return false;
-    return (e.frame && e.frame !== 'frame_none') ||
-           (e.aura  && e.aura  !== 'aura_none')  ||
-           (e.fx    && e.fx    !== 'fx_none')     ||
-           (e.filter&& e.filter!== 'filter_none');
+    return (e.frame &&e.frame!=='frame_none')||
+           (e.aura  &&e.aura !=='aura_none') ||
+           (e.fx    &&e.fx   !=='fx_none')   ||
+           (e.filter&&e.filter!=='filter_none');
 }
 
-function _buildWrapper(src, size, equipped, extraClass, clickAttr) {
-    const filterCSS = FILTER_MAP[equipped.filter] || '';
-    const auraColor = AURA_COLORS[equipped.aura]  || null;
-    let boxShadow = '';
-    if (auraColor === 'rainbow') {
-        boxShadow = '0 0 10px 4px rgba(255,0,0,0.4),0 0 16px 6px rgba(0,255,100,0.3),0 0 22px 8px rgba(0,100,255,0.25)';
-    } else if (auraColor) {
-        boxShadow = `0 0 10px 5px ${auraColor},0 0 20px 8px ${auraColor.replace(/[\d.]+\)$/, '0.18)')}`;
-    }
-    const frameSVG = (FRAME_RENDERS[equipped.frame] || (() => ''))();
-    const fxHTML   = buildFxParticles(equipped.fx, size.wrap);
-    const overflow = fxHTML ? 'visible' : 'hidden';
+/**
+ * Construye el wrapper.
+ * TAMAÑO DEL WRAPPER = tamaño del avatar (sin pad extra).
+ * overflow:visible en el wrapper → marco y partículas se ven fuera.
+ * La imagen ocupa width/height 100% del wrapper → sin position:absolute.
+ */
+function _build(src, size, eq, cls, ca) {
+    const imgS = [
+        'width:100%','height:100%',
+        'border-radius:50%',
+        'object-fit:cover',
+        'display:block',
+        'border:none',
+        eq.filter&&eq.filter!=='filter_none' ? `filter:${FILTERS[eq.filter]}` : '',
+        eq.aura  &&eq.aura  !=='aura_none'   ? auraStyle(eq.aura) : '',
+    ].filter(Boolean).join(';');
 
-    return `<div class="av-frame-wrap ${extraClass}" style="position:relative;width:${size.wrap}px;height:${size.wrap}px;flex-shrink:0;overflow:${overflow};cursor:${clickAttr?'pointer':'default'};" ${clickAttr}><img src="${src}" onerror="this.src='default-avatar.png'" style="width:${size.wrap}px;height:${size.wrap}px;border-radius:50%;object-fit:cover;display:block;${filterCSS?`filter:${filterCSS};`:''}${boxShadow?`box-shadow:${boxShadow};`:''}">${frameSVG ? `<svg viewBox="0 0 ${size.vb} ${size.vb}" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:-2px;width:calc(100% + 4px);height:calc(100% + 4px);pointer-events:none;z-index:2;">${frameSVG}</svg>` : ''}${fxHTML}</div>`;
+    const frame  = (eq.frame&&eq.frame!=='frame_none') ? buildFrame(eq.frame,size) : '';
+    const parts  = (eq.fx   &&eq.fx   !=='fx_none')    ? buildParticles(eq.fx,size) : '';
+
+    return `<div class="av-frame-wrap ${cls}" style="position:relative;width:${size}px;height:${size}px;flex-shrink:0;overflow:visible;cursor:${ca?'pointer':'default'};" ${ca}><img src="${src}" onerror="this.src='default-avatar.png'" style="${imgS}">${frame}${parts}</div>`;
 }
 
-export async function getAvatarFrameHTML(uid, avatarSrc, context = 'post', extraClass = '', onclick = '') {
-    const src       = avatarSrc || 'default-avatar.png';
-    const size      = SIZES[context] || SIZES.post;
-    const clickAttr = onclick ? `onclick="${onclick}"` : '';
-    if (!uid) return `<img class="post-avatar ${extraClass}" src="${src}" onerror="this.src='default-avatar.png'" style="width:${size.wrap}px;height:${size.wrap}px;border-radius:50%;object-fit:cover;" ${clickAttr}>`;
-    const equipped = await fetchEquipped(uid);
-    if (!_hasEquipped(equipped)) return `<img class="post-avatar ${extraClass}" src="${src}" onerror="this.src='default-avatar.png'" style="width:${size.wrap}px;height:${size.wrap}px;border-radius:50%;object-fit:cover;" ${clickAttr}>`;
-    return _buildWrapper(src, size, equipped, extraClass, clickAttr);
+function _plain(src, size, cls, ca) {
+    return `<img class="post-avatar ${cls}" src="${src}" onerror="this.src='default-avatar.png'" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;" ${ca}>`;
 }
 
-export function getAvatarFrameHTMLSync(uid, avatarSrc, context = 'post', extraClass = '', onclick = '') {
-    const src       = avatarSrc || 'default-avatar.png';
-    const size      = SIZES[context] || SIZES.post;
-    const clickAttr = onclick ? `onclick="${onclick}"` : '';
+// ─── API pública ──────────────────────────────────────────────────
+export async function getAvatarFrameHTML(uid, avatarSrc, context='post', extraClass='', onclick='') {
+    const src=avatarSrc||'default-avatar.png', size=SIZES[context]??44, ca=onclick?`onclick="${onclick}"`:'';;
+    if (!uid) return _plain(src,size,extraClass,ca);
+    const eq=await fetchEquipped(uid);
+    return _has(eq) ? _build(src,size,eq,extraClass,ca) : _plain(src,size,extraClass,ca);
+}
 
-    if (!uid || !_cache.has(uid)) {
-        if (uid && !_cache.has(uid)) {
-            fetchEquipped(uid).then(() => {
-                document.querySelectorAll(`[data-avuid="${uid}"]`).forEach(el => {
-                    const tmp = document.createElement('div');
-                    tmp.innerHTML = getAvatarFrameHTMLSync(uid, avatarSrc, context, extraClass, onclick);
-                    if (tmp.firstChild) el.replaceWith(tmp.firstChild);
+export function getAvatarFrameHTMLSync(uid, avatarSrc, context='post', extraClass='', onclick='') {
+    const src=avatarSrc||'default-avatar.png', size=SIZES[context]??44, ca=onclick?`onclick="${onclick}"`:'';;
+    if (!uid||!_cache.has(uid)) {
+        if (uid&&!_cache.has(uid)) {
+            fetchEquipped(uid).then(()=>{
+                document.querySelectorAll(`[data-avuid="${uid}"]`).forEach(el=>{
+                    const t=document.createElement('div');
+                    t.innerHTML=getAvatarFrameHTMLSync(uid,avatarSrc,context,extraClass,onclick);
+                    if(t.firstChild) el.replaceWith(t.firstChild);
                 });
-            }).catch(() => {});
+            }).catch(()=>{});
         }
-        return `<img class="post-avatar ${extraClass}" data-avuid="${uid || ''}" src="${src}" onerror="this.src='default-avatar.png'" style="width:${size.wrap}px;height:${size.wrap}px;border-radius:50%;object-fit:cover;" ${clickAttr}>`;
+        return `<img class="post-avatar ${extraClass}" data-avuid="${uid||''}" src="${src}" onerror="this.src='default-avatar.png'" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;" ${ca}>`;
     }
-
-    const equipped = _cache.get(uid);
-    if (!_hasEquipped(equipped)) return `<img class="post-avatar ${extraClass}" src="${src}" onerror="this.src='default-avatar.png'" style="width:${size.wrap}px;height:${size.wrap}px;border-radius:50%;object-fit:cover;" ${clickAttr}>`;
-    return _buildWrapper(src, size, equipped, extraClass, clickAttr);
+    const eq=_cache.get(uid);
+    return _has(eq) ? _build(src,size,eq,extraClass,ca) : _plain(src,size,extraClass,ca);
 }

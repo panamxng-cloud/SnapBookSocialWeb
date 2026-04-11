@@ -59,27 +59,14 @@
         .feed{display:flex;flex-direction:column;gap:10px;padding:10px 10px 0;}
 
         /* POST CARD */
-        .post-card{background:var(--surface);border-radius:18px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--card-shadow);}
-        .post-header{display:flex;align-items:center;gap:10px;padding:12px 14px 8px;min-height:0;}
-        .post-avatar-wrap{width:44px;height:44px;min-width:44px;flex-shrink:0;border-radius:50%;overflow:hidden;border:2px solid var(--accent);background:var(--surface3);}
-        .post-avatar-wrap img,.post-avatar-wrap .post-avatar{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important;border:none!important;display:block!important;}
-        .post-avatar-wrap > *{width:100%!important;height:100%!important;border-radius:50%!important;overflow:hidden!important;}
-        .post-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
-        /* Contenedor del avatar con marco — fuerza tamaño fijo */
-        .post-header > .avatar-frame-wrap,
-        .post-header > [class*="avatar-frame"],
-        .post-header > div:first-child:not(.post-meta):not(.post-menu) {
-            width:44px!important;height:44px!important;min-width:44px!important;
-            min-height:44px!important;max-width:44px!important;max-height:44px!important;
-            flex-shrink:0!important;border-radius:50%!important;overflow:hidden!important;
-        }
-        .post-header > .avatar-frame-wrap img,
-        .post-header > [class*="avatar-frame"] img,
-        .post-header > div:first-child:not(.post-meta):not(.post-menu) img {
-            width:100%!important;height:100%!important;object-fit:cover!important;
-            border-radius:50%!important;display:block!important;
-        }
-        .post-meta{flex:1;}
+        .post-card{background:var(--surface);border-radius:18px;border:1px solid var(--border);overflow:visible;box-shadow:var(--card-shadow);}
+        .post-card > *:not(.post-header){overflow:hidden;}
+        .post-header{display:flex;align-items:center;gap:12px;padding:12px 14px 10px;}
+        /* Avatar simple (sin marco) */
+        .post-avatar{width:44px;height:44px;min-width:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;display:block;} .av-frame-wrap img{border:none !important;}
+        /* Wrapper generado por avatar-frames.js */
+        .av-frame-wrap{flex-shrink:0 !important;}
+        .post-meta{flex:1;min-width:0;}
         .post-author{font-size:15px;font-weight:700;}
         .post-time{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-top:2px;}
         .post-time i{font-size:10px;}
