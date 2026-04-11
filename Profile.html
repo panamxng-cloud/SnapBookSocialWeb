@@ -574,8 +574,8 @@
 
             try { await sincronizarUsuario(user); } catch(e) {}
 
-            // Cargar equipamiento de tienda
-            await loadEquippedFromFirebase();
+            // Cargar equipamiento de tienda (nunca bloquear si falla)
+            try { await loadEquippedFromFirebase(); } catch(e) { console.warn('loadEquipped:', e); }
 
             // Datos de Firebase
             try {
@@ -1151,44 +1151,44 @@
 
         // ── Renderizar marco en el perfil real ──────────────────
         function applyEquippedToProfile() {
-            const frameItem  = SHOP_ITEMS.find(i => i.id === equippedItems.frame);
-            const auraItem   = SHOP_ITEMS.find(i => i.id === equippedItems.aura);
-            const fxItem     = SHOP_ITEMS.find(i => i.id === equippedItems.fx);
-            const filterItem = SHOP_ITEMS.find(i => i.id === equippedItems.filter);
+            try {
+                const frameItem  = SHOP_ITEMS.find(i => i.id === equippedItems.frame);
+                const auraItem   = SHOP_ITEMS.find(i => i.id === equippedItems.aura);
+                const fxItem     = SHOP_ITEMS.find(i => i.id === equippedItems.fx);
+                const filterItem = SHOP_ITEMS.find(i => i.id === equippedItems.filter);
 
-            // Marco SVG
-            const frameSvg = document.getElementById('avatar-frame-svg');
-            if (frameSvg && frameItem) frameSvg.innerHTML = frameItem.render ? frameItem.render() : '';
+                // Marco SVG
+                const frameSvg = document.getElementById('avatar-frame-svg');
+                if (frameSvg && frameItem) frameSvg.innerHTML = frameItem.render ? frameItem.render() : '';
 
-            // Aura
-            const avatarEl = document.getElementById('profile-avatar');
-            if (avatarEl && auraItem) applyAura(auraItem.auraColor, avatarEl);
+                // Aura
+                const avatarEl = document.getElementById('profile-avatar');
+                if (avatarEl && auraItem) applyAura(auraItem.auraColor, avatarEl);
 
-            // Filtro
-            if (avatarEl && filterItem) {
-                avatarEl.style.filter = filterItem.filter !== 'none' ? filterItem.filter : '';
-                avatarEl.style.animation = filterItem.anim || '';
-            }
-
-            // FX partículas
-            const particlesSvg = document.getElementById('avatar-particles');
-            if (particlesSvg) {
-                if (particlesSvg._stopFX) particlesSvg._stopFX();
-                // Usar div contenedor para partículas reales
-                let fxContainer = document.getElementById('avatar-fx-container');
-                if (!fxContainer) {
-                    fxContainer = document.createElement('div');
-                    fxContainer.id = 'avatar-fx-container';
-                    fxContainer.style.cssText = 'position:absolute;inset:-20px;width:calc(100% + 40px);height:calc(100% + 40px);pointer-events:none;z-index:3;overflow:hidden;';
-                    document.getElementById('avatar-wrap-main').appendChild(fxContainer);
+                // Filtro
+                if (avatarEl && filterItem) {
+                    avatarEl.style.filter = filterItem.filter !== 'none' ? filterItem.filter : '';
+                    avatarEl.style.animation = filterItem.anim || '';
                 }
-                if (fxItem?.fx && fxItem.fx !== 'none') {
-                    startParticlesFX(fxItem.fx, fxContainer);
-                } else {
-                    if (fxContainer._stopFX) fxContainer._stopFX();
-                    fxContainer.innerHTML = '';
+
+                // FX partículas — solo si el contenedor padre existe
+                const wrapMain = document.getElementById('avatar-wrap-main');
+                if (wrapMain) {
+                    let fxContainer = document.getElementById('avatar-fx-container');
+                    if (!fxContainer) {
+                        fxContainer = document.createElement('div');
+                        fxContainer.id = 'avatar-fx-container';
+                        fxContainer.style.cssText = 'position:absolute;inset:-20px;width:calc(100% + 40px);height:calc(100% + 40px);pointer-events:none;z-index:3;overflow:hidden;';
+                        wrapMain.appendChild(fxContainer);
+                    }
+                    if (fxItem?.fx && fxItem.fx !== 'none') {
+                        startParticlesFX(fxItem.fx, fxContainer);
+                    } else {
+                        if (fxContainer._stopFX) fxContainer._stopFX();
+                        fxContainer.innerHTML = '';
+                    }
                 }
-            }
+            } catch(e) { console.warn('applyEquippedToProfile:', e); }
         }
 
         // ── Guardar y cargar equipamiento en Firebase ────────────
