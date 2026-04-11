@@ -1,12 +1,6 @@
 /**
  * avatar-frames.js — Marcos, auras y partículas en avatares
- *
- * ENFOQUE LIMPIO (desde 0):
- *  - El wrapper mide EXACTAMENTE igual que el avatar (ej. 44×44px)
- *  - overflow:visible → el marco y partículas desbordan sin cortar
- *  - La imagen llena el 100% del wrapper (sin position:absolute en img)
- *  - Sin márgenes negativos → el layout del post no se rompe
- *  - El marco SVG usa viewBox normalizado (0 0 1 1) → escala perfecta
+ * FIXED: replaceWith seguro para evitar romper el DOM y colgar la página
  */
 
 import { db } from './firebase-config.js';
@@ -33,13 +27,10 @@ export async function precargarFrames(uids) {
 }
 export function invalidarCache(uid) { _cache.delete(uid); }
 
-// ─── Tamaños (solo el diámetro real de la foto) ───────────────────
+// ─── Tamaños ──────────────────────────────────────────────────────
 const SIZES = { post:44, comment:36, story:56, search:44 };
 
 // ─── Marco SVG ────────────────────────────────────────────────────
-// viewBox "0 0 1 1" normalizado → se escala al 100% del wrapper.
-// r=0.47 → el círculo queda justo sobre el borde del avatar.
-// stroke-width = 3px / size → siempre 3px visuales sin importar tamaño.
 function buildFrame(frame, size) {
     const sw = +(3 / size).toFixed(4);
     const r  = 0.47;
@@ -118,20 +109,13 @@ const FX = {
     document.head.appendChild(s);
 })();
 
-/**
- * Partículas posicionadas alrededor del avatar.
- * CLAVE: el wrapper mide `size`px, las partículas usan
- * position:absolute relativo a él. overflow:visible las muestra
- * aunque estén fuera de los límites del div.
- * orbitR = radio del avatar + 6px → justo pegadas al marco.
- */
 function buildParticles(fx, size) {
     const cfg = FX[fx];
     if (!cfg) return '';
     const cx     = size / 2;
     const cy     = size / 2;
-    const orbitR = size / 2 + 6;          // 6px fuera del borde del avatar
-    const ep     = Math.round(size * 0.25); // tamaño del emoji: 25% del avatar
+    const orbitR = size / 2 + 6;
+    const ep     = Math.round(size * 0.25);
     return Array.from({length: cfg.n}, (_,i) => {
         const angle = (2*Math.PI*i/cfg.n) - Math.PI/2;
         const left  = Math.round(cx + orbitR*Math.cos(angle) - ep/2);
@@ -151,12 +135,6 @@ function _has(e) {
            (e.filter&&e.filter!=='filter_none');
 }
 
-/**
- * Construye el wrapper.
- * TAMAÑO DEL WRAPPER = tamaño del avatar (sin pad extra).
- * overflow:visible en el wrapper → marco y partículas se ven fuera.
- * La imagen ocupa width/height 100% del wrapper → sin position:absolute.
- */
 function _build(src, size, eq, cls, ca) {
     const imgS = [
         'width:100%','height:100%',
@@ -187,19 +165,44 @@ export async function getAvatarFrameHTML(uid, avatarSrc, context='post', extraCl
 }
 
 export function getAvatarFrameHTMLSync(uid, avatarSrc, context='post', extraClass='', onclick='') {
-    const src=avatarSrc||'default-avatar.png', size=SIZES[context]??44, ca=onclick?`onclick="${onclick}"`:'';;
-    if (!uid||!_cache.has(uid)) {
-        if (uid&&!_cache.has(uid)) {
-            fetchEquipped(uid).then(()=>{
-                document.querySelectorAll(`[data-avuid="${uid}"]`).forEach(el=>{
-                    const t=document.createElement('div');
-                    t.innerHTML=getAvatarFrameHTMLSync(uid,avatarSrc,context,extraClass,onclick);
-                    if(t.firstChild) el.replaceWith(t.firstChild);
-                });
-            }).catch(()=>{});
-        }
-        return `<img class="post-avatar ${extraClass}" data-avuid="${uid||''}" src="${src}" onerror="this.src='default-avatar.png'" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;" ${ca}>`;
+    const src = avatarSrc || 'default-avatar.png';
+    const size = SIZES[context] ?? 44;
+    const ca = onclick ? `onclick="${onclick}"` : '';
+
+    // Si ya está en cache, responder inmediatamente
+    if (uid && _cache.has(uid)) {
+        const eq = _cache.get(uid);
+        return _has(eq) ? _build(src, size, eq, extraClass, ca) : _plain(src, size, extraClass, ca);
     }
-    const eq=_cache.get(uid);
-    return _has(eq) ? _build(src,size,eq,extraClass,ca) : _plain(src,size,extraClass,ca);
+
+    // No está en cache: devolver imagen simple con data-avuid para actualizar después
+    // FIX: el replaceWith se hace de forma segura comprobando que el elemento
+    // sigue en el DOM antes de reemplazar, evitando romper el layout de la página.
+    if (uid && !_cache.has(uid)) {
+        fetchEquipped(uid).then(() => {
+            try {
+                document.querySelectorAll(`[data-avuid="${uid}"]`).forEach(el => {
+                    // Solo reemplazar si el elemento sigue en el DOM
+                    if (!el.isConnected) return;
+                    // Usar el src actual del elemento (puede haber cambiado)
+                    const currentSrc = el.src || src;
+                    const eq = _cache.get(uid);
+                    const newHTML = _has(eq)
+                        ? _build(currentSrc, size, eq, extraClass, ca)
+                        : _plain(currentSrc, size, extraClass, ca);
+                    const t = document.createElement('div');
+                    t.innerHTML = newHTML;
+                    const newEl = t.firstChild;
+                    if (newEl && el.parentNode) {
+                        el.parentNode.replaceChild(newEl, el);
+                    }
+                });
+            } catch(e) {
+                // Silenciar errores de DOM para no bloquear la página
+                console.warn('avatar-frames replaceWith:', e);
+            }
+        }).catch(() => {});
+    }
+
+    return `<img class="post-avatar ${extraClass}" data-avuid="${uid||''}" src="${src}" onerror="this.src='default-avatar.png'" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;" ${ca}>`;
 }
