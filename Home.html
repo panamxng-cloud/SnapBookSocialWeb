@@ -63,7 +63,7 @@
         .post-card > *:not(.post-header){overflow:hidden;}
         .post-header{display:flex;align-items:center;gap:12px;padding:12px 14px 10px;}
         /* Avatar simple (sin marco) */
-        .post-avatar{width:44px;height:44px;min-width:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;display:block;} .av-frame-wrap img{border:none !important;}
+        .post-avatar{width:44px;height:44px;min-width:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;display:block;}
         /* Wrapper generado por avatar-frames.js */
         .av-frame-wrap{flex-shrink:0 !important;}
         .post-meta{flex:1;min-width:0;}
@@ -388,7 +388,14 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/fi
 import { ref, onValue, get, set, remove, push, query, orderByChild }
     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-import { otorgarPuntos, checkLoginDiario, ACCIONES } from './points.js';
+// points.js — carga dinámica para que no rompa si el archivo falla
+let otorgarPuntos = async () => {}, checkLoginDiario = async () => {}, ACCIONES = {};
+try {
+    const pts = await import('./points.js');
+    otorgarPuntos    = pts.otorgarPuntos    || otorgarPuntos;
+    checkLoginDiario = pts.checkLoginDiario || checkLoginDiario;
+    ACCIONES         = pts.ACCIONES         || ACCIONES;
+} catch(e) { console.warn('points.js no disponible:', e.message); }
 import { precargarFrames, getAvatarFrameHTMLSync, invalidarCache } from './avatar-frames.js';
 
 // ════════════════════════════════════════════════════════
