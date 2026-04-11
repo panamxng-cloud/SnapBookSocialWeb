@@ -20,6 +20,73 @@
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
         body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);padding-bottom:100px;min-height:100vh;}
 
+        /* ══ TIENDA DE AVATARES ══ */
+        .shop-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 2px 10px rgba(108,99,255,0.35);transition:all 0.2s;}
+        .shop-btn:active{transform:scale(0.95);}
+
+        /* Avatar con marco aplicado */
+        .avatar-frame-wrap{position:relative;width:110px;height:110px;display:flex;align-items:center;justify-content:center;}
+        .avatar-frame-svg{position:absolute;inset:-8px;width:calc(100% + 16px);height:calc(100% + 16px);pointer-events:none;z-index:2;}
+        .avatar-particles{position:absolute;inset:-16px;width:calc(100% + 32px);height:calc(100% + 32px);pointer-events:none;z-index:3;overflow:visible;}
+
+        /* Overlay tienda */
+        .shop-overlay{position:fixed;inset:0;z-index:9995;background:rgba(0,0,0,0.6);display:flex;flex-direction:column;justify-content:flex-end;animation:fadeIn 0.2s ease;}
+        .shop-sheet{background:var(--surface);border-radius:28px 28px 0 0;max-height:92vh;display:flex;flex-direction:column;animation:slideUp 0.35s cubic-bezier(0.32,0.72,0,1);}
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .shop-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0;}
+        .shop-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+        .shop-title{font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .shop-subtitle{font-size:13px;color:var(--text-muted);margin-top:2px;}
+        .shop-body{flex:1;overflow-y:auto;scrollbar-width:none;padding:16px;}
+        .shop-body::-webkit-scrollbar{display:none;}
+
+        /* Preview del avatar */
+        .shop-preview{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 0 24px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+        .shop-preview-ring{position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center;}
+        .shop-preview-img{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--surface);z-index:1;}
+        .shop-preview-frame{position:absolute;inset:-10px;width:calc(100% + 20px);height:calc(100% + 20px);pointer-events:none;z-index:2;}
+        .shop-preview-particles{position:absolute;inset:-20px;width:calc(100% + 40px);height:calc(100% + 40px);pointer-events:none;z-index:3;overflow:visible;}
+        .shop-preview-label{font-size:14px;font-weight:700;color:var(--text);}
+        .shop-preview-sublabel{font-size:12px;color:var(--text-muted);}
+
+        /* Categorías */
+        .shop-cat-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:14px;}
+        .shop-cat-tabs::-webkit-scrollbar{display:none;}
+        .shop-cat-tab{padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;background:var(--surface);}
+        .shop-cat-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+        /* Grid de items */
+        .shop-section-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+        .shop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+        .shop-item{background:var(--surface2);border-radius:16px;padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;position:relative;overflow:hidden;}
+        .shop-item:active{transform:scale(0.96);}
+        .shop-item.selected{border-color:var(--accent);background:rgba(108,99,255,0.08);}
+        .shop-item.equipped{border-color:#2ecc71;background:rgba(46,204,113,0.08);}
+        .shop-item-preview{width:64px;height:64px;position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .shop-item-avatar{width:52px;height:52px;border-radius:50%;object-fit:cover;position:relative;z-index:1;}
+        .shop-item-frame{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);pointer-events:none;z-index:2;}
+        .shop-item-name{font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3;}
+        .shop-item-badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.4px;}
+        .shop-item-badge.free{background:rgba(46,204,113,0.15);color:#2ecc71;}
+        .shop-item-badge.points{background:rgba(247,183,49,0.15);color:#f7b731;}
+        .shop-item-badge.equipped-badge{background:rgba(46,204,113,0.2);color:#2ecc71;}
+        .shop-item-check{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:#2ecc71;display:none;align-items:center;justify-content:center;color:#fff;font-size:10px;}
+        .shop-item.equipped .shop-item-check{display:flex;}
+
+        /* Botón aplicar */
+        .shop-apply-bar{padding:14px 18px 24px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:10px;}
+        .shop-apply-btn{flex:1;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;}
+        .shop-apply-btn:active{transform:scale(0.97);}
+        .shop-apply-btn:disabled{opacity:0.5;cursor:not-allowed;}
+        .shop-remove-btn{padding:14px 18px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
+
+        /* Aura effect */
+        @keyframes aura-pulse{0%,100%{opacity:0.6;transform:scale(1);}50%{opacity:1;transform:scale(1.05);}}
+        @keyframes spin-slow{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+        @keyframes float-particle{0%{transform:translateY(0) scale(1);opacity:1;}100%{transform:translateY(-30px) scale(0);opacity:0;}}
+        @keyframes glitch{0%,100%{transform:translate(0);}20%{transform:translate(-2px,1px);}40%{transform:translate(2px,-1px);}60%{transform:translate(-1px,2px);}80%{transform:translate(1px,-2px);}}
+
         /* ── COVER ── */
         .profile-cover{height:220px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--accent),var(--accent2));}
         .profile-cover img.cover-img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
@@ -30,7 +97,7 @@
         .avatar-row{position:relative;padding:0 16px;margin-top:-50px;display:flex;align-items:flex-end;justify-content:space-between;}
         .avatar-wrap{position:relative;width:110px;height:110px;}
         .profile-avatar{width:110px;height:110px;border-radius:50%;border:4px solid var(--surface);object-fit:cover;background:var(--surface2);display:block;}
-        .avatar-edit{position:absolute;bottom:4px;right:4px;width:30px;height:30px;background:var(--surface2);border-radius:50%;border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text);font-size:13px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+        .avatar-edit{position:absolute;bottom:2px;right:-2px;width:28px;height:28px;background:var(--accent);border-radius:50%;border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3);z-index:10;}
 
         .profile-info{padding:10px 16px 14px;}
         .profile-name{font-size:22px;font-weight:800;margin-bottom:2px;}
@@ -182,12 +249,20 @@
     <div class="profile-surface">
         <!-- Avatar + botón settings -->
         <div class="avatar-row">
-            <div class="avatar-wrap">
+            <div class="avatar-wrap" id="avatar-wrap-main">
                 <img class="profile-avatar" id="profile-avatar" src="default-avatar.png" onerror="this.src='default-avatar.png'">
+                <!-- Marco SVG aplicado -->
+                <svg class="avatar-frame-svg" id="avatar-frame-svg" viewBox="0 0 126 126" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+                <!-- Partículas -->
+                <svg class="avatar-particles" id="avatar-particles" viewBox="0 0 142 142" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
                 <div class="avatar-edit" id="avatar-edit-btn"><i class="fa-solid fa-camera"></i></div>
                 <input type="file" id="avatar-input" accept="image/*" style="display:none">
             </div>
-            <div style="padding-bottom:8px;">
+            <div style="padding-bottom:8px;display:flex;gap:8px;align-items:flex-end;">
+                <!-- Botón tienda -->
+                <button class="shop-btn" id="open-shop-btn" onclick="openAvatarShop()">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Tienda
+                </button>
                 <div class="btn-action btn-secondary" style="width:38px;height:38px;flex:none;border-radius:50%;padding:0;" onclick="location.href='settings.html'">
                     <i class="fa-solid fa-gear"></i>
                 </div>
@@ -453,6 +528,9 @@
             showSkeleton();
 
             try { await sincronizarUsuario(user); } catch(e) {}
+
+            // Cargar equipamiento de tienda
+            await loadEquippedFromFirebase();
 
             // Datos de Firebase
             try {
@@ -921,6 +999,369 @@
         function showSlide(n){document.querySelectorAll('.wrapped-slide').forEach((s,i)=>s.classList.toggle('active',i===n));}
         window.nextSlide=()=>{currentSlide=Math.min(currentSlide+1,totalSlides-1);buildDots();showSlide(currentSlide);};
         window.shareWrapped=function(){const s=calcWrappedStats();const text=`🎬 Mi SnapBook Wrapped de ${MESES[mesActual]}:\n📝 ${s.total} posts publicados\n❤️ ${s.totalLikes} likes recibidos\n¡Únete a SnapBook!`;if(navigator.share)navigator.share({title:'Mi Wrapped de SnapBook',text});else navigator.clipboard.writeText(text).then(()=>alert('¡Copiado!'));};
+
+        // ════════════════════════════════════════════════════════
+        //  TIENDA DE AVATARES
+        // ════════════════════════════════════════════════════════
+
+        // ── Catálogo completo ────────────────────────────────────
+        const SHOP_ITEMS = [
+            // ── MARCOS ──
+            { id:'frame_none',    cat:'marcos',  name:'Sin marco',      free:true,  points:0,   type:'frame',    render: () => '' },
+            { id:'frame_gold',    cat:'marcos',  name:'Dorado VIP',     free:true,  points:0,   type:'frame',    render: () => `<circle cx="63" cy="63" r="58" stroke="url(#gGold)" stroke-width="5" fill="none"/><defs><linearGradient id="gGold" x1="0" y1="0" x2="126" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#f7b731"/><stop offset="0.5" stop-color="#ffd700"/><stop offset="1" stop-color="#d4a017"/></linearGradient></defs>` },
+            { id:'frame_neon',    cat:'marcos',  name:'Neón',           free:true,  points:0,   type:'frame',    render: () => `<circle cx="63" cy="63" r="58" stroke="#00f5ff" stroke-width="4" fill="none" filter="url(#glow)"/><defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>` },
+            { id:'frame_gradient',cat:'marcos',  name:'Gradiente',      free:true,  points:0,   type:'frame',    render: () => `<circle cx="63" cy="63" r="58" stroke="url(#gGrad)" stroke-width="5" fill="none"/><defs><linearGradient id="gGrad" x1="0" y1="0" x2="126" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#6c63ff"/><stop offset="1" stop-color="#ff6584"/></linearGradient></defs>` },
+            { id:'frame_rainbow', cat:'marcos',  name:'Arcoíris',       free:false, points:200, type:'frame',    render: () => `<circle cx="63" cy="63" r="58" stroke="url(#gRain)" stroke-width="5" fill="none"/><defs><linearGradient id="gRain" x1="0" y1="126" x2="126" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ff0000"/><stop offset="20%" stop-color="#ff9900"/><stop offset="40%" stop-color="#ffee00"/><stop offset="60%" stop-color="#33cc33"/><stop offset="80%" stop-color="#0099ff"/><stop offset="100%" stop-color="#9933ff"/></linearGradient></defs>` },
+            { id:'frame_fire',    cat:'marcos',  name:'Fuego',          free:false, points:300, type:'frame',    render: () => `<circle cx="63" cy="63" r="58" stroke="url(#gFire)" stroke-width="5" fill="none"/><defs><linearGradient id="gFire" x1="63" y1="0" x2="63" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#ff4500"/><stop offset="0.5" stop-color="#ff9800"/><stop offset="1" stop-color="#ffeb3b"/></linearGradient></defs>` },
+            { id:'frame_ice',     cat:'marcos',  name:'Hielo',          free:false, points:300, type:'frame',    render: () => `<circle cx="63" cy="63" r="58" stroke="url(#gIce)" stroke-width="5" fill="none"/><defs><linearGradient id="gIce" x1="63" y1="0" x2="63" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#a8edea"/><stop offset="1" stop-color="#48c6ef"/></linearGradient></defs>` },
+            { id:'frame_stars',   cat:'marcos',  name:'Estrellas',      free:false, points:250, type:'frame',    render: () => `<circle cx="63" cy="63" r="57" stroke="#ffd700" stroke-width="3" fill="none" stroke-dasharray="6 4"/><text x="63" y="-46" text-anchor="middle" font-size="10" fill="#ffd700" transform="rotate(0,63,63)">⭐</text><text x="63" y="-46" text-anchor="middle" font-size="10" fill="#ffd700" transform="rotate(45,63,63)">⭐</text><text x="63" y="-46" text-anchor="middle" font-size="10" fill="#ffd700" transform="rotate(90,63,63)">⭐</text><text x="63" y="-46" text-anchor="middle" font-size="10" fill="#ffd700" transform="rotate(135,63,63)">⭐</text><text x="63" y="-46" text-anchor="middle" font-size="10" fill="#ffd700" transform="rotate(180,63,63)">⭐</text><text x="63" y="-46" text-anchor="middle" font-size="10" fill="#ffd700" transform="rotate(225,63,63)">⭐</text><text x="63" y="-46" text-anchor="middle" font-size="10" fill="#ffd700" transform="rotate(270,63,63)">⭐</text><text x="63" y="-46" text-anchor="middle" font-size="10" fill="#ffd700" transform="rotate(315,63,63)">⭐</text>` },
+            { id:'frame_xmas',    cat:'marcos',  name:'Navidad 🎄',     free:true,  points:0,   type:'frame',    render: () => `<circle cx="63" cy="63" r="58" stroke="url(#gXmas)" stroke-width="5" fill="none" stroke-dasharray="10 6"/><defs><linearGradient id="gXmas" x1="0" y1="0" x2="126" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#e74c3c"/><stop offset="1" stop-color="#2ecc71"/></linearGradient></defs>` },
+            { id:'frame_hallo',   cat:'marcos',  name:'Halloween 🎃',   free:true,  points:0,   type:'frame',    render: () => `<circle cx="63" cy="63" r="58" stroke="url(#gHallo)" stroke-width="5" fill="none"/><defs><linearGradient id="gHallo" x1="0" y1="0" x2="126" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6600"/><stop offset="1" stop-color="#1a0033"/></linearGradient></defs>` },
+            // ── AURAS ──
+            { id:'aura_none',     cat:'auras',   name:'Sin aura',       free:true,  points:0,   type:'aura',     auraColor: null },
+            { id:'aura_purple',   cat:'auras',   name:'Aura Morada',    free:true,  points:0,   type:'aura',     auraColor: 'rgba(108,99,255,0.45)' },
+            { id:'aura_pink',     cat:'auras',   name:'Aura Rosa',      free:true,  points:0,   type:'aura',     auraColor: 'rgba(255,101,132,0.45)' },
+            { id:'aura_gold',     cat:'auras',   name:'Aura Dorada',    free:false, points:150, type:'aura',     auraColor: 'rgba(247,183,49,0.5)' },
+            { id:'aura_cyan',     cat:'auras',   name:'Aura Cyan',      free:false, points:150, type:'aura',     auraColor: 'rgba(0,245,255,0.45)' },
+            { id:'aura_fire',     cat:'auras',   name:'Aura Fuego',     free:false, points:250, type:'aura',     auraColor: 'rgba(255,69,0,0.5)' },
+            { id:'aura_ice',      cat:'auras',   name:'Aura Hielo',     free:false, points:250, type:'aura',     auraColor: 'rgba(168,237,234,0.55)' },
+            { id:'aura_rainbow',  cat:'auras',   name:'Aura Arcoíris',  free:false, points:400, type:'aura',     auraColor: 'rainbow' },
+            // ── EFECTOS ──
+            { id:'fx_none',       cat:'efectos', name:'Sin efecto',     free:true,  points:0,   type:'fx',       fx: null },
+            { id:'fx_stars',      cat:'efectos', name:'Estrellas ✨',   free:true,  points:0,   type:'fx',       fx: 'stars' },
+            { id:'fx_hearts',     cat:'efectos', name:'Corazones 💖',   free:true,  points:0,   type:'fx',       fx: 'hearts' },
+            { id:'fx_fire',       cat:'efectos', name:'Fuego 🔥',       free:false, points:200, type:'fx',       fx: 'fire' },
+            { id:'fx_snow',       cat:'efectos', name:'Nieve ❄️',       free:false, points:200, type:'fx',       fx: 'snow' },
+            { id:'fx_confetti',   cat:'efectos', name:'Confeti 🎉',     free:false, points:300, type:'fx',       fx: 'confetti' },
+            { id:'fx_sparkle',    cat:'efectos', name:'Destellos 💫',   free:false, points:300, type:'fx',       fx: 'sparkle' },
+            // ── FILTROS ──
+            { id:'filter_none',   cat:'filtros', name:'Sin filtro',     free:true,  points:0,   type:'filter',   filter: 'none' },
+            { id:'filter_vintage',cat:'filtros', name:'Vintage',        free:true,  points:0,   type:'filter',   filter: 'sepia(0.6) contrast(1.1)' },
+            { id:'filter_bw',     cat:'filtros', name:'B&N',            free:true,  points:0,   type:'filter',   filter: 'grayscale(1) contrast(1.1)' },
+            { id:'filter_neon',   cat:'filtros', name:'Neón',           free:false, points:100, type:'filter',   filter: 'saturate(2) hue-rotate(20deg) brightness(1.1)' },
+            { id:'filter_warm',   cat:'filtros', name:'Cálido',         free:false, points:100, type:'filter',   filter: 'sepia(0.3) saturate(1.4) brightness(1.05)' },
+            { id:'filter_cool',   cat:'filtros', name:'Frío',           free:false, points:100, type:'filter',   filter: 'hue-rotate(200deg) saturate(1.3)' },
+            { id:'filter_glitch', cat:'filtros', name:'Glitch',         free:false, points:250, type:'filter',   filter: 'hue-rotate(90deg) saturate(3) contrast(1.3)', anim: 'glitch 0.5s infinite' },
+        ];
+
+        // ── Estado actual equipado ────────────────────────────────
+        let equippedItems = {
+            frame:  'frame_none',
+            aura:   'aura_none',
+            fx:     'fx_none',
+            filter: 'filter_none',
+        };
+        let shopSelectedItem = null;
+        let shopCurrentCat   = 'marcos';
+        let userPoints       = 0;  // se carga desde Firebase
+
+        // ── Partículas animadas ──────────────────────────────────
+        const FX_EMOJIS = {
+            stars:    ['✨','⭐','🌟'],
+            hearts:   ['💖','❤️','💕'],
+            fire:     ['🔥','🧨','💥'],
+            snow:     ['❄️','🌨️','⛄'],
+            confetti: ['🎉','🎊','🎈'],
+            sparkle:  ['💫','⚡','🌠'],
+        };
+
+        function startParticlesFX(fx, containerEl) {
+            if (!fx || fx === 'none' || !FX_EMOJIS[fx]) { containerEl.innerHTML = ''; return; }
+            containerEl.innerHTML = '';
+            const emojis = FX_EMOJIS[fx];
+            let running = true;
+            containerEl._stopFX = () => { running = false; containerEl.innerHTML = ''; };
+            function spawnParticle() {
+                if (!running) return;
+                const el = document.createElement('div');
+                el.style.cssText = `position:absolute;font-size:${10+Math.random()*8}px;pointer-events:none;z-index:4;animation:float-particle ${0.8+Math.random()*0.8}s ease-out forwards;`;
+                const angle = Math.random() * Math.PI * 2;
+                const r = 55 + Math.random() * 10;
+                el.style.left = (71 + Math.cos(angle) * r) + 'px';
+                el.style.top  = (71 + Math.sin(angle) * r) + 'px';
+                el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                containerEl.appendChild(el);
+                el.addEventListener('animationend', () => el.remove());
+                if (running) setTimeout(spawnParticle, 200 + Math.random() * 400);
+            }
+            for (let i = 0; i < 3; i++) setTimeout(spawnParticle, i * 150);
+        }
+
+        function applyAura(auraColor, el) {
+            if (!auraColor || auraColor === 'none') { el.style.filter = ''; el.style.boxShadow = ''; return; }
+            if (auraColor === 'rainbow') {
+                el.style.boxShadow = '0 0 18px 6px rgba(255,0,0,0.4), 0 0 28px 10px rgba(0,255,100,0.3), 0 0 38px 14px rgba(0,100,255,0.25)';
+            } else {
+                el.style.boxShadow = `0 0 18px 8px ${auraColor}, 0 0 32px 14px ${auraColor.replace('0.45','0.2').replace('0.5','0.2').replace('0.55','0.2')}`;
+            }
+        }
+
+        // ── Renderizar marco en el perfil real ──────────────────
+        function applyEquippedToProfile() {
+            const frameItem  = SHOP_ITEMS.find(i => i.id === equippedItems.frame);
+            const auraItem   = SHOP_ITEMS.find(i => i.id === equippedItems.aura);
+            const fxItem     = SHOP_ITEMS.find(i => i.id === equippedItems.fx);
+            const filterItem = SHOP_ITEMS.find(i => i.id === equippedItems.filter);
+
+            // Marco SVG
+            const frameSvg = document.getElementById('avatar-frame-svg');
+            if (frameSvg && frameItem) frameSvg.innerHTML = frameItem.render ? frameItem.render() : '';
+
+            // Aura
+            const avatarEl = document.getElementById('profile-avatar');
+            if (avatarEl && auraItem) applyAura(auraItem.auraColor, avatarEl);
+
+            // Filtro
+            if (avatarEl && filterItem) {
+                avatarEl.style.filter = filterItem.filter !== 'none' ? filterItem.filter : '';
+                avatarEl.style.animation = filterItem.anim || '';
+            }
+
+            // FX partículas
+            const particlesSvg = document.getElementById('avatar-particles');
+            if (particlesSvg) {
+                if (particlesSvg._stopFX) particlesSvg._stopFX();
+                // Usar div contenedor para partículas reales
+                let fxContainer = document.getElementById('avatar-fx-container');
+                if (!fxContainer) {
+                    fxContainer = document.createElement('div');
+                    fxContainer.id = 'avatar-fx-container';
+                    fxContainer.style.cssText = 'position:absolute;inset:-20px;width:calc(100% + 40px);height:calc(100% + 40px);pointer-events:none;z-index:3;overflow:hidden;';
+                    document.getElementById('avatar-wrap-main').appendChild(fxContainer);
+                }
+                if (fxItem?.fx && fxItem.fx !== 'none') {
+                    startParticlesFX(fxItem.fx, fxContainer);
+                } else {
+                    if (fxContainer._stopFX) fxContainer._stopFX();
+                    fxContainer.innerHTML = '';
+                }
+            }
+        }
+
+        // ── Guardar y cargar equipamiento en Firebase ────────────
+        async function saveEquippedToFirebase() {
+            if (!currentUser) return;
+            try {
+                await set(ref(db, `usuarios/${currentUser.uid}/avatarShop`), equippedItems);
+            } catch(e) { console.warn('saveEquipped:', e); }
+        }
+
+        async function loadEquippedFromFirebase() {
+            if (!currentUser) return;
+            try {
+                const snap = await get(ref(db, `usuarios/${currentUser.uid}/avatarShop`));
+                if (snap.exists()) {
+                    const saved = snap.val();
+                    equippedItems = { ...equippedItems, ...saved };
+                }
+                // Cargar puntos
+                const uSnap = await get(ref(db, `usuarios/${currentUser.uid}`));
+                if (uSnap.exists()) userPoints = Number(uSnap.val().puntos || 0);
+                applyEquippedToProfile();
+            } catch(e) { console.warn('loadEquipped:', e); }
+        }
+
+        // ── Abrir tienda ─────────────────────────────────────────
+        window.openAvatarShop = function() {
+            shopSelectedItem = null;
+            shopCurrentCat   = 'marcos';
+            renderShop();
+        };
+
+        function renderShop() {
+            document.getElementById('avatar-shop-overlay')?.remove();
+
+            const overlay = document.createElement('div');
+            overlay.className = 'shop-overlay';
+            overlay.id = 'avatar-shop-overlay';
+
+            const avatarSrc = document.getElementById('profile-avatar')?.src || 'default-avatar.png';
+
+            overlay.innerHTML = `
+            <div class="shop-sheet" id="shop-sheet">
+                <div class="shop-handle"></div>
+                <div class="shop-header">
+                    <div class="shop-title">✨ Tienda de Avatares</div>
+                    <div class="shop-subtitle">Personaliza tu foto de perfil · <span style="color:#f7b731;font-weight:700;">⭐ ${userPoints} pts</span></div>
+                </div>
+                <div class="shop-body" id="shop-body">
+                    <!-- Preview -->
+                    <div class="shop-preview">
+                        <div class="shop-preview-ring" id="shop-preview-ring">
+                            <img class="shop-preview-img" id="shop-preview-img" src="${avatarSrc}" onerror="this.src='default-avatar.png'">
+                            <svg class="shop-preview-frame" id="shop-preview-frame" viewBox="0 0 126 126" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+                            <div id="shop-preview-fx" style="position:absolute;inset:-20px;width:calc(100% + 40px);height:calc(100% + 40px);pointer-events:none;z-index:3;overflow:visible;"></div>
+                        </div>
+                        <div class="shop-preview-label" id="shop-preview-label">Vista previa</div>
+                        <div class="shop-preview-sublabel" id="shop-preview-sublabel">Toca un item para previsualizar</div>
+                    </div>
+
+                    <!-- Categorías -->
+                    <div class="shop-cat-tabs">
+                        <div class="shop-cat-tab ${shopCurrentCat==='marcos'?'active':''}" onclick="shopSwitchCat('marcos')">🖼️ Marcos</div>
+                        <div class="shop-cat-tab ${shopCurrentCat==='auras'?'active':''}" onclick="shopSwitchCat('auras')">✨ Auras</div>
+                        <div class="shop-cat-tab ${shopCurrentCat==='efectos'?'active':''}" onclick="shopSwitchCat('efectos')">🎆 Efectos</div>
+                        <div class="shop-cat-tab ${shopCurrentCat==='filtros'?'active':''}" onclick="shopSwitchCat('filtros')">🎨 Filtros</div>
+                    </div>
+
+                    <!-- Grid items -->
+                    <div id="shop-items-grid"></div>
+                </div>
+                <div class="shop-apply-bar">
+                    <button class="shop-remove-btn" onclick="shopRemoveAll()"><i class="fa-solid fa-trash-can"></i></button>
+                    <button class="shop-apply-btn" id="shop-apply-btn" onclick="shopApply()" disabled>
+                        <i class="fa-solid fa-check"></i> Aplicar
+                    </button>
+                    <button class="shop-remove-btn" onclick="closeAvatarShop()">Cerrar</button>
+                </div>
+            </div>`;
+
+            overlay.addEventListener('click', e => { if (e.target === overlay) closeAvatarShop(); });
+            document.body.appendChild(overlay);
+            renderShopGrid();
+        }
+
+        window.shopSwitchCat = function(cat) {
+            shopCurrentCat = cat;
+            document.querySelectorAll('.shop-cat-tab').forEach(t => {
+                t.classList.toggle('active', t.textContent.toLowerCase().includes(cat.slice(0,4)));
+            });
+            renderShopGrid();
+        };
+
+        function renderShopGrid() {
+            const container = document.getElementById('shop-items-grid');
+            if (!container) return;
+            const items = SHOP_ITEMS.filter(i => i.cat === shopCurrentCat);
+            const avatarSrc = document.getElementById('profile-avatar')?.src || 'default-avatar.png';
+
+            const typeKey = items[0]?.type || 'frame';
+            const equippedId = equippedItems[typeKey] || '';
+
+            container.innerHTML = `
+                <div class="shop-section-title">
+                    ${shopCurrentCat === 'marcos' ? '🖼️ Marcos de Perfil' : shopCurrentCat === 'auras' ? '✨ Auras' : shopCurrentCat === 'efectos' ? '🎆 Efectos' : '🎨 Filtros de Foto'}
+                </div>
+                <div class="shop-grid">
+                    ${items.map(item => {
+                        const isEquipped = equippedId === item.id;
+                        const isSelected = shopSelectedItem?.id === item.id;
+                        return `<div class="shop-item ${isEquipped?'equipped':''} ${isSelected?'selected':''}" id="shop-item-${item.id}" onclick="shopSelectItem('${item.id}')">
+                            <div class="shop-item-check"><i class="fa-solid fa-check" style="font-size:9px;"></i></div>
+                            <div class="shop-item-preview" id="shop-preview-mini-${item.id}">
+                                <img class="shop-item-avatar" src="${avatarSrc}" onerror="this.src='default-avatar.png'"
+                                    style="filter:${item.type==='filter'&&item.filter!=='none'?item.filter:'none'};">
+                                ${item.type === 'frame' && item.render ? `<svg class="shop-item-frame" viewBox="0 0 126 126" fill="none" xmlns="http://www.w3.org/2000/svg">${item.render()}</svg>` : ''}
+                                ${item.type === 'aura' && item.auraColor ? `<div style="position:absolute;inset:0;border-radius:50%;box-shadow:0 0 12px 5px ${item.auraColor==='rainbow'?'rgba(255,0,100,0.5)':item.auraColor};pointer-events:none;"></div>` : ''}
+                                ${item.type === 'fx' && item.fx ? `<div style="position:absolute;top:-4px;right:-4px;font-size:16px;">${FX_EMOJIS[item.fx]?.[0]||'✨'}</div>` : ''}
+                            </div>
+                            <div class="shop-item-name">${item.name}</div>
+                            ${isEquipped
+                                ? `<span class="shop-item-badge equipped-badge">Equipado</span>`
+                                : item.free
+                                    ? `<span class="shop-item-badge free">Gratis</span>`
+                                    : `<span class="shop-item-badge points">⭐ ${item.points} pts</span>`}
+                        </div>`;
+                    }).join('')}
+                </div>`;
+        }
+
+        window.shopSelectItem = function(id) {
+            const item = SHOP_ITEMS.find(i => i.id === id);
+            if (!item) return;
+
+            // Verificar puntos si no es gratis
+            if (!item.free && userPoints < item.points) {
+                showShopToast(`⭐ Necesitas ${item.points} puntos. Tienes ${userPoints}.`);
+                return;
+            }
+
+            shopSelectedItem = item;
+
+            // Actualizar selección visual
+            document.querySelectorAll('.shop-item').forEach(el => el.classList.remove('selected'));
+            document.getElementById(`shop-item-${id}`)?.classList.add('selected');
+
+            // Habilitar botón aplicar
+            const applyBtn = document.getElementById('shop-apply-btn');
+            if (applyBtn) applyBtn.disabled = false;
+
+            // Vista previa en tiempo real
+            updateShopPreview(item);
+        };
+
+        function updateShopPreview(item) {
+            const previewImg    = document.getElementById('shop-preview-img');
+            const previewFrame  = document.getElementById('shop-preview-frame');
+            const previewFx     = document.getElementById('shop-preview-fx');
+            const previewLabel  = document.getElementById('shop-preview-label');
+            const previewSublbl = document.getElementById('shop-preview-sublabel');
+
+            if (!previewImg) return;
+
+            if (previewLabel) previewLabel.textContent = item.name;
+            if (previewSublbl) previewSublbl.textContent = item.free ? '✅ Gratis' : `⭐ ${item.points} puntos`;
+
+            if (item.type === 'frame') {
+                if (previewFrame) previewFrame.innerHTML = item.render ? item.render() : '';
+                previewImg.style.filter = '';
+                previewImg.style.boxShadow = '';
+                if (previewFx && previewFx._stopFX) previewFx._stopFX();
+                if (previewFx) previewFx.innerHTML = '';
+            } else if (item.type === 'aura') {
+                applyAura(item.auraColor, previewImg);
+            } else if (item.type === 'filter') {
+                previewImg.style.filter = item.filter !== 'none' ? item.filter : '';
+                previewImg.style.animation = item.anim || '';
+            } else if (item.type === 'fx') {
+                if (previewFx) {
+                    if (previewFx._stopFX) previewFx._stopFX();
+                    if (item.fx && item.fx !== 'none') startParticlesFX(item.fx, previewFx);
+                    else previewFx.innerHTML = '';
+                }
+            }
+        }
+
+        window.shopApply = async function() {
+            if (!shopSelectedItem) return;
+            const item = shopSelectedItem;
+
+            equippedItems[item.type] = item.id;
+            await saveEquippedToFirebase();
+            applyEquippedToProfile();
+
+            // Actualizar grid para reflejar equipado
+            renderShopGrid();
+
+            showShopToast(`✅ "${item.name}" aplicado`);
+            document.getElementById('shop-apply-btn').disabled = true;
+            shopSelectedItem = null;
+        };
+
+        window.shopRemoveAll = async function() {
+            equippedItems = { frame:'frame_none', aura:'aura_none', fx:'fx_none', filter:'filter_none' };
+            await saveEquippedToFirebase();
+            applyEquippedToProfile();
+            renderShopGrid();
+            showShopToast('🗑️ Apariencia restablecida');
+        };
+
+        window.closeAvatarShop = function() {
+            // Detener partículas de preview
+            const fx = document.getElementById('shop-preview-fx');
+            if (fx && fx._stopFX) fx._stopFX();
+            document.getElementById('avatar-shop-overlay')?.remove();
+        };
+
+        function showShopToast(msg) {
+            let t = document.getElementById('toast');
+            if (!t) { t = document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ── Cargar equipamiento al iniciar ───────────────────────
+        // Se llama después de que currentUser esté listo (ver onAuthStateChanged)
 
         // ── UPLOAD AVATAR / COVER ──
         document.getElementById('avatar-edit-btn').onclick=()=>document.getElementById('avatar-input').click();
