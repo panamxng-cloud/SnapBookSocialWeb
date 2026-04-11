@@ -186,6 +186,37 @@
         .card-footer { text-align: center; margin-top: 24px; color: rgba(255,255,255,0.35); font-size: 14px; }
         .card-footer a { color: #1877f2; font-weight: 700; cursor: pointer; text-decoration: none; }
         .card-footer a:hover { text-decoration: underline; }
+
+        /* AUTH TABS */
+        .auth-tabs { display: flex; background: rgba(255,255,255,0.05); border-radius: 14px; padding: 4px; margin-bottom: 22px; gap: 4px; }
+        .auth-tab { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: rgba(255,255,255,0.4); font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .auth-tab.active { background: rgba(255,255,255,0.12); color: white; }
+        .auth-tab i { font-size: 13px; }
+
+        /* PHONE PANEL */
+        .phone-panel { display: none; }
+        .phone-panel.active { display: block; }
+        .email-panel { display: block; }
+        .email-panel.hidden { display: none; }
+
+        /* PHONE INPUT ROW */
+        .phone-row { display: flex; gap: 8px; }
+        .country-select { width: 90px; flex-shrink: 0; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: white; font-family: inherit; font-size: 14px; font-weight: 700; padding: 0 10px; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; text-align: center; }
+        .country-select option { background: #1a1a2e; color: white; }
+        .phone-row .input-wrap { flex: 1; }
+
+        /* OTP BOX */
+        .otp-section { display: none; }
+        .otp-section.visible { display: block; }
+        .otp-hint { font-size: 13px; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 16px; line-height: 1.5; }
+        .otp-hint strong { color: white; }
+        .otp-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; }
+        .otp-input { width: 46px; height: 54px; border-radius: 14px; border: 1.5px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.07); color: white; font-size: 22px; font-weight: 800; font-family: inherit; text-align: center; outline: none; transition: border-color 0.2s; caret-color: #1877f2; }
+        .otp-input:focus { border-color: #1877f2; background: rgba(24,119,242,0.1); }
+        .otp-resend { text-align: center; font-size: 13px; color: rgba(255,255,255,0.35); }
+        .otp-resend button { background: none; border: none; color: #1877f2; font-weight: 700; font-family: inherit; font-size: 13px; cursor: pointer; }
+        .otp-resend button:disabled { color: rgba(255,255,255,0.25); cursor: not-allowed; }
+        #recaptcha-container { margin: 0 auto 12px; display: flex; justify-content: center; }
     </style>
 </head>
 <body>
@@ -202,11 +233,23 @@
         <div class="card-title">Bienvenido de vuelta</div>
         <div class="card-sub">Inicia sesión para continuar</div>
 
+        <!-- TABS -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-email" onclick="switchTab('email')">
+                <i class="fa-solid fa-envelope"></i> Correo
+            </button>
+            <button class="auth-tab" id="tab-phone" onclick="switchTab('phone')">
+                <i class="fa-solid fa-mobile-screen"></i> Teléfono
+            </button>
+        </div>
+
         <div class="error-msg" id="error-msg">
             <i class="fa-solid fa-triangle-exclamation"></i>
             <span id="error-text">Error al iniciar sesión</span>
         </div>
 
+        <!-- EMAIL PANEL -->
+        <div class="email-panel" id="email-panel">
         <div class="field">
             <label>Correo electrónico</label>
             <div class="input-wrap">
@@ -234,6 +277,65 @@
             <span class="btn-text">Iniciar sesión</span>
             <div class="spinner"></div>
         </button>
+        </div><!-- end email-panel -->
+
+        <!-- PHONE LOGIN PANEL -->
+        <div class="phone-panel" id="phone-panel">
+            <!-- STEP 1: número -->
+            <div id="phone-step1">
+                <div class="field">
+                    <label>Número de teléfono</label>
+                    <div class="phone-row">
+                        <select class="country-select" id="country-code">
+                            <option value="+52">🇲🇽 +52</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+34">🇪🇸 +34</option>
+                            <option value="+57">🇨🇴 +57</option>
+                            <option value="+54">🇦🇷 +54</option>
+                            <option value="+51">🇵🇪 +51</option>
+                            <option value="+56">🇨🇱 +56</option>
+                            <option value="+58">🇻🇪 +58</option>
+                            <option value="+593">🇪🇨 +593</option>
+                            <option value="+502">🇬🇹 +502</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+55">🇧🇷 +55</option>
+                        </select>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                            <input type="tel" id="phone-number" placeholder="Ej: 5512345678" autocomplete="tel">
+                        </div>
+                    </div>
+                </div>
+                <div id="recaptcha-container"></div>
+                <button class="submit-btn" id="send-otp-btn" style="margin-top:4px">
+                    <span class="btn-text">Enviar código SMS</span>
+                    <div class="spinner"></div>
+                </button>
+            </div>
+
+            <!-- STEP 2: OTP -->
+            <div class="otp-section" id="phone-step2">
+                <p class="otp-hint">Código enviado a <strong id="otp-phone-display"></strong><br>Ingresa los 6 dígitos</p>
+                <div class="otp-inputs">
+                    <input class="otp-input" maxlength="1" type="tel" id="o1">
+                    <input class="otp-input" maxlength="1" type="tel" id="o2">
+                    <input class="otp-input" maxlength="1" type="tel" id="o3">
+                    <input class="otp-input" maxlength="1" type="tel" id="o4">
+                    <input class="otp-input" maxlength="1" type="tel" id="o5">
+                    <input class="otp-input" maxlength="1" type="tel" id="o6">
+                </div>
+                <button class="submit-btn" id="verify-otp-btn">
+                    <span class="btn-text">Verificar y entrar</span>
+                    <div class="spinner"></div>
+                </button>
+                <div class="otp-resend" style="margin-top:14px">
+                    <button id="resend-btn" disabled>Reenviar código (<span id="resend-timer">60</span>s)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- EMAIL PANEL (existing fields wrapped) -->
+        <div class="email-panel" id="email-panel">        </div><!-- end email-panel -->
 
         <div class="divider">
             <div class="divider-line"></div>
@@ -263,10 +365,139 @@
             signInWithEmailAndPassword,
             sendPasswordResetEmail,
             GoogleAuthProvider,
-            signInWithPopup
+            signInWithPopup,
+            RecaptchaVerifier,
+            signInWithPhoneNumber
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { ref as dRef, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // ── TAB SWITCH ────────────────────────────────────────────
+        window.switchTab = function(tab) {
+            const emailPanel = document.getElementById('email-panel');
+            const phonePanel = document.getElementById('phone-panel');
+            const tabEmail   = document.getElementById('tab-email');
+            const tabPhone   = document.getElementById('tab-phone');
+            if (tab === 'email') {
+                emailPanel.classList.remove('hidden');
+                phonePanel.classList.remove('active');
+                tabEmail.classList.add('active');
+                tabPhone.classList.remove('active');
+            } else {
+                emailPanel.classList.add('hidden');
+                phonePanel.classList.add('active');
+                tabEmail.classList.remove('active');
+                tabPhone.classList.add('active');
+                initRecaptcha();
+            }
+        };
+
+        // ── PHONE AUTH ─────────────────────────────────────────────
+        let confirmationResult = null;
+        let recaptchaVerifier  = null;
+        let resendInterval     = null;
+
+        function initRecaptcha() {
+            if (recaptchaVerifier) return;
+            recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                size    : 'normal',
+                callback: () => { document.getElementById('send-otp-btn').disabled = false; },
+                'expired-callback': () => { recaptchaVerifier = null; initRecaptcha(); }
+            });
+            recaptchaVerifier.render();
+        }
+
+        function startResendTimer() {
+            let secs = 60;
+            const btn    = document.getElementById('resend-btn');
+            const timerEl = document.getElementById('resend-timer');
+            btn.disabled = true;
+            clearInterval(resendInterval);
+            resendInterval = setInterval(() => {
+                secs--;
+                timerEl.textContent = secs;
+                if (secs <= 0) {
+                    clearInterval(resendInterval);
+                    btn.disabled = false;
+                    btn.textContent = 'Reenviar código';
+                }
+            }, 1000);
+        }
+
+        // Send OTP
+        document.getElementById('send-otp-btn').onclick = async () => {
+            hideError();
+            const code  = document.getElementById('country-code').value;
+            const num   = document.getElementById('phone-number').value.trim().replace(/\s/g,'');
+            if (!num || num.length < 7) { showError('Ingresa un número válido.'); return; }
+            const fullPhone = code + num;
+            const btn = document.getElementById('send-otp-btn');
+            btn.classList.add('loading'); btn.disabled = true;
+            try {
+                confirmationResult = await signInWithPhoneNumber(auth, fullPhone, recaptchaVerifier);
+                document.getElementById('otp-phone-display').textContent = fullPhone;
+                document.getElementById('phone-step1').style.display = 'none';
+                document.getElementById('phone-step2').classList.add('visible');
+                document.getElementById('o1').focus();
+                startResendTimer();
+            } catch(err) {
+                btn.classList.remove('loading'); btn.disabled = false;
+                recaptchaVerifier = null; initRecaptcha();
+                const msgs = {
+                    'auth/invalid-phone-number' : 'Número de teléfono inválido.',
+                    'auth/too-many-requests'    : 'Demasiados intentos. Intenta más tarde.',
+                    'auth/quota-exceeded'       : 'Límite de SMS alcanzado. Intenta más tarde.',
+                };
+                showError(msgs[err.code] || 'Error al enviar SMS. Verifica el número.');
+            }
+        };
+
+        // OTP inputs auto-advance
+        ['o1','o2','o3','o4','o5','o6'].forEach((id, i, arr) => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', () => {
+                if (el.value && i < arr.length - 1) document.getElementById(arr[i+1]).focus();
+            });
+            el.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !el.value && i > 0) document.getElementById(arr[i-1]).focus();
+            });
+        });
+
+        // Verify OTP
+        document.getElementById('verify-otp-btn').onclick = async () => {
+            hideError();
+            const code = ['o1','o2','o3','o4','o5','o6'].map(id => document.getElementById(id).value).join('');
+            if (code.length < 6) { showError('Ingresa los 6 dígitos del código.'); return; }
+            const btn = document.getElementById('verify-otp-btn');
+            btn.classList.add('loading'); btn.disabled = true;
+            try {
+                const result = await confirmationResult.confirm(code);
+                // Si es usuario nuevo, guardarlo en DB
+                const snap = await get(dRef(db, `usuarios/${result.user.uid}`));
+                if (!snap.exists()) {
+                    await set(dRef(db, `usuarios/${result.user.uid}`), {
+                        nombre   : result.user.displayName || 'Usuario',
+                        telefono : result.user.phoneNumber || '',
+                        photoURL : result.user.photoURL || '',
+                        createdAt: Date.now()
+                    });
+                }
+                await redirectSegunPerfil(result.user);
+            } catch(err) {
+                btn.classList.remove('loading'); btn.disabled = false;
+                showError('Código incorrecto o expirado. Intenta de nuevo.');
+            }
+        };
+
+        // Resend
+        document.getElementById('resend-btn').onclick = async () => {
+            document.getElementById('phone-step2').classList.remove('visible');
+            document.getElementById('phone-step1').style.display = 'block';
+            recaptchaVerifier = null;
+            document.getElementById('recaptcha-container').innerHTML = '';
+            initRecaptcha();
+        };
+
+        // ── GUARDA PERFIL GOOGLE ───────────────────────────────────
         // Guarda perfil de Google en DB solo si es usuario nuevo
         async function saveGoogleUserToDB(user) {
             const snap = await get(dRef(db, `usuarios/${user.uid}`));
@@ -280,9 +511,20 @@
             }
         }
 
+        // Verifica si el usuario tiene foto de perfil, si no → completar perfil
+        async function redirectSegunPerfil(user) {
+            const snap = await get(dRef(db, `usuarios/${user.uid}`));
+            const photoURL = snap.exists() ? (snap.val().photoURL || snap.val().avatar || '') : (user.photoURL || '');
+            if (!photoURL) {
+                location.href = 'register.html?completar=1';
+            } else {
+                location.href = 'Home.html';
+            }
+        }
+
         // If already logged in, redirect
-        onAuthStateChanged(auth, user => {
-            if (user) location.href = 'Home.html';
+        onAuthStateChanged(auth, async user => {
+            if (user) await redirectSegunPerfil(user);
         });
 
         // Show/hide password
@@ -325,8 +567,8 @@
             loginBtn.classList.add('loading');
             loginBtn.disabled = true;
             try {
-                await signInWithEmailAndPassword(auth, email, password);
-                location.href = 'Home.html';
+                const cred = await signInWithEmailAndPassword(auth, email, password);
+                await redirectSegunPerfil(cred.user);
             } catch (err) {
                 loginBtn.classList.remove('loading');
                 loginBtn.disabled = false;
@@ -360,7 +602,7 @@
                 const result = await signInWithPopup(auth, provider);
                 // Guardar nombre y foto de Google automaticamente si es usuario nuevo
                 await saveGoogleUserToDB(result.user);
-                location.href = 'Home.html';
+                await redirectSegunPerfil(result.user);
             } catch(err) {
                 if (err.code !== 'auth/popup-closed-by-user') showError(getErrorMsg(err.code));
             }

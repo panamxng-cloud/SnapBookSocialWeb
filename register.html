@@ -220,6 +220,33 @@
         /* FOOTER */
         .card-footer { text-align: center; margin-top: 22px; color: rgba(255,255,255,0.3); font-size: 13px; }
         .card-footer a { color: #6c63ff; font-weight: 700; cursor: pointer; text-decoration: none; }
+
+        /* AUTH TABS */
+        .auth-tabs { display: flex; background: rgba(255,255,255,0.05); border-radius: 14px; padding: 4px; margin-bottom: 22px; gap: 4px; }
+        .auth-tab { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: rgba(255,255,255,0.4); font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .auth-tab.active { background: rgba(255,255,255,0.12); color: white; }
+
+        .reg-email-panel { display: block; }
+        .reg-email-panel.hidden { display: none; }
+        .reg-phone-panel { display: none; }
+        .reg-phone-panel.active { display: block; }
+
+        .phone-row { display: flex; gap: 8px; }
+        .country-select { width: 90px; flex-shrink: 0; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: white; font-family: inherit; font-size: 14px; font-weight: 700; padding: 0 10px; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; text-align: center; }
+        .country-select option { background: #1a1a2e; color: white; }
+        .phone-row .input-wrap { flex: 1; }
+
+        .otp-section { display: none; }
+        .otp-section.visible { display: block; }
+        .otp-hint { font-size: 13px; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 16px; line-height: 1.5; }
+        .otp-hint strong { color: white; }
+        .otp-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; }
+        .otp-input { width: 46px; height: 54px; border-radius: 14px; border: 1.5px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.07); color: white; font-size: 22px; font-weight: 800; font-family: inherit; text-align: center; outline: none; transition: border-color 0.2s; caret-color: #6c63ff; }
+        .otp-input:focus { border-color: #6c63ff; background: rgba(108,99,255,0.1); }
+        .otp-resend { text-align: center; font-size: 13px; color: rgba(255,255,255,0.35); }
+        .otp-resend button { background: none; border: none; color: #6c63ff; font-weight: 700; font-family: inherit; font-size: 13px; cursor: pointer; }
+        .otp-resend button:disabled { color: rgba(255,255,255,0.25); cursor: not-allowed; }
+        #recaptcha-container-reg { margin: 0 auto 12px; display: flex; justify-content: center; }
     </style>
 </head>
 <body>
@@ -243,8 +270,18 @@
             <div class="avatar-hint" id="avatar-hint">Foto de perfil obligatoria</div>
         </div>
 
-        <div class="card-title">Crea tu cuenta</div>
-        <div class="card-sub">Únete a SnapBook hoy mismo</div>
+        <div class="card-title" id="card-title">Crea tu cuenta</div>
+        <div class="card-sub" id="card-sub">Únete a SnapBook hoy mismo</div>
+
+        <!-- TABS -->
+        <div class="auth-tabs" id="reg-tabs">
+            <button class="auth-tab active" id="reg-tab-email" onclick="switchRegTab('email')">
+                <i class="fa-solid fa-envelope"></i> Correo
+            </button>
+            <button class="auth-tab" id="reg-tab-phone" onclick="switchRegTab('phone')">
+                <i class="fa-solid fa-mobile-screen"></i> Teléfono
+            </button>
+        </div>
 
         <div class="error-msg" id="error-msg">
             <i class="fa-solid fa-triangle-exclamation"></i>
@@ -255,6 +292,8 @@
             <span id="success-text">¡Cuenta creada!</span>
         </div>
 
+        <!-- EMAIL REGISTER PANEL -->
+        <div class="reg-email-panel" id="reg-email-panel">
         <div class="field">
             <label>Nombre completo</label>
             <div class="input-wrap">
@@ -263,7 +302,7 @@
             </div>
         </div>
 
-        <div class="field">
+        <div class="field campo-registro">
             <label>Correo electrónico</label>
             <div class="input-wrap">
                 <i class="fa-solid fa-envelope field-icon"></i>
@@ -271,7 +310,7 @@
             </div>
         </div>
 
-        <div class="field">
+        <div class="field campo-registro">
             <label>Contraseña</label>
             <div class="input-wrap">
                 <i class="fa-solid fa-lock field-icon"></i>
@@ -289,7 +328,7 @@
             <div class="strength-label" id="strength-label"></div>
         </div>
 
-        <div class="field">
+        <div class="field campo-registro">
             <label>Confirmar contraseña</label>
             <div class="input-wrap">
                 <i class="fa-solid fa-shield-halved field-icon"></i>
@@ -300,7 +339,7 @@
             </div>
         </div>
 
-        <div class="terms-row">
+        <div class="terms-row campo-registro">
             <div class="custom-check" id="terms-check">
                 <i class="fa-solid fa-check"></i>
             </div>
@@ -313,14 +352,83 @@
             <span class="btn-text">Crear cuenta gratis</span>
             <div class="spinner"></div>
         </button>
+        </div><!-- end reg-email-panel -->
 
-        <div class="divider">
+        <!-- PHONE REGISTER PANEL -->
+        <div class="reg-phone-panel" id="reg-phone-panel">
+            <div id="reg-phone-step1">
+                <div class="field">
+                    <label>Nombre completo</label>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-user field-icon"></i>
+                        <input type="text" id="phone-fullname" placeholder="Tu nombre" autocomplete="name">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Número de teléfono</label>
+                    <div class="phone-row">
+                        <select class="country-select" id="reg-country-code">
+                            <option value="+52">🇲🇽 +52</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+34">🇪🇸 +34</option>
+                            <option value="+57">🇨🇴 +57</option>
+                            <option value="+54">🇦🇷 +54</option>
+                            <option value="+51">🇵🇪 +51</option>
+                            <option value="+56">🇨🇱 +56</option>
+                            <option value="+58">🇻🇪 +58</option>
+                            <option value="+593">🇪🇨 +593</option>
+                            <option value="+502">🇬🇹 +502</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+55">🇧🇷 +55</option>
+                        </select>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-mobile-screen field-icon"></i>
+                            <input type="tel" id="reg-phone-number" placeholder="Ej: 5512345678" autocomplete="tel">
+                        </div>
+                    </div>
+                </div>
+                <div class="terms-row">
+                    <div class="custom-check" id="terms-check-phone">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div class="terms-text">
+                        Acepto los <a href="#">Términos de servicio</a> y la <a href="#">Política de privacidad</a>.
+                    </div>
+                </div>
+                <div id="recaptcha-container-reg"></div>
+                <button class="submit-btn" id="reg-send-otp-btn" style="margin-top:4px">
+                    <span class="btn-text">Enviar código SMS</span>
+                    <div class="spinner"></div>
+                </button>
+            </div>
+
+            <div class="otp-section" id="reg-phone-step2">
+                <p class="otp-hint">Código enviado a <strong id="reg-otp-phone-display"></strong><br>Ingresa los 6 dígitos</p>
+                <div class="otp-inputs">
+                    <input class="otp-input" maxlength="1" type="tel" id="r1">
+                    <input class="otp-input" maxlength="1" type="tel" id="r2">
+                    <input class="otp-input" maxlength="1" type="tel" id="r3">
+                    <input class="otp-input" maxlength="1" type="tel" id="r4">
+                    <input class="otp-input" maxlength="1" type="tel" id="r5">
+                    <input class="otp-input" maxlength="1" type="tel" id="r6">
+                </div>
+                <button class="submit-btn" id="reg-verify-otp-btn">
+                    <span class="btn-text">Crear cuenta</span>
+                    <div class="spinner"></div>
+                </button>
+                <div class="otp-resend" style="margin-top:14px">
+                    <button id="reg-resend-btn" disabled>Reenviar código (<span id="reg-resend-timer">60</span>s)</button>
+                </div>
+            </div>
+        </div><!-- end reg-phone-panel -->
+
+        <div class="divider" id="google-section">
             <div class="divider-line"></div>
             <div class="divider-text">O regístrate con</div>
             <div class="divider-line"></div>
         </div>
 
-        <button class="google-btn" id="google-btn">
+        <button class="google-btn campo-registro" id="google-btn">
             <svg class="google-icon" viewBox="0 0 48 48">
                 <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.6 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
                 <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.5 16 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
@@ -330,7 +438,7 @@
             Continuar con Google
         </button>
 
-        <div class="card-footer">
+        <div class="card-footer" id="footer-link">
             ¿Ya tienes cuenta? <a href="index.html">Iniciar sesión</a>
         </div>
     </div>
@@ -342,15 +450,162 @@
             createUserWithEmailAndPassword,
             updateProfile,
             GoogleAuthProvider,
-            signInWithPopup
+            signInWithPopup,
+            RecaptchaVerifier,
+            signInWithPhoneNumber
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { ref as dRef, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         // ── Supabase Storage ──
         import { uploadAvatar } from './supabase-config.js';
         import { logNuevoUsuario } from './sheetdb-config.js';
 
+        // ── TAB SWITCH ─────────────────────────────────────────────
+        window.switchRegTab = function(tab) {
+            const emailP = document.getElementById('reg-email-panel');
+            const phoneP = document.getElementById('reg-phone-panel');
+            const tE = document.getElementById('reg-tab-email');
+            const tP = document.getElementById('reg-tab-phone');
+            if (tab === 'email') {
+                emailP.classList.remove('hidden');
+                phoneP.classList.remove('active');
+                tE.classList.add('active'); tP.classList.remove('active');
+            } else {
+                emailP.classList.add('hidden');
+                phoneP.classList.add('active');
+                tE.classList.remove('active'); tP.classList.add('active');
+                initRegRecaptcha();
+            }
+        };
+
+        // ── PHONE REGISTER ──────────────────────────────────────────
+        let regConfirmResult  = null;
+        let regRecaptcha      = null;
+        let regResendInterval = null;
+        let regTermsAccepted  = false;
+
+        const regTermsCheck = document.getElementById('terms-check-phone');
+        regTermsCheck.onclick = () => {
+            regTermsAccepted = !regTermsAccepted;
+            regTermsCheck.classList.toggle('checked', regTermsAccepted);
+        };
+
+        function initRegRecaptcha() {
+            if (regRecaptcha) return;
+            regRecaptcha = new RecaptchaVerifier(auth, 'recaptcha-container-reg', {
+                size: 'normal',
+                'expired-callback': () => { regRecaptcha = null; initRegRecaptcha(); }
+            });
+            regRecaptcha.render();
+        }
+
+        function startRegTimer() {
+            let secs = 60;
+            const btn = document.getElementById('reg-resend-btn');
+            const timerEl = document.getElementById('reg-resend-timer');
+            btn.disabled = true;
+            clearInterval(regResendInterval);
+            regResendInterval = setInterval(() => {
+                secs--;
+                timerEl.textContent = secs;
+                if (secs <= 0) {
+                    clearInterval(regResendInterval);
+                    btn.disabled = false;
+                    btn.textContent = 'Reenviar código';
+                }
+            }, 1000);
+        }
+
+        document.getElementById('reg-send-otp-btn').onclick = async () => {
+            const name = document.getElementById('phone-fullname').value.trim();
+            if (!avatarFile) {
+                const r = document.getElementById('avatar-ring');
+                r.classList.add('error-ring');
+                setTimeout(() => r.classList.remove('error-ring'), 600);
+                showError('La foto de perfil es obligatoria.');
+                r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            if (!name) { showError('Escribe tu nombre.'); return; }
+            if (!regTermsAccepted) { showError('Debes aceptar los términos.'); return; }
+            const code = document.getElementById('reg-country-code').value;
+            const num  = document.getElementById('reg-phone-number').value.trim().replace(/\s/g,'');
+            if (!num || num.length < 7) { showError('Ingresa un número válido.'); return; }
+            const fullPhone = code + num;
+            const btn = document.getElementById('reg-send-otp-btn');
+            btn.classList.add('loading'); btn.disabled = true;
+            try {
+                regConfirmResult = await signInWithPhoneNumber(auth, fullPhone, regRecaptcha);
+                document.getElementById('reg-otp-phone-display').textContent = fullPhone;
+                document.getElementById('reg-phone-step1').style.display = 'none';
+                document.getElementById('reg-phone-step2').classList.add('visible');
+                document.getElementById('r1').focus();
+                startRegTimer();
+            } catch(err) {
+                btn.classList.remove('loading'); btn.disabled = false;
+                regRecaptcha = null;
+                document.getElementById('recaptcha-container-reg').innerHTML = '';
+                initRegRecaptcha();
+                const msgs = {
+                    'auth/invalid-phone-number': 'Número inválido.',
+                    'auth/too-many-requests'   : 'Demasiados intentos. Intenta más tarde.',
+                };
+                showError(msgs[err.code] || 'Error al enviar SMS.');
+            }
+        };
+
+        ['r1','r2','r3','r4','r5','r6'].forEach((id, i, arr) => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', () => { if (el.value && i < arr.length-1) document.getElementById(arr[i+1]).focus(); });
+            el.addEventListener('keydown', e => { if (e.key === 'Backspace' && !el.value && i > 0) document.getElementById(arr[i-1]).focus(); });
+        });
+
+        document.getElementById('reg-verify-otp-btn').onclick = async () => {
+            const code = ['r1','r2','r3','r4','r5','r6'].map(id => document.getElementById(id).value).join('');
+            if (code.length < 6) { showError('Ingresa los 6 dígitos.'); return; }
+            const btn = document.getElementById('reg-verify-otp-btn');
+            btn.classList.add('loading'); btn.disabled = true;
+            try {
+                const result = await regConfirmResult.confirm(code);
+                const user   = result.user;
+                const name   = document.getElementById('phone-fullname').value.trim();
+                let photoURL = '';
+                try { photoURL = await uploadAvatar(user.uid, avatarFile); } catch(e) {}
+                await updateProfile(user, { displayName: name, photoURL: photoURL || null });
+                await saveUserToDB(user, name, photoURL);
+                showSuccess('¡Cuenta creada! Redirigiendo...');
+                setTimeout(() => location.href = 'Home.html', 1200);
+            } catch(err) {
+                btn.classList.remove('loading'); btn.disabled = false;
+                showError('Código incorrecto o expirado.');
+            }
+        };
+
+        document.getElementById('reg-resend-btn').onclick = () => {
+            document.getElementById('reg-phone-step2').classList.remove('visible');
+            document.getElementById('reg-phone-step1').style.display = 'block';
+            regRecaptcha = null;
+            document.getElementById('recaptcha-container-reg').innerHTML = '';
+            initRegRecaptcha();
+        };
+
+        // ── ESTADO ──────────────────────────────────────────────────
         let registrando = false;
-        onAuthStateChanged(auth, u => { if (u && !registrando) location.href = 'Home.html'; });
+        const modoCompletar = new URLSearchParams(location.search).get('completar') === '1';
+
+        onAuthStateChanged(auth, u => {
+            if (u && !registrando && !modoCompletar) location.href = 'Home.html';
+            if (u && modoCompletar) {
+                // Modo completar perfil: ocultar campos de email/contraseña
+                document.getElementById('fullname').value = u.displayName || '';
+                document.getElementById('fullname').readOnly = true;
+                document.querySelectorAll('.campo-registro').forEach(el => el.style.display = 'none');
+                document.getElementById('card-title').textContent = 'Agrega tu foto de perfil';
+                document.getElementById('card-sub').textContent = 'Es obligatorio para continuar usando SnapBook';
+                document.getElementById('register-btn').querySelector('.btn-text').textContent = 'Guardar y continuar';
+                document.getElementById('footer-link').style.display = 'none';
+                document.getElementById('google-section').style.display = 'none';
+            }
+        });
 
         // Avatar preview
         let avatarFile = null;
@@ -454,10 +709,6 @@
         const registerBtn = document.getElementById('register-btn');
         registerBtn.onclick = async () => {
             hideMessages();
-            const name = document.getElementById('fullname').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const confirm = document.getElementById('confirm-password').value;
 
             if (!avatarFile) {
                 const ring = document.getElementById('avatar-ring');
@@ -467,6 +718,35 @@
                 ring.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
+
+            // ── MODO COMPLETAR PERFIL (usuario ya logueado, solo falta foto) ──
+            if (modoCompletar) {
+                const user = auth.currentUser;
+                if (!user) { location.href = 'index.html'; return; }
+                registerBtn.classList.add('loading');
+                registerBtn.disabled = true;
+                registrando = true;
+                try {
+                    const photoURL = await uploadAvatar(user.uid, avatarFile);
+                    await updateProfile(user, { photoURL });
+                    await set(dRef(db, `usuarios/${user.uid}/photoURL`), photoURL);
+                    showSuccess('¡Foto guardada! Redirigiendo...');
+                    setTimeout(() => location.href = 'Home.html', 1200);
+                } catch(e) {
+                    registrando = false;
+                    registerBtn.classList.remove('loading');
+                    registerBtn.disabled = false;
+                    showError('Error al guardar la foto. Intenta de nuevo.');
+                }
+                return;
+            }
+
+            // ── REGISTRO NORMAL ──
+            const name = document.getElementById('fullname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm-password').value;
+
             if (!name) { showError('Escribe tu nombre completo.'); return; }
             if (!email) { showError('Escribe tu correo electrónico.'); return; }
             if (!password) { showError('Escribe una contraseña.'); return; }
@@ -482,19 +762,14 @@
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 let photoURL = '';
 
-                // Subir avatar si seleccionó uno
-                if (avatarFile) {
-                    try {
-                        photoURL = await uploadAvatar(cred.user.uid, avatarFile);
-                    } catch(e) {
-                        console.error('Error subiendo avatar:', e.message);
-                    }
+                try {
+                    photoURL = await uploadAvatar(cred.user.uid, avatarFile);
+                } catch(e) {
+                    console.error('Error subiendo avatar:', e.message);
                 }
 
                 await updateProfile(cred.user, { displayName: name, photoURL: photoURL || null });
                 await saveUserToDB(cred.user, name, photoURL);
-
-                // Registrar en Google Sheets vía SheetDB
                 logNuevoUsuario(cred.user.uid, name, email);
 
                 showSuccess('¡Cuenta creada! Redirigiendo...');
