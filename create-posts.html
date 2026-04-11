@@ -736,11 +736,8 @@ window.publicarDesdeModal = async function(tipoExplicito) {
         const authUser = auth.currentUser;
         if (!authUser) throw new Error('No hay sesión activa. Inicia sesión e intenta de nuevo.');
 
-        // Para canal usamos su propio nodo para generar el ID (evita entrada vacía en publicaciones/)
-        const idRef   = tipoPublicar === 'canal'
-            ? push(ref(db, 'MultiVideos/canal'))
-            : push(ref(db, 'publicaciones'));
-        const sharedId = idRef.key;
+        // Generar ID único sin crear nodos fantasma en Firebase
+        const sharedId = crypto.randomUUID();
         const base = {
             uid       : authUser.uid,
             autor     : authUser.displayName || usuario.displayName || 'Usuario',
