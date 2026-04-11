@@ -638,6 +638,7 @@ async function initFeed() {
             posts.forEach(p => {
                 if (renderedIds.has(p.id)) return;  // nunca duplicar
                 if (p.tipoVideo === 'canal' || p.canal) return;  // excluir videos de canal del feed
+                if (p.esAnonimo || p.es_anonimo == 1) return;  // excluir posts anónimos
                 renderedIds.add(p.id);
 
                 // Inyecta datos de encuesta Turso en el objeto del post
@@ -691,7 +692,7 @@ async function initFeed() {
 
         const _fbPosts = all
             .filter(p => p.tipoVideo !== 'canal' && !p.canal)
-            .filter(p => p.esAnonimo || p.uid === currentUser.uid || followingSet.has(p.uid))
+            .filter(p => !p.esAnonimo && !p.es_anonimo && (p.uid === currentUser.uid || followingSet.has(p.uid)))
             .sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
 
         // Precargar marcos y esperar antes de renderizar
@@ -759,6 +760,7 @@ async function loadMore() {
         posts.forEach(p => {
             if (renderedIds.has(p.id)) return;
             if (p.tipoVideo === 'canal' || p.canal) return;  // excluir videos de canal del feed
+            if (p.esAnonimo || p.es_anonimo == 1) return;   // excluir posts anónimos
             renderedIds.add(p.id);
 
             if (encuestas[p.id]) {
