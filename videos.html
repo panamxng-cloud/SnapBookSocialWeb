@@ -253,6 +253,15 @@ import {
         if (!u) { location.href = 'index.html'; return; }
         currentUser = u;
 
+        // ── GUARDIA DE PERFIL ──
+        try {
+            const _pgSnap = await get(ref(db, `usuarios/${u.uid}`));
+            const _pgData = _pgSnap.exists() ? _pgSnap.val() : {};
+            if (!(_pgData.photoURL || _pgData.avatar || u.photoURL) || !(_pgData.nombre || _pgData.displayName || u.displayName)) {
+                location.href = 'register.html?completar=1'; return;
+            }
+        } catch(e) { console.warn('profile-guard:', e); }
+
         // Cargar lista de seguidos
         try {
             const fwSnap = await get(ref(db, `siguiendo/${u.uid}`));

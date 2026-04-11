@@ -1064,6 +1064,12 @@ onAuthStateChanged(auth, async user => {
         const snap = await get(ref(db, `usuarios/${user.uid}`));
         if (snap.exists()) {
             const d = snap.val();
+
+            // ── GUARDIA DE PERFIL ──
+            const _pgFoto = d.photoURL || d.avatar || user.photoURL || '';
+            const _pgNombre = d.nombre || d.displayName || user.displayName || '';
+            if (!_pgFoto || !_pgNombre) { location.href = 'register.html?completar=1'; return; }
+
             document.getElementById('user-name').textContent = d.nombre || user.displayName || 'Usuario';
             const foto = d.photoURL || d.avatar || user.photoURL;
             if (foto) document.getElementById('avatar-img').src = foto;

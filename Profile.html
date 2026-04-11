@@ -432,6 +432,22 @@
             if (!user) { location.href = 'index.html'; return; }
             currentUser = user;
 
+            // ── GUARDIA DE PERFIL: si no tiene foto ni nombre, ir a completar ──
+            // Solo aplica cuando es el perfil propio (sin ?uid= o con uid del usuario actual)
+            const _pgQuid = new URLSearchParams(location.search).get('uid');
+            if (!_pgQuid || _pgQuid === user.uid) {
+                try {
+                    const _pgSnap = await get(ref(db, `usuarios/${user.uid}`));
+                    const _pgData = _pgSnap.exists() ? _pgSnap.val() : {};
+                    const _pgFoto = _pgData.photoURL || _pgData.avatar || user.photoURL || '';
+                    const _pgNombre = _pgData.nombre || _pgData.displayName || user.displayName || '';
+                    if (!_pgFoto || !_pgNombre) {
+                        location.href = 'register.html?completar=1';
+                        return;
+                    }
+                } catch(e) { console.warn('profile-guard:', e); }
+            }
+
             document.getElementById('profile-avatar').src = user.photoURL || 'default-avatar.png';
             document.getElementById('profile-name').textContent = user.displayName || user.email?.split('@')[0] || 'Usuario';
             showSkeleton();
