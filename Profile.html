@@ -233,6 +233,33 @@
         .encuesta-bar{position:absolute;left:0;top:0;height:100%;background:rgba(108,99,255,0.1);border-radius:11px;transition:width 0.6s;}
         .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a24;color:#fff;border-radius:30px;padding:12px 24px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.3);opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;}
         .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+        /* ── WIDGET NIVEL / PUNTOS ── */
+        .nivel-widget{margin:10px 16px 0;background:var(--surface2);border-radius:16px;padding:14px 16px;border:1px solid var(--border);cursor:pointer;}
+        .nivel-row{display:flex;align-items:center;gap:12px;}
+        .nivel-icono{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+        .nivel-info{flex:1;}
+        .nivel-nombre{font-size:15px;font-weight:800;color:var(--text);}
+        .nivel-pts{font-size:12px;color:var(--text-muted);margin-top:1px;}
+        .nivel-barra-wrap{margin-top:8px;background:var(--border);border-radius:4px;height:6px;overflow:hidden;}
+        .nivel-barra{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.8s cubic-bezier(0.4,0,0.2,1);}
+        .nivel-next{font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right;}
+
+        /* ── MODAL HISTORIAL PUNTOS ── */
+        .pts-modal{display:none;position:fixed;inset:0;z-index:9995;background:rgba(0,0,0,0.55);flex-direction:column;justify-content:flex-end;}
+        .pts-modal.open{display:flex;}
+        .pts-sheet{background:var(--surface);border-radius:24px 24px 0 0;max-height:75vh;display:flex;flex-direction:column;animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);}
+        .pts-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0;}
+        .pts-header{padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+        .pts-title{font-size:18px;font-weight:800;}
+        .pts-close{width:30px;height:30px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);}
+        .pts-body{flex:1;overflow-y:auto;padding:12px 16px;scrollbar-width:none;}
+        .pts-body::-webkit-scrollbar{display:none;}
+        .pts-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+        .pts-item:last-child{border-bottom:none;}
+        .pts-item-label{flex:1;font-size:14px;color:var(--text);}
+        .pts-item-pts{font-size:14px;font-weight:800;color:#f7b731;}
+        .pts-item-time{font-size:11px;color:var(--text-muted);margin-top:2px;}
     </style>
 </head>
 <body>
@@ -310,6 +337,22 @@
                 <strong id="stat-visits">—</strong>
                 visitas a tu perfil en los últimos 30 días
             </div>
+        </div>
+
+        <!-- Widget nivel/puntos -->
+        <div class="nivel-widget" id="nivel-widget" onclick="abrirHistorialPuntos()">
+            <div class="nivel-row">
+                <div class="nivel-icono" id="nivel-icono">🌱</div>
+                <div class="nivel-info">
+                    <div class="nivel-nombre" id="nivel-nombre">Cargando...</div>
+                    <div class="nivel-pts"><span id="nivel-pts-txt">0</span> pts · Toca para ver historial</div>
+                </div>
+                <div style="font-size:13px;font-weight:800;color:var(--accent)" id="nivel-pct">0%</div>
+            </div>
+            <div class="nivel-barra-wrap">
+                <div class="nivel-barra" id="nivel-barra" style="width:0%"></div>
+            </div>
+            <div class="nivel-next" id="nivel-next"></div>
         </div>
 
         <!-- Tabs estilo Facebook -->
@@ -425,6 +468,8 @@
             registrarVisita, contarVisitas30Dias, contarSeguidores, contarSiguiendo
         } from './db.js';
         import { uploadAvatar, uploadCover } from './supabase-config.js';
+        import { otorgarPuntos, obtenerPuntos, obtenerHistorial, checkLoginDiario, getNivel, ACCIONES } from './points.js';
+        import { precargarFrames, getAvatarFrameHTMLSync, invalidarCache } from './avatar-frames.js';
         import { updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         let currentUser = null;
@@ -581,6 +626,13 @@
                 animateCount(document.getElementById('stat-following'), fwingSnap.exists() ? Object.values(fwingSnap.val()).filter(Boolean).length : 0);
             } catch(e) {}
 
+            // Puntos y nivel
+            try {
+                checkLoginDiario(user.uid).catch(() => {});
+                const pts = await obtenerPuntos(user.uid);
+                renderNivelWidget(pts);
+            } catch(e) {}
+
             // Posts + Shorts — fuente unica Firebase para evitar duplicados y conservar todos los campos
             try {
                 const [postsSnap, shortsSnap] = await Promise.all([
@@ -651,6 +703,7 @@
             const id       = post.id;
             const autor    = post.autor || post.nombre || 'Usuario';
             const avatar   = post.avatar || 'default-avatar.png';
+            const avatarHTML = getAvatarFrameHTMLSync(post.uid || null, avatar, 'post', 'post-avatar');
             const contenido= post.contenido || post.texto || '';
             const imgUrl   = post.imagenPost || post.imagen_url || '';
             const videoUrl = post.videoUrl   || post.video_url  || '';
@@ -707,7 +760,7 @@
             card.dataset.id = id;
             card.innerHTML = `
                 <div class="post-header">
-                    <img class="post-avatar" src="${avatar}" onerror="this.src='default-avatar.png'">
+                    ${avatarHTML}
                     <div class="post-meta">
                         <div class="post-author">${autor}</div>
                         <div class="post-time">${timeAgo(ts)} <i class="fa-solid fa-earth-americas"></i></div>
@@ -1326,6 +1379,26 @@
             if (!shopSelectedItem) return;
             const item = shopSelectedItem;
 
+            // Descontar puntos si no es gratis
+            if (!item.free && currentUser) {
+                if (userPoints < item.points) {
+                    showShopToast(`⭐ Necesitas ${item.points} pts. Tienes ${userPoints}.`);
+                    return;
+                }
+                // Descontar puntos en Firebase
+                try {
+                    const pRef = ref(db, `usuarios/${currentUser.uid}/puntos`);
+                    await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js")
+                        .then(({ runTransaction }) => runTransaction(pRef, cur => (cur || 0) - item.points));
+                    userPoints -= item.points;
+                    // Actualizar subtitle de la tienda
+                    const sub = document.querySelector('.shop-subtitle');
+                    if (sub) sub.innerHTML = `Personaliza tu foto de perfil · <span style="color:#f7b731;font-weight:700;">⭐ ${userPoints} pts</span>`;
+                    // Actualizar widget de nivel
+                    renderNivelWidget(userPoints);
+                } catch(e) { console.warn('Descuento puntos:', e); }
+            }
+
             equippedItems[item.type] = item.id;
             await saveEquippedToFirebase();
             applyEquippedToProfile();
@@ -1333,6 +1406,8 @@
             // Actualizar grid para reflejar equipado
             renderShopGrid();
 
+            // Invalidar cache de este usuario para que el feed refleje el cambio
+            if (currentUser) invalidarCache(currentUser.uid);
             showShopToast(`✅ "${item.name}" aplicado`);
             document.getElementById('shop-apply-btn').disabled = true;
             shopSelectedItem = null;
@@ -1363,6 +1438,91 @@
         // ── Cargar equipamiento al iniciar ───────────────────────
         // Se llama después de que currentUser esté listo (ver onAuthStateChanged)
 
+
+        // ── NIVEL / PUNTOS ─────────────────────────────────────────
+        function renderNivelWidget(pts) {
+            const n = getNivel(pts);
+            const iconoEl  = document.getElementById('nivel-icono');
+            const nombreEl = document.getElementById('nivel-nombre');
+            const ptsEl    = document.getElementById('nivel-pts-txt');
+            const pctEl    = document.getElementById('nivel-pct');
+            const barraEl  = document.getElementById('nivel-barra');
+            const nextEl   = document.getElementById('nivel-next');
+            if (!iconoEl) return;
+            iconoEl.textContent  = n.icono;
+            nombreEl.textContent = `Nivel ${n.nivel} · ${n.nombre}`;
+            ptsEl.textContent    = pts.toLocaleString();
+            pctEl.textContent    = n.progreso + '%';
+            setTimeout(() => { if (barraEl) barraEl.style.width = n.progreso + '%'; }, 100);
+            if (n.siguiente) {
+                nextEl.textContent = `${n.siguiente.icono} Siguiente nivel: ${n.siguiente.nombre} (${n.siguiente.min.toLocaleString()} pts)`;
+            } else {
+                nextEl.textContent = '👑 ¡Nivel máximo alcanzado!';
+            }
+        }
+
+        window.abrirHistorialPuntos = async function() {
+            const modal = document.getElementById('pts-modal');
+            const body  = document.getElementById('pts-body');
+            modal.classList.add('open');
+            modal.onclick = e => { if (e.target === modal) cerrarHistorialPuntos(); };
+            if (!currentUser) return;
+            body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:14px;">Cargando...</div>';
+            try {
+                const [pts, historial] = await Promise.all([
+                    obtenerPuntos(currentUser.uid),
+                    obtenerHistorial(currentUser.uid, 30)
+                ]);
+                const n = getNivel(pts);
+                if (!historial.length) {
+                    body.innerHTML = `
+                        <div style="text-align:center;padding:30px;">
+                            <div style="font-size:48px;margin-bottom:12px;">${n.icono}</div>
+                            <div style="font-size:18px;font-weight:800;color:var(--text);">Nivel ${n.nivel} · ${n.nombre}</div>
+                            <div style="font-size:28px;font-weight:900;color:#f7b731;margin:8px 0;">${pts.toLocaleString()} ⭐</div>
+                            <div style="font-size:13px;color:var(--text-muted);">Aún no hay actividad registrada.<br>¡Publica, da likes y comenta para ganar puntos!</div>
+                        </div>`;
+                    return;
+                }
+                const resumen = `
+                    <div style="background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:16px;padding:16px;margin-bottom:16px;text-align:center;">
+                        <div style="font-size:32px;margin-bottom:4px;">${n.icono}</div>
+                        <div style="font-size:16px;font-weight:800;color:#fff;">Nivel ${n.nivel} · ${n.nombre}</div>
+                        <div style="font-size:30px;font-weight:900;color:#fff;margin:4px 0;">${pts.toLocaleString()} ⭐</div>
+                        <div style="background:rgba(255,255,255,0.2);border-radius:6px;height:8px;margin:8px 0;overflow:hidden;">
+                            <div style="height:100%;background:#fff;border-radius:6px;width:${n.progreso}%;transition:width 0.8s;"></div>
+                        </div>
+                        ${n.siguiente ? `<div style="font-size:12px;color:rgba(255,255,255,0.8);">${n.progreso}% hacia ${n.siguiente.nombre}</div>` : '<div style="font-size:12px;color:rgba(255,255,255,0.8);">👑 ¡Nivel máximo!</div>'}
+                    </div>
+                    <div style="font-size:13px;font-weight:800;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">Últimas actividades</div>`;
+
+                const items = historial.map(h => {
+                    const fecha = new Date(h.ts);
+                    const diff  = Date.now() - h.ts;
+                    const tiempo = diff < 60000 ? 'Hace un momento'
+                        : diff < 3600000 ? `Hace ${Math.floor(diff/60000)} min`
+                        : diff < 86400000 ? `Hace ${Math.floor(diff/3600000)}h`
+                        : `${fecha.getDate()}/${fecha.getMonth()+1}/${fecha.getFullYear()}`;
+                    return `
+                        <div class="pts-item">
+                            <div class="pts-item-label">
+                                ${h.label || h.accion}
+                                <div class="pts-item-time">${tiempo}</div>
+                            </div>
+                            <div class="pts-item-pts">+${h.pts} ⭐</div>
+                        </div>`;
+                }).join('');
+
+                body.innerHTML = resumen + items;
+            } catch(e) {
+                body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">Error cargando historial</div>';
+            }
+        };
+
+        window.cerrarHistorialPuntos = function() {
+            document.getElementById('pts-modal')?.classList.remove('open');
+        };
+
         // ── UPLOAD AVATAR / COVER ──
         document.getElementById('avatar-edit-btn').onclick=()=>document.getElementById('avatar-input').click();
         document.getElementById('avatar-input').onchange=async(e)=>{
@@ -1383,5 +1543,20 @@
             } catch(err){alert('Error: '+err.message);}
         };
     </script>
+
+    <!-- MODAL HISTORIAL PUNTOS -->
+    <div class="pts-modal" id="pts-modal">
+        <div class="pts-sheet">
+            <div class="pts-handle"></div>
+            <div class="pts-header">
+                <div class="pts-title">⭐ Mis puntos</div>
+                <div class="pts-close" onclick="cerrarHistorialPuntos()"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <div class="pts-body" id="pts-body">
+                <div style="text-align:center;padding:30px;color:var(--text-muted);font-size:14px;">Cargando historial...</div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

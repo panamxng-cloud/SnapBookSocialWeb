@@ -60,8 +60,25 @@
 
         /* POST CARD */
         .post-card{background:var(--surface);border-radius:18px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--card-shadow);}
-        .post-header{display:flex;align-items:center;gap:10px;padding:12px 14px 8px;}
+        .post-header{display:flex;align-items:center;gap:10px;padding:12px 14px 8px;min-height:0;}
+        .post-avatar-wrap{width:44px;height:44px;min-width:44px;flex-shrink:0;border-radius:50%;overflow:hidden;border:2px solid var(--accent);background:var(--surface3);}
+        .post-avatar-wrap img,.post-avatar-wrap .post-avatar{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important;border:none!important;display:block!important;}
+        .post-avatar-wrap > *{width:100%!important;height:100%!important;border-radius:50%!important;overflow:hidden!important;}
         .post-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0;}
+        /* Contenedor del avatar con marco — fuerza tamaño fijo */
+        .post-header > .avatar-frame-wrap,
+        .post-header > [class*="avatar-frame"],
+        .post-header > div:first-child:not(.post-meta):not(.post-menu) {
+            width:44px!important;height:44px!important;min-width:44px!important;
+            min-height:44px!important;max-width:44px!important;max-height:44px!important;
+            flex-shrink:0!important;border-radius:50%!important;overflow:hidden!important;
+        }
+        .post-header > .avatar-frame-wrap img,
+        .post-header > [class*="avatar-frame"] img,
+        .post-header > div:first-child:not(.post-meta):not(.post-menu) img {
+            width:100%!important;height:100%!important;object-fit:cover!important;
+            border-radius:50%!important;display:block!important;
+        }
         .post-meta{flex:1;}
         .post-author{font-size:15px;font-weight:700;}
         .post-time{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-top:2px;}
@@ -384,6 +401,8 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/fi
 import { ref, onValue, get, set, remove, push, query, orderByChild }
     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { otorgarPuntos, checkLoginDiario, ACCIONES } from './points.js';
+import { precargarFrames, getAvatarFrameHTMLSync, invalidarCache } from './avatar-frames.js';
 
 // ════════════════════════════════════════════════════════
 //  TURSO — carga dinámica con fallback
@@ -511,6 +530,11 @@ function buildPost(id, p) {
 
     const authorDisplay = isAnon ? '🎭 Anónimo' : autor;
     const avatarSrc     = isAnon ? 'default-avatar.png' : avatar;
+    const avatarUID     = isAnon ? null : (p.uid || null);
+    const avatarHTML    = getAvatarFrameHTMLSync(
+        avatarUID, avatarSrc, 'post', 'post-avatar',
+        avatarUID ? `location.href='Profile.html?uid=${p.uid}'` : ''
+    );
 
     let mediaHTML = '';
     if (imgUrl)        mediaHTML = `<img class="post-img" src="${imgUrl}" loading="lazy" onclick="openImgFull('${imgUrl}')">`;
@@ -539,7 +563,7 @@ function buildPost(id, p) {
     card.dataset.id = id;
     card.innerHTML  = `
         <div class="post-header">
-            <img class="post-avatar" src="${avatarSrc}" onerror="this.src='default-avatar.png'" onclick="location.href='Profile.html?uid=${p.uid}'">
+            ${avatarHTML}
             <div class="post-meta">
                 <div class="post-author">${authorDisplay}</div>
                 <div class="post-time">${timeAgo(ts)} <i class="fa-solid fa-earth-americas"></i></div>
@@ -614,6 +638,9 @@ async function initFeed() {
 
             const likedSet = await misLikes(currentUser.uid, posts.map(p => p.id));
 
+            // Precargar marcos de todos los autores de una sola vez
+            await precargarFrames(posts.map(p => p.uid).filter(Boolean));
+
             posts.forEach(p => {
                 if (renderedIds.has(p.id)) return;  // nunca duplicar
                 if (p.tipoVideo === 'canal' || p.canal) return;  // excluir videos de canal del feed
@@ -664,15 +691,19 @@ async function initFeed() {
     // todos los IDs de Turso y Firebase nunca puede duplicarlos.
     // Solo inserta posts que NO están en renderedIds (posts nuevos en tiempo real).
     const postsRef = query(ref(db, 'publicaciones'), orderByChild('timestamp'));
-    fbUnsubscribe  = onValue(postsRef, snap => {
+    fbUnsubscribe  = onValue(postsRef, async snap => {
         const all = [];
         snap.forEach(c => all.push({ id: c.key, ...c.val() }));
 
-        all
-            .filter(p => p.tipoVideo !== 'canal' && !p.canal)  // excluir videos de canal del feed
+        const _fbPosts = all
+            .filter(p => p.tipoVideo !== 'canal' && !p.canal)
             .filter(p => p.esAnonimo || p.uid === currentUser.uid || followingSet.has(p.uid))
-            .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
-            .forEach(p => {
+            .sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+
+        // Precargar marcos y esperar antes de renderizar
+        await precargarFrames(_fbPosts.map(p => p.uid).filter(Boolean));
+
+        _fbPosts.forEach(p => {
                 if (renderedIds.has(p.id)) return;  // ya renderizado por Turso o Firebase → ignorar
                 renderedIds.add(p.id);
 
@@ -727,6 +758,9 @@ async function loadMore() {
 
         const likedSet = await misLikes(currentUser.uid, posts.map(p => p.id));
         const feed     = document.getElementById('feed');
+
+        // Precargar marcos antes de renderizar
+        await precargarFrames(posts.map(p => p.uid).filter(Boolean));
 
         posts.forEach(p => {
             if (renderedIds.has(p.id)) return;
@@ -818,7 +852,13 @@ window.toggleLike = async function(id) {
                 btn.appendChild(dot); dot.addEventListener('animationend', () => dot.remove());
             }
             const ps = await get(ref(db, `publicaciones/${id}`));
-            if (ps.exists() && ps.val().uid) writeNotif(ps.val().uid, 'like', { postId: id, postImagen: ps.val().imagenPost||'' });
+            if (ps.exists() && ps.val().uid) {
+                writeNotif(ps.val().uid, 'like', { postId: id, postImagen: ps.val().imagenPost||'' });
+                // Puntos: yo gano por dar like, el autor gana por recibir like
+                otorgarPuntos(currentUser.uid, ACCIONES.DAR_LIKE, { silencioso: true }).catch(()=>{});
+                if (ps.val().uid !== currentUser.uid)
+                    otorgarPuntos(ps.val().uid, ACCIONES.RECIBIR_LIKE).catch(()=>{});
+            }
         }
 
         const res   = await tursoQuery('SELECT COUNT(*) as total FROM likes WHERE post_id = ?', [id]);
@@ -835,7 +875,12 @@ window.toggleLike = async function(id) {
         else {
             await set(likeRef, true);
             const ps = await get(ref(db, `publicaciones/${id}`));
-            if (ps.exists() && ps.val().uid) writeNotif(ps.val().uid, 'like', { postId: id, postImagen: ps.val().imagenPost||'' });
+            if (ps.exists() && ps.val().uid) {
+                writeNotif(ps.val().uid, 'like', { postId: id, postImagen: ps.val().imagenPost||'' });
+                otorgarPuntos(currentUser.uid, ACCIONES.DAR_LIKE, { silencioso: true }).catch(()=>{});
+                if (ps.val().uid !== currentUser.uid)
+                    otorgarPuntos(ps.val().uid, ACCIONES.RECIBIR_LIKE).catch(()=>{});
+            }
         }
         const allSnap = await get(ref(db, `publicaciones/${id}/likes`));
         const count   = allSnap.exists() ? Object.keys(allSnap.val()).length : 0;
@@ -1010,7 +1055,13 @@ window.sendComment = async function(postId) {
         });
     }
     const ps = await get(ref(db, `publicaciones/${postId}`));
-    if (ps.exists() && ps.val().uid) writeNotif(ps.val().uid, 'comment', { postId, comentario: txt, postImagen: ps.val().imagenPost||'' });
+    if (ps.exists() && ps.val().uid) {
+        writeNotif(ps.val().uid, 'comment', { postId, comentario: txt, postImagen: ps.val().imagenPost||'' });
+        // Puntos: yo comento, el autor recibe comentario
+        otorgarPuntos(currentUser.uid, ACCIONES.COMENTAR, { silencioso: true }).catch(()=>{});
+        if (ps.val().uid !== currentUser.uid)
+            otorgarPuntos(ps.val().uid, ACCIONES.RECIBIR_COMENTARIO).catch(()=>{});
+    }
 };
 
 // ════════════════════════════════════════════════════════
@@ -1320,6 +1371,9 @@ let _initialized = false;
 onAuthStateChanged(auth, async user => {
     if (!user) { location.href = 'index.html'; return; }
     currentUser = user;
+
+    // ── Puntos: login diario ──
+    checkLoginDiario(user.uid).catch(() => {});
 
     // ── GUARDIA DE PERFIL: si no tiene foto, redirigir a completar perfil ──
     try {
