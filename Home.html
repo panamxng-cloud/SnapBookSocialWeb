@@ -414,6 +414,8 @@ try {
     obtenerEncuestasPorPosts   = m.obtenerEncuestasPorPosts;
     tursoOK = true;
     console.log('✅ Turso OK');
+    // Migración: agregar columna es_canal si no existe (seguro correr múltiples veces)
+    try { await m.tursoQuery('ALTER TABLE posts ADD COLUMN es_canal INTEGER DEFAULT 0', []); } catch(e) { /* ya existe */ }
 } catch(e) {
     console.warn('⚠️ db.js no disponible:', e.message);
 }
@@ -614,6 +616,7 @@ async function initFeed() {
 
             posts.forEach(p => {
                 if (renderedIds.has(p.id)) return;  // nunca duplicar
+                if (p.tipoVideo === 'canal' || p.canal) return;  // excluir videos de canal del feed
                 renderedIds.add(p.id);
 
                 // Inyecta datos de encuesta Turso en el objeto del post
@@ -727,6 +730,7 @@ async function loadMore() {
 
         posts.forEach(p => {
             if (renderedIds.has(p.id)) return;
+            if (p.tipoVideo === 'canal' || p.canal) return;  // excluir videos de canal del feed
             renderedIds.add(p.id);
 
             if (encuestas[p.id]) {

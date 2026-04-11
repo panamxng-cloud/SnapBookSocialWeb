@@ -92,6 +92,7 @@ async function initTables() {
               duracion_audio INTEGER DEFAULT 0,
               es_voz INTEGER DEFAULT 0,
               es_anonimo INTEGER DEFAULT 0,
+              es_canal INTEGER DEFAULT 0,
               timestamp INTEGER NOT NULL,
               total_likes INTEGER DEFAULT 0,
               total_comentarios INTEGER DEFAULT 0,
@@ -244,15 +245,15 @@ export async function contarNoLeidos(miUid) {
 // ═══════════════════════════════════════════════════════════════════
 // POSTS
 // ═══════════════════════════════════════════════════════════════════
-export async function crearPost(user, { texto, imagenUrl = null, videoUrl = null, audioUrl = null, esAnonimo = false, firebaseId = null }) {
+export async function crearPost(user, { texto, imagenUrl = null, videoUrl = null, audioUrl = null, esAnonimo = false, esCanal = false, firebaseId = null }) {
   const uid  = user?.uid;
   if (!uid) throw new Error("crearPost: user.uid es undefined");
   const id   = firebaseId ?? crypto.randomUUID();
   await exec(
-    `INSERT OR IGNORE INTO posts (id, uid, nombre, avatar, texto, imagen_url, video_url, audio_url, es_anonimo, timestamp, firebase_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT OR IGNORE INTO posts (id, uid, nombre, avatar, texto, imagen_url, video_url, audio_url, es_anonimo, es_canal, timestamp, firebase_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, uid, user.displayName ?? "Usuario", user.photoURL ?? "",
-     texto ?? "", imagenUrl, videoUrl, audioUrl, esAnonimo ? 1 : 0, Date.now(), firebaseId]
+     texto ?? "", imagenUrl, videoUrl, audioUrl, esAnonimo ? 1 : 0, esCanal ? 1 : 0, Date.now(), firebaseId]
   );
   console.log("✅ crearPost guardado con id =", id);
   return id;
@@ -637,6 +638,7 @@ export async function obtenerFeedCompleto(uids = [], limite = 20, antes = Date.n
   const posts = await exec(
     `SELECT * FROM posts
      WHERE (uid IN (${ph}) OR es_anonimo = 1)
+     AND es_canal = 0
      AND timestamp < ?
      ORDER BY timestamp DESC
      LIMIT ?`,
