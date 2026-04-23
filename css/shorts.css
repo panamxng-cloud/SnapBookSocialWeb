@@ -1,0 +1,382 @@
+/* ═══════════════════════════════════════════════════════
+   shorts.css — SnapBook
+   ═══════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --surface:  #ffffff;
+  --border:   #e4e6eb;
+  --accent:   #1877f2;
+  --red:      #fa3e3e;
+  --bottom-h: 56px;
+  --header-h: 52px;
+}
+
+html, body {
+  height: 100%; overflow: hidden;
+  background: #000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #fff;
+}
+
+/* ── HEADER ─────────────────────────────────────────── */
+.sh-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: var(--header-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  background: linear-gradient(to bottom, rgba(0,0,0,.7) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.sh-logo {
+  font-size: 22px; font-weight: 800; color: #fff;
+  letter-spacing: -0.5px; pointer-events: all;
+}
+
+.sh-header-actions { display: flex; gap: 8px; pointer-events: all; }
+
+.sh-icon-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: background .15s;
+}
+.sh-icon-btn:hover { background: rgba(255,255,255,.25); }
+.sh-icon-btn svg   { width: 20px; height: 20px; fill: #fff; }
+
+/* ── FEED ───────────────────────────────────────────── */
+.sh-feed {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  bottom: var(--bottom-h);
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.sh-feed::-webkit-scrollbar { display: none; }
+
+/* ── SHORT ITEM ─────────────────────────────────────── */
+.sh-item {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - var(--bottom-h));
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow: hidden;
+  background: #111;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.sh-video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* gradient overlays */
+.sh-overlay-top {
+  position: absolute; top: 0; left: 0; right: 0; height: 120px;
+  background: linear-gradient(to bottom, rgba(0,0,0,.5), transparent);
+  pointer-events: none;
+}
+.sh-overlay-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 220px;
+  background: linear-gradient(to top, rgba(0,0,0,.75), transparent);
+  pointer-events: none;
+}
+
+/* tap to play/pause indicator */
+.sh-play-indicator {
+  position: absolute; z-index: 5;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.sh-play-indicator svg { width: 32px; height: 32px; fill: #fff; }
+.sh-play-indicator.show { opacity: 1; }
+
+/* ── INFO (left bottom) ─────────────────────────────── */
+.sh-info {
+  position: absolute; bottom: 16px; left: 12px;
+  right: 68px; z-index: 10;
+}
+
+.sh-author-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sh-author-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  overflow: hidden; border: 2px solid #fff;
+  flex-shrink: 0;
+}
+
+.sh-author-name {
+  font-size: 15px; font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+
+.sh-follow-btn {
+  padding: 4px 12px; border-radius: 16px;
+  background: transparent;
+  border: 1.5px solid #fff;
+  color: #fff; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: background .15s;
+  white-space: nowrap;
+}
+.sh-follow-btn:hover,
+.sh-follow-btn.following { background: rgba(255,255,255,.2); }
+
+.sh-desc {
+  font-size: 14px; line-height: 1.4;
+  color: rgba(255,255,255,.9);
+  text-shadow: 0 1px 3px rgba(0,0,0,.5);
+  display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sh-desc.expanded { -webkit-line-clamp: unset; overflow: visible; }
+
+.sh-desc-more {
+  background: none; border: none; color: rgba(255,255,255,.7);
+  font-size: 13px; font-weight: 600; cursor: pointer; padding: 2px 0;
+}
+
+/* ── SIDE ACTIONS (right) ───────────────────────────── */
+.sh-actions {
+  position: absolute; right: 8px; bottom: 24px;
+  z-index: 10;
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+}
+
+.sh-action {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+
+.sh-action-btn {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: background .15s, transform .1s;
+}
+.sh-action-btn:active    { transform: scale(.88); }
+.sh-action-btn svg       { width: 22px; height: 22px; fill: #fff; }
+.sh-action-btn.liked     { background: rgba(250,62,62,.3); }
+.sh-action-btn.liked svg { fill: var(--red); }
+
+.sh-action-count {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,.9);
+  text-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+
+/* Rotating record icon for sound */
+.sh-sound-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  border: 2px solid rgba(255,255,255,.5);
+  overflow: hidden;
+  animation: sh-spin 4s linear infinite;
+}
+.sh-sound-icon img { width: 100%; height: 100%; object-fit: cover; }
+@keyframes sh-spin { to { transform: rotate(360deg); } }
+
+/* progress bar at bottom of video */
+.sh-progress {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: rgba(255,255,255,.2); z-index: 10;
+}
+.sh-progress-fill {
+  height: 100%; background: #fff;
+  transition: width .5s linear;
+  border-radius: 1px;
+}
+
+/* ── SKELETON ───────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+.sh-skeleton {
+  width: 100%;
+  height: calc(100vh - var(--bottom-h));
+  scroll-snap-align: start;
+  position: relative; background: #1a1a1a;
+  display: flex; align-items: flex-end;
+}
+.sh-skel-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg,#2a2a2a 25%,#333 50%,#2a2a2a 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite;
+}
+.sh-skel-info {
+  position: relative; z-index: 1;
+  padding: 20px 16px; width: 100%;
+}
+.sh-skel-line {
+  height: 14px; border-radius: 7px; margin-bottom: 8px;
+  background: rgba(255,255,255,.15);
+}
+
+/* ── BOTTOM NAV ─────────────────────────────────────── */
+.sh-bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  height: var(--bottom-h);
+  background: #000;
+  border-top: 1px solid #222;
+  display: flex; align-items: stretch;
+}
+
+.sh-tab {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border: none; background: none; cursor: pointer;
+  position: relative; transition: background .15s;
+}
+.sh-tab:hover { background: rgba(255,255,255,.05); }
+
+.sh-tab.active::after {
+  content: '';
+  position: absolute; bottom: 0; left: 20%; right: 20%;
+  height: 3px; background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.sh-tab svg        { width: 24px; height: 24px; fill: rgba(255,255,255,.5); }
+.sh-tab.active svg { fill: var(--accent); }
+
+.sh-tab-plus {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+}
+.sh-tab-plus svg { fill: #fff; }
+
+/* ── COMMENT SHEET ──────────────────────────────────── */
+.sh-sheet-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.6);
+  display: none; align-items: flex-end;
+}
+.sh-sheet-overlay.open { display: flex; }
+
+.sh-sheet {
+  width: 100%; max-height: 80vh;
+  background: #1c1c1e;
+  border-radius: 16px 16px 0 0;
+  display: flex; flex-direction: column;
+  color: #fff;
+}
+
+.sh-sheet-handle {
+  width: 36px; height: 4px;
+  background: rgba(255,255,255,.2);
+  border-radius: 2px; margin: 10px auto 0;
+}
+
+.sh-sheet-title {
+  text-align: center; font-size: 15px; font-weight: 700;
+  padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,.1);
+}
+
+.sh-sheet-list {
+  flex: 1; overflow-y: auto; padding: 12px 16px;
+}
+
+.sh-sheet-empty {
+  text-align: center; color: rgba(255,255,255,.4);
+  padding: 24px; font-size: 14px;
+}
+
+.sh-comment-item {
+  display: flex; gap: 10px; margin-bottom: 16px;
+}
+
+.sh-comment-item-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  overflow: hidden; flex-shrink: 0; background: #333;
+}
+
+.sh-comment-bubble {
+  background: rgba(255,255,255,.08);
+  border-radius: 14px; padding: 8px 12px;
+  max-width: 100%;
+}
+
+.sh-comment-bubble-author { font-size: 13px; font-weight: 700; }
+.sh-comment-bubble-text   { font-size: 14px; margin-top: 2px; color: rgba(255,255,255,.85); }
+
+.sh-comment-meta {
+  display: flex; gap: 12px; margin-top: 4px; padding-left: 2px;
+}
+.sh-comment-meta span,
+.sh-comment-meta button {
+  font-size: 11px; color: rgba(255,255,255,.4);
+  background: none; border: none; cursor: pointer; padding: 0;
+}
+
+.sh-sheet-input {
+  display: flex; gap: 10px; align-items: center;
+  padding: 10px 16px 16px;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+
+.sh-comment-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0; background: #333;
+}
+
+.sh-sheet-input input {
+  flex: 1; background: rgba(255,255,255,.1);
+  border: none; border-radius: 20px;
+  padding: 10px 16px; font-size: 14px;
+  color: #fff; outline: none; font-family: inherit;
+}
+.sh-sheet-input input::placeholder { color: rgba(255,255,255,.4); }
+
+.sh-send-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.sh-send-btn:hover { background: #1468d9; }
+.sh-send-btn svg   { width: 16px; height: 16px; fill: #fff; }
+
+/* ── UPLOAD AREA ────────────────────────────────────── */
+.sh-upload-area {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; min-height: 140px;
+  border: 2px dashed rgba(255,255,255,.2);
+  border-radius: 12px; background: rgba(255,255,255,.05);
+  cursor: pointer; padding: 24px 16px; margin-bottom: 12px;
+  transition: border-color .15s;
+}
+.sh-upload-area:hover { border-color: var(--accent); }
+.sh-upload-area p     { color: rgba(255,255,255,.8); }
+
+/* ── TOAST ──────────────────────────────────────────── */
+.sh-toast-container {
+  position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+  z-index: 300; display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.sh-toast {
+  background: #333; color: #fff;
+  padding: 10px 20px; border-radius: 24px;
+  font-size: 14px; font-weight: 500; white-space: nowrap;
+  animation: stIn .25s ease, stOut .25s ease 2.5s forwards;
+}
+@keyframes stIn  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes stOut { from { opacity:1; } to { opacity:0; } }
