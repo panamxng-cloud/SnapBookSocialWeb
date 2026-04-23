@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+  <title>SnapBook — Nueva publicación</title>
+  <link rel="stylesheet" href="../css/create-posts.css"/>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="cp-header">
+  <button class="cp-back" id="backBtn">
+    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+  </button>
+  <span class="cp-title">Crear publicación</span>
+  <button class="cp-publish-btn" id="publishBtn" disabled>Publicar</button>
+</header>
+
+<!-- AUTHOR ROW -->
+<div class="cp-author-row">
+  <div class="cp-author-avatar" id="authorAvatar"></div>
+  <div class="cp-author-info">
+    <div class="cp-author-name" id="authorName">Cargando…</div>
+    <div class="cp-audience-btn" id="audienceBtn">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      Amigos
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M7 10l5 5 5-5z"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- TYPE TABS -->
+<div class="cp-type-tabs" id="typeTabs">
+  <button class="cp-tab active" data-type="text">
+    <svg viewBox="0 0 24 24"><path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z"/></svg>
+    Texto
+  </button>
+  <button class="cp-tab" data-type="photo">
+    <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+    Foto
+  </button>
+  <button class="cp-tab" data-type="video">
+    <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+    Video
+  </button>
+  <button class="cp-tab" data-type="audio">
+    <svg viewBox="0 0 24 24"><path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/></svg>
+    Audio
+  </button>
+  <button class="cp-tab" data-type="poll">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+    Encuesta
+  </button>
+</div>
+
+<!-- PANELS -->
+
+<!-- TEXT PANEL -->
+<div class="cp-panel active" id="panel-text">
+  <textarea
+    class="cp-textarea"
+    id="textInput"
+    placeholder="¿Qué estás pensando?"
+    maxlength="2000"
+    rows="5"
+  ></textarea>
+  <div class="cp-char-count"><span id="charCount">0</span>/2000</div>
+
+  <!-- Mood / Feeling -->
+  <div class="cp-extras-row">
+    <button class="cp-extra-btn" id="feelingBtn">
+      <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+      Sentimiento
+    </button>
+    <button class="cp-extra-btn" id="locationBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      Ubicación
+    </button>
+    <button class="cp-extra-btn" id="tagBtn">
+      <svg viewBox="0 0 24 24"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>
+      Etiquetar
+    </button>
+    <label class="cp-extra-btn">
+      <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+      Foto
+      <input type="file" accept="image/*" id="inlineImageInput" style="display:none" multiple />
+    </label>
+  </div>
+
+  <!-- Inline image previews -->
+  <div class="cp-image-previews" id="imagePreviews"></div>
+
+  <!-- Anónimo toggle -->
+  <div class="cp-toggle-row">
+    <div class="cp-toggle-info">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+      Publicar como anónimo
+    </div>
+    <label class="cp-switch">
+      <input type="checkbox" id="anonToggle" />
+      <span class="cp-slider"></span>
+    </label>
+  </div>
+</div>
+
+<!-- PHOTO PANEL -->
+<div class="cp-panel" id="panel-photo">
+  <label class="cp-upload-area" id="photoDropzone">
+    <div class="cp-upload-icon">
+      <svg viewBox="0 0 24 24"><path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"/></svg>
+    </div>
+    <p class="cp-upload-text">Toca para seleccionar fotos</p>
+    <p class="cp-upload-sub">JPG, PNG, GIF · máx. 10 MB c/u</p>
+    <input type="file" accept="image/*" id="photoInput" multiple style="display:none" />
+  </label>
+  <div class="cp-image-grid" id="photoGrid"></div>
+  <textarea class="cp-textarea" id="photoCaption" placeholder="Escribe un pie de foto…" rows="3"></textarea>
+</div>
+
+<!-- VIDEO PANEL — selector de tipo -->
+<div class="cp-panel" id="panel-video">
+  <!-- Tipo seleccionado badge -->
+  <div class="cp-video-type-badge" id="videoTypeBadge" style="display:none">
+    <span id="videoTypeBadgeText"></span>
+    <button id="changeVideoTypeBtn">Cambiar</button>
+  </div>
+
+  <!-- Sub-panel Video Normal (Cloudinary) -->
+  <div id="subpanel-video-normal" style="display:none">
+    <label class="cp-upload-area" id="videoDropzone">
+      <div class="cp-upload-icon cp-upload-icon--video">
+        <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+      </div>
+      <p class="cp-upload-text">Toca para subir un video</p>
+      <p class="cp-upload-sub">MP4, MOV · máx. 100 MB · Cloudinary</p>
+      <input type="file" accept="video/*" id="videoInput" style="display:none"/>
+    </label>
+    <div class="cp-video-preview" id="videoPreview" style="display:none">
+      <video id="videoPlayer" controls muted playsinline></video>
+      <button class="cp-remove-media" id="removeVideo">✕ Quitar video</button>
+    </div>
+    <textarea class="cp-textarea" id="videoCaption" placeholder="Escribe una descripción…" rows="3"></textarea>
+  </div>
+
+  <!-- Sub-panel Short (Cloudinary) -->
+  <div id="subpanel-video-short" style="display:none">
+    <div class="cp-short-hint">
+      <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+      Video corto · vertical · hasta 60 s
+    </div>
+    <label class="cp-upload-area cp-upload-area--short" id="shortDropzone">
+      <div class="cp-upload-icon cp-upload-icon--short">
+        <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+      </div>
+      <p class="cp-upload-text">Toca para subir tu Short</p>
+      <p class="cp-upload-sub">MP4, MOV · vertical 9:16 · Cloudinary</p>
+      <input type="file" accept="video/*" id="shortVideoInput" style="display:none"/>
+    </label>
+    <div class="cp-video-preview" id="shortPreview" style="display:none">
+      <video id="shortPlayer" controls muted playsinline style="max-height:400px;aspect-ratio:9/16;margin:0 auto"></video>
+      <button class="cp-remove-media" id="removeShort">✕ Quitar short</button>
+    </div>
+    <textarea class="cp-textarea" id="shortCaption" placeholder="Descripción del short…" rows="3"></textarea>
+  </div>
+
+  <!-- Placeholder inicial: elegir tipo -->
+  <div id="videoTypeChooserPlaceholder" class="cp-video-chooser-placeholder">
+    <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+    <p>Elige el tipo de video</p>
+    <button class="cp-choose-type-btn" id="openVideoTypeSheet">Seleccionar tipo</button>
+  </div>
+</div>
+
+<!-- AUDIO PANEL -->
+<div class="cp-panel" id="panel-audio">
+  <!-- Record -->
+  <div class="cp-audio-recorder">
+    <div class="cp-audio-viz" id="audioViz">
+      <div class="cp-audio-circle" id="audioCircle">
+        <svg viewBox="0 0 24 24" id="micIcon"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+      </div>
+      <div class="cp-audio-timer" id="audioTimer">00:00</div>
+    </div>
+    <div class="cp-audio-controls">
+      <button class="cp-audio-btn cp-audio-record" id="recordBtn">
+        <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        Grabar
+      </button>
+      <button class="cp-audio-btn cp-audio-stop" id="stopBtn" style="display:none">
+        <svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+        Detener
+      </button>
+    </div>
+    <div class="cp-audio-playback" id="audioPlayback" style="display:none">
+      <audio id="audioPlayer" controls></audio>
+      <button class="cp-remove-media" id="removeAudio">✕ Quitar audio</button>
+    </div>
+  </div>
+
+  <!-- Or upload file -->
+  <div class="cp-divider-or"><span>o</span></div>
+  <label class="cp-upload-area cp-upload-area--small">
+    <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#1877f2"><path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/></svg>
+    <p class="cp-upload-text">Subir archivo de audio</p>
+    <p class="cp-upload-sub">MP3, WAV, OGG, M4A</p>
+    <input type="file" accept="audio/*" id="audioFileInput" style="display:none" />
+  </label>
+
+  <textarea class="cp-textarea" id="audioCaption" placeholder="Escribe algo sobre tu audio…" rows="3"></textarea>
+</div>
+
+<!-- POLL PANEL -->
+<div class="cp-panel" id="panel-poll">
+  <textarea class="cp-textarea" id="pollQuestion" placeholder="Escribe tu pregunta…" rows="3"></textarea>
+
+  <div class="cp-poll-options" id="pollOptions">
+    <div class="cp-poll-option">
+      <input class="cp-poll-input" type="text" placeholder="Opción 1" data-idx="0" maxlength="80"/>
+    </div>
+    <div class="cp-poll-option">
+      <input class="cp-poll-input" type="text" placeholder="Opción 2" data-idx="1" maxlength="80"/>
+    </div>
+  </div>
+
+  <button class="cp-add-option-btn" id="addOptionBtn">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    Agregar opción
+  </button>
+
+  <div class="cp-poll-duration">
+    <label class="cp-label">Duración de la encuesta</label>
+    <div class="cp-duration-grid">
+      <button class="cp-dur-btn active" data-days="1">1 día</button>
+      <button class="cp-dur-btn" data-days="3">3 días</button>
+      <button class="cp-dur-btn" data-days="7">1 semana</button>
+      <button class="cp-dur-btn" data-days="14">2 semanas</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO TYPE BOTTOM SHEET -->
+<div class="cp-sheet-overlay" id="videoTypeSheet">
+  <div class="cp-sheet">
+    <div class="cp-sheet-handle"></div>
+    <div class="cp-sheet-title">¿Qué tipo de video quieres publicar?</div>
+
+    <div class="cp-sheet-options">
+
+      <!-- Video Normal -->
+      <button class="cp-sheet-option" id="chooseVideoNormal">
+        <div class="cp-sheet-option-icon" style="background:#fff3e0">
+          <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        </div>
+        <div class="cp-sheet-option-body">
+          <span class="cp-sheet-option-title">Video Normal</span>
+          <span class="cp-sheet-option-sub">Se publica en tu feed · horizontal o vertical</span>
+        </div>
+        <svg class="cp-sheet-option-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </button>
+
+      <!-- Video Short -->
+      <button class="cp-sheet-option" id="chooseVideoShort">
+        <div class="cp-sheet-option-icon" style="background:#e8f5e9">
+          <svg viewBox="0 0 24 24" style="fill:#2e7d32"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        </div>
+        <div class="cp-sheet-option-body">
+          <span class="cp-sheet-option-title">Short <span class="cp-badge-new">NUEVO</span></span>
+          <span class="cp-sheet-option-sub">Video corto 9:16 · aparece en la pestaña Shorts</span>
+        </div>
+        <svg class="cp-sheet-option-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </button>
+
+    </div>
+
+    <p class="cp-sheet-footer">Ambos usan <strong>Cloudinary</strong> para la subida</p>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="cp-progress-bar" id="progressBar" style="display:none">
+  <div class="cp-progress-fill" id="progressFill"></div>
+</div>
+
+<!-- TOAST -->
+<div class="cp-toast-container" id="toastContainer"></div>
+
+<script type="module" src="../logicas/create-posts.js"></script>
+</body>
+</html>
