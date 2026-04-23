@@ -3,7 +3,7 @@
 // type="module"  →  importado desde index.html
 // ═══════════════════════════════════════════════════════════
 
-import { auth } from '../Servicios/firebase-config.js';
+import { auth } from '../servicios/firebase-config.js';
 import {
     onAuthStateChanged,
     signInWithEmailAndPassword,
@@ -14,7 +14,7 @@ import {
     signInWithPhoneNumber,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { sincronizarUsuario } from '../Servicios/db.js';
+import { sincronizarUsuario } from '../servicios/db.js';
 
 // ═══════════════════════════════════════════════════════════
 // SEGURIDAD: Anti-bypass de navegación
