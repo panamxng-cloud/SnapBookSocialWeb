@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+  <title>SnapBook — Shorts</title>
+  <link rel="stylesheet" href="../css/shorts.css"/>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="sh-header">
+  <span class="sh-logo">Shorts</span>
+  <div class="sh-header-actions">
+    <button class="sh-icon-btn" id="searchBtn">
+      <svg viewBox="0 0 24 24"><path d="M21.53 20.47l-4.8-4.8A8 8 0 1 0 15.72 17l4.8 4.8a.75.75 0 0 0 1.06-1.06zM4.5 11a6.5 6.5 0 1 1 13 0 6.5 6.5 0 0 1-13 0z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- SHORTS FEED (full-screen vertical scroll snap) -->
+<div class="sh-feed" id="shortsFeed">
+
+  <!-- Skeletons while loading -->
+  <div class="sh-skeleton" id="skel-s1">
+    <div class="sh-skel-bg"></div>
+    <div class="sh-skel-info">
+      <div class="sh-skel-line" style="width:60%"></div>
+      <div class="sh-skel-line" style="width:40%"></div>
+    </div>
+  </div>
+
+  <!-- Shorts rendered by shorts.js -->
+
+</div>
+
+<!-- BOTTOM NAV (same as Home) -->
+<nav class="sh-bottom-nav">
+  <button class="sh-tab" onclick="location.href='Home.html'">
+    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+  </button>
+  <button class="sh-tab active">
+    <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+  </button>
+  <button class="sh-tab" onclick="location.href='create-posts.html'">
+    <div class="sh-tab-plus">
+      <svg viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    </div>
+  </button>
+  <button class="sh-tab" onclick="location.href='chats.html'">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
+  </button>
+  <button class="sh-tab" onclick="location.href='Profile.html'">
+    <svg viewBox="0 0 24 24"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5z"/></svg>
+  </button>
+</nav>
+
+<!-- COMMENT SHEET -->
+<div class="sh-sheet-overlay" id="commentSheet">
+  <div class="sh-sheet">
+    <div class="sh-sheet-handle"></div>
+    <div class="sh-sheet-title">Comentarios</div>
+    <div class="sh-sheet-list" id="commentList">
+      <div class="sh-sheet-empty">Cargando…</div>
+    </div>
+    <div class="sh-sheet-input">
+      <img src="" id="commentInputAvatar" alt="Tú" class="sh-comment-avatar"/>
+      <input type="text" id="commentInput" placeholder="Añade un comentario…"/>
+      <button class="sh-send-btn" id="commentSendBtn">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD SHEET -->
+<div class="sh-sheet-overlay" id="uploadSheet">
+  <div class="sh-sheet">
+    <div class="sh-sheet-handle"></div>
+    <div class="sh-sheet-title">Subir Short</div>
+    <div style="padding:16px">
+
+      <label class="sh-upload-area" id="shortDropzone">
+        <svg viewBox="0 0 24 24" style="width:40px;height:40px;fill:#1877f2">
+          <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+        </svg>
+        <p style="font-size:15px;font-weight:600">Toca para seleccionar video</p>
+        <p style="font-size:12px;color:#65676b">MP4, MOV · máx 100 MB</p>
+        <input type="file" accept="video/*" id="shortVideoInput" style="display:none"/>
+      </label>
+
+      <div id="shortPreviewWrap" style="display:none;margin-bottom:12px">
+        <video id="shortPreviewVideo" muted playsinline style="width:100%;max-height:240px;border-radius:12px;background:#000;display:block"></video>
+      </div>
+
+      <textarea
+        id="shortDescription"
+        placeholder="Escribe una descripción…"
+        style="width:100%;resize:none;border:1.5px solid #e4e6eb;border-radius:12px;padding:12px;font-size:15px;font-family:inherit;outline:none;margin-bottom:12px"
+        rows="3"
+      ></textarea>
+
+      <div id="shortProgress" style="display:none;margin-bottom:12px">
+        <div style="height:4px;background:#e4e6eb;border-radius:2px;overflow:hidden">
+          <div id="shortProgressFill" style="height:100%;background:#1877f2;border-radius:2px;transition:width .2s;width:0%"></div>
+        </div>
+      </div>
+
+      <button id="shortPublishBtn" style="
+        width:100%;padding:12px;background:#1877f2;color:#fff;border:none;
+        border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;
+        opacity:.5" disabled>
+        Publicar Short
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="sh-toast-container" id="toastContainer"></div>
+
+<script type="module" src="../logicas/shorts.js"></script>
+</body>
+</html>

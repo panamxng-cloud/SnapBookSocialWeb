@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnapBook | Iniciar sesión</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/index.css">
+</head>
+<body>
+
+    <!-- AUTH GUARD -->
+    <div id="_auth_guard_overlay" class="show">
+        <div class="ag-spinner"></div>
+        <div class="ag-text">Verificando sesión...</div>
+    </div>
+
+    <!-- BLOBS -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="card">
+
+        <!-- LOGO -->
+        <div class="logo-wrap">
+            <div class="logo">SnapBook</div>
+            <div class="logo-tagline">Comparte tus mejores momentos ✨</div>
+        </div>
+
+        <div class="card-title">Bienvenido de vuelta</div>
+        <div class="card-sub">Inicia sesión para continuar</div>
+
+        <!-- TABS -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-email" onclick="switchTab('email')">
+                <i class="fa-solid fa-envelope"></i> Correo
+            </button>
+            <button class="auth-tab" id="tab-phone" onclick="switchTab('phone')">
+                <i class="fa-solid fa-mobile-screen"></i> Teléfono
+            </button>
+        </div>
+
+        <!-- ERROR -->
+        <div class="error-msg" id="error-msg">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span id="error-text">Error al iniciar sesión</span>
+        </div>
+
+        <!-- ── EMAIL PANEL ── -->
+        <div class="email-panel" id="email-panel">
+
+            <div class="field">
+                <label>Correo electrónico</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="email" placeholder="tu@correo.com" autocomplete="email">
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Contraseña</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" placeholder="Tu contraseña"
+                           class="has-eye" autocomplete="current-password">
+                    <button class="eye-btn" id="eye-btn" tabindex="-1">
+                        <i class="fa-regular fa-eye" id="eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="forgot-wrap">
+                <button class="forgot-link" id="forgot-btn">¿Olvidaste tu contraseña?</button>
+            </div>
+
+            <button class="submit-btn" id="login-btn">
+                <span class="btn-text">Iniciar sesión</span>
+                <div class="spinner"></div>
+            </button>
+
+        </div><!-- end email-panel -->
+
+        <!-- ── PHONE PANEL ── -->
+        <div class="phone-panel" id="phone-panel">
+
+            <!-- STEP 1: número -->
+            <div id="phone-step1">
+                <div class="field">
+                    <label>Número de teléfono</label>
+                    <div class="phone-row">
+                        <select class="country-select" id="country-code">
+                            <option value="+52">🇲🇽 +52</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+34">🇪🇸 +34</option>
+                            <option value="+57">🇨🇴 +57</option>
+                            <option value="+54">🇦🇷 +54</option>
+                            <option value="+51">🇵🇪 +51</option>
+                            <option value="+56">🇨🇱 +56</option>
+                            <option value="+58">🇻🇪 +58</option>
+                            <option value="+593">🇪🇨 +593</option>
+                            <option value="+502">🇬🇹 +502</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+55">🇧🇷 +55</option>
+                        </select>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                            <input type="tel" id="phone-number"
+                                   placeholder="Ej: 5512345678" autocomplete="tel">
+                        </div>
+                    </div>
+                </div>
+                <div id="recaptcha-container"></div>
+                <button class="submit-btn" id="send-otp-btn" style="margin-top:4px">
+                    <span class="btn-text">Enviar código SMS</span>
+                    <div class="spinner"></div>
+                </button>
+            </div>
+
+            <!-- STEP 2: OTP -->
+            <div class="otp-section" id="phone-step2">
+                <p class="otp-hint">
+                    Código enviado a <strong id="otp-phone-display"></strong><br>
+                    Ingresa los 6 dígitos
+                </p>
+                <div class="otp-inputs">
+                    <input class="otp-input" maxlength="1" type="tel" id="o1">
+                    <input class="otp-input" maxlength="1" type="tel" id="o2">
+                    <input class="otp-input" maxlength="1" type="tel" id="o3">
+                    <input class="otp-input" maxlength="1" type="tel" id="o4">
+                    <input class="otp-input" maxlength="1" type="tel" id="o5">
+                    <input class="otp-input" maxlength="1" type="tel" id="o6">
+                </div>
+                <button class="submit-btn" id="verify-otp-btn">
+                    <span class="btn-text">Verificar y entrar</span>
+                    <div class="spinner"></div>
+                </button>
+                <div class="otp-resend" style="margin-top:14px">
+                    <button id="resend-btn" disabled>
+                        Reenviar código (<span id="resend-timer">60</span>s)
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- end phone-panel -->
+
+        <!-- DIVIDER -->
+        <div class="divider">
+            <div class="divider-line"></div>
+            <div class="divider-text">O continúa con</div>
+            <div class="divider-line"></div>
+        </div>
+
+        <!-- GOOGLE -->
+        <button class="google-btn" id="google-btn">
+            <svg class="google-icon" viewBox="0 0 48 48">
+                <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.6 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
+                <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.5 16 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.2 0 9.8-1.9 13.4-5.1l-6.2-5.2C29.2 35.3 26.7 36 24 36c-5.2 0-9.5-3.3-11.2-8l-6.5 5C9.7 39.6 16.3 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.2 5.2C37 38 44 33 44 24c0-1.3-.1-2.7-.4-3.9z"/>
+            </svg>
+            Continuar con Google
+        </button>
+
+        <!-- FOOTER -->
+        <div class="card-footer">
+            ¿No tienes cuenta? <a href="register.html">Regístrate gratis</a>
+        </div>
+
+    </div><!-- end card -->
+
+    <script type="module" src="../js/index.js"></script>
+</body>
+</html>

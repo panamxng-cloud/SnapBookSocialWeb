@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnapBook | Crear cuenta</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/register.css">
+</head>
+<body>
+
+<div id="_auth_guard_overlay" class="show">
+    <div class="ag-spinner"></div>
+    <div class="ag-text">Verificando sesión...</div>
+</div>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="card">
+    <div class="logo-wrap">
+        <div class="logo">SnapBook</div>
+    </div>
+
+    <!-- AVATAR OBLIGATORIO -->
+    <div class="avatar-picker">
+        <div class="avatar-ring" id="avatar-ring">
+            <i class="fa-solid fa-camera camera-icon"></i>
+            <img id="avatar-preview" src="" alt="">
+            <div class="avatar-required-badge">!</div>
+            <input type="file" id="avatar-file" accept="image/*" style="display:none">
+        </div>
+        <div class="avatar-hint" id="avatar-hint">Foto de perfil obligatoria</div>
+    </div>
+
+    <div class="card-title" id="card-title">Crea tu cuenta</div>
+    <div class="card-sub" id="card-sub">Únete a SnapBook hoy mismo</div>
+
+    <!-- TABS -->
+    <div class="auth-tabs" id="reg-tabs">
+        <button class="auth-tab active" id="reg-tab-email" onclick="switchRegTab('email')">
+            <i class="fa-solid fa-envelope"></i> Correo
+        </button>
+        <button class="auth-tab" id="reg-tab-phone" onclick="switchRegTab('phone')">
+            <i class="fa-solid fa-mobile-screen"></i> Teléfono
+        </button>
+    </div>
+
+    <div class="error-msg" id="error-msg">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="error-text"></span>
+    </div>
+    <div class="success-msg" id="success-msg">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="success-text">¡Cuenta creada!</span>
+    </div>
+
+    <!-- EMAIL REGISTER PANEL -->
+    <div class="reg-email-panel" id="reg-email-panel">
+        <div class="field">
+            <label>Nombre completo</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-user field-icon"></i>
+                <input type="text" id="fullname" placeholder="Tu nombre" autocomplete="name">
+            </div>
+        </div>
+
+        <div class="field campo-registro">
+            <label>Correo electrónico</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-envelope field-icon"></i>
+                <input type="email" id="email" placeholder="tu@correo.com" autocomplete="email">
+            </div>
+        </div>
+
+        <div class="field campo-registro">
+            <label>Contraseña</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-lock field-icon"></i>
+                <input type="password" id="password" placeholder="Mínimo 6 caracteres" class="has-eye" autocomplete="new-password">
+                <button class="eye-btn" id="eye-btn" tabindex="-1">
+                    <i class="fa-regular fa-eye" id="eye-icon"></i>
+                </button>
+            </div>
+            <div class="strength-bar">
+                <div class="strength-seg" id="s1"></div>
+                <div class="strength-seg" id="s2"></div>
+                <div class="strength-seg" id="s3"></div>
+                <div class="strength-seg" id="s4"></div>
+            </div>
+            <div class="strength-label" id="strength-label"></div>
+        </div>
+
+        <div class="field campo-registro">
+            <label>Confirmar contraseña</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-shield-halved field-icon"></i>
+                <input type="password" id="confirm-password" placeholder="Repite tu contraseña" class="has-eye" autocomplete="new-password">
+                <button class="eye-btn" id="eye-btn2" tabindex="-1">
+                    <i class="fa-regular fa-eye" id="eye-icon2"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="terms-row campo-registro">
+            <div class="custom-check" id="terms-check">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div class="terms-text">
+                Acepto los <a href="#">Términos de servicio</a> y la <a href="#">Política de privacidad</a> de SnapBook.
+            </div>
+        </div>
+
+        <button class="submit-btn" id="register-btn">
+            <span class="btn-text">Crear cuenta gratis</span>
+            <div class="spinner"></div>
+        </button>
+    </div><!-- end reg-email-panel -->
+
+    <!-- PHONE REGISTER PANEL -->
+    <div class="reg-phone-panel" id="reg-phone-panel">
+        <div id="reg-phone-step1">
+            <div class="field">
+                <label>Nombre completo</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-user field-icon"></i>
+                    <input type="text" id="phone-fullname" placeholder="Tu nombre" autocomplete="name">
+                </div>
+            </div>
+            <div class="field">
+                <label>Número de teléfono</label>
+                <div class="phone-row">
+                    <select class="country-select" id="reg-country-code">
+                        <option value="+52">🇲🇽 +52</option>
+                        <option value="+1">🇺🇸 +1</option>
+                        <option value="+34">🇪🇸 +34</option>
+                        <option value="+57">🇨🇴 +57</option>
+                        <option value="+54">🇦🇷 +54</option>
+                        <option value="+51">🇵🇪 +51</option>
+                        <option value="+56">🇨🇱 +56</option>
+                        <option value="+58">🇻🇪 +58</option>
+                        <option value="+593">🇪🇨 +593</option>
+                        <option value="+502">🇬🇹 +502</option>
+                        <option value="+44">🇬🇧 +44</option>
+                        <option value="+55">🇧🇷 +55</option>
+                    </select>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-mobile-screen field-icon"></i>
+                        <input type="tel" id="reg-phone-number" placeholder="Ej: 5512345678" autocomplete="tel">
+                    </div>
+                </div>
+            </div>
+            <div class="terms-row">
+                <div class="custom-check" id="terms-check-phone">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <div class="terms-text">
+                    Acepto los <a href="#">Términos de servicio</a> y la <a href="#">Política de privacidad</a>.
+                </div>
+            </div>
+            <div id="recaptcha-container-reg"></div>
+            <button class="submit-btn" id="reg-send-otp-btn" style="margin-top:4px">
+                <span class="btn-text">Enviar código SMS</span>
+                <div class="spinner"></div>
+            </button>
+        </div>
+
+        <div class="otp-section" id="reg-phone-step2">
+            <p class="otp-hint">Código enviado a <strong id="reg-otp-phone-display"></strong><br>Ingresa los 6 dígitos</p>
+            <div class="otp-inputs">
+                <input class="otp-input" maxlength="1" type="tel" id="r1">
+                <input class="otp-input" maxlength="1" type="tel" id="r2">
+                <input class="otp-input" maxlength="1" type="tel" id="r3">
+                <input class="otp-input" maxlength="1" type="tel" id="r4">
+                <input class="otp-input" maxlength="1" type="tel" id="r5">
+                <input class="otp-input" maxlength="1" type="tel" id="r6">
+            </div>
+            <button class="submit-btn" id="reg-verify-otp-btn">
+                <span class="btn-text">Crear cuenta</span>
+                <div class="spinner"></div>
+            </button>
+            <div class="otp-resend" style="margin-top:14px">
+                <button id="reg-resend-btn" disabled>Reenviar código (<span id="reg-resend-timer">60</span>s)</button>
+            </div>
+        </div>
+    </div><!-- end reg-phone-panel -->
+
+    <div class="divider" id="google-section">
+        <div class="divider-line"></div>
+        <div class="divider-text">O regístrate con</div>
+        <div class="divider-line"></div>
+    </div>
+
+    <button class="google-btn campo-registro" id="google-btn">
+        <svg class="google-icon" viewBox="0 0 48 48">
+            <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.6 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
+            <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.5 16 19 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+            <path fill="#4CAF50" d="M24 44c5.2 0 9.8-1.9 13.4-5.1l-6.2-5.2C29.2 35.3 26.7 36 24 36c-5.2 0-9.5-3.3-11.2-8l-6.5 5C9.7 39.6 16.3 44 24 44z"/>
+            <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.2 5.2C37 38 44 33 44 24c0-1.3-.1-2.7-.4-3.9z"/>
+        </svg>
+        Continuar con Google
+    </button>
+
+    <div class="card-footer" id="footer-link">
+        ¿Ya tienes cuenta? <a href="index.html">Iniciar sesión</a>
+    </div>
+</div>
+
+<script type="module" src="../logicas/register.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- reCAPTCHA v3 para App Check -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6Le606lsAAAAANlergiQmQwMhl3k55X61pAB1nOA"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SnapBook | Videos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/videos.css">
+</head>
+<body>
+
+<div class="top-bar">
+    <button class="top-tab" id="tab-sig">Siguiendo</button>
+    <button class="top-tab active" id="tab-pt">Para ti</button>
+</div>
+
+<div class="video-feed" id="video-feed">
+    <div class="video-item" style="display:flex;align-items:center;justify-content:center;">
+        <p style="color:rgba(255,255,255,0.4)">Cargando...</p>
+    </div>
+</div>
+
+<nav class="nav-float">
+    <div class="tab" onclick="location.href='Home.html'"><i class="fa-solid fa-house"></i></div>
+    <div class="tab active" onclick="location.href='videos.html'"><i class="fa-solid fa-play"></i></div>
+    <div class="tab" onclick="location.href='create-posts.html'"><i class="fa-solid fa-plus"></i></div>
+    <div class="tab" onclick="location.href='chats.html'"><i class="fa-solid fa-comment-dots"></i></div>
+    <div class="tab" onclick="location.href='Profile.html'"><i class="fa-solid fa-user"></i></div>
+</nav>
+
+<!-- Panel comentarios -->
+<div class="comments-backdrop" id="comments-backdrop" onclick="closeComments()"></div>
+<div class="comments-panel" id="comments-panel">
+    <div class="cp-handle"></div>
+    <div class="cp-header">
+        <span class="cp-title" id="cp-title">Comentarios</span>
+        <i class="fa-solid fa-xmark cp-close" onclick="closeComments()"></i>
+    </div>
+    <div class="cp-list" id="cp-list">
+        <div class="cp-empty"><i class="fa-regular fa-comment-dots"></i>Sé el primero en comentar</div>
+    </div>
+    <div class="cp-input-bar">
+        <img id="cp-user-avatar" src="default-avatar.png" onerror="this.src='default-avatar.png'">
+        <textarea class="cp-input" id="cp-input" placeholder="Añade un comentario..." rows="1"></textarea>
+        <button class="cp-send" id="cp-send"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+</div>
+    <script type="module" src="../logicas/videos.js"></script>
+</body>
+</html>
