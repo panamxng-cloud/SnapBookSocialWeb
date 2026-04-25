@@ -3,7 +3,7 @@
 // Cambia WORKER_URL por la URL de tu Worker de Cloudflare.
 // ═══════════════════════════════════════════════════════════════════
 
-const WORKER_URL = "https://raspy-shape-bb15.panamxng.workers.dev";
+const WORKER_URL = "https://snapbook-api.panamxng.workers.dev";
 
 // ─────────────────────────────────────────────────────────────────
 // UTILIDADES INTERNAS
@@ -31,13 +31,24 @@ function getUID() {
   } catch { return null; }
 }
 
+// Obtiene el token de Firebase del usuario autenticado
+async function getToken() {
+  try {
+    const user = window.__snapbookUser;
+    if (!user) return null;
+    return await user.getIdToken();
+  } catch { return null; }
+}
+
 async function exec(sql, args = []) {
-  const uid = getUID();
+  const uid   = getUID();
+  const token = await getToken();
   const res = await fetch(WORKER_URL, {
     method : "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(uid ? { "X-User-UID": uid } : {})
+      ...(uid   ? { "X-User-UID": uid } : {}),
+      ...(token ? { "Authorization": `Bearer ${token}` } : {})
     },
     body: JSON.stringify({ sql, args: args.map(toValue) })
   });
@@ -54,12 +65,14 @@ async function exec(sql, args = []) {
 }
 
 async function batch(statements) {
-  const uid = getUID();
+  const uid   = getUID();
+  const token = await getToken();
   const res = await fetch(WORKER_URL, {
     method : "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(uid ? { "X-User-UID": uid } : {})
+      ...(uid   ? { "X-User-UID": uid } : {}),
+      ...(token ? { "Authorization": `Bearer ${token}` } : {})
     },
     body: JSON.stringify({ batch: statements.map(({ sql, args = [] }) => ({ sql, args: args.map(toValue) })) })
   });
