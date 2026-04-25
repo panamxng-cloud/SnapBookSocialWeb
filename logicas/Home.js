@@ -241,7 +241,7 @@ function buildPostCard(post) {
       </div>
       <div class="post-meta">
         <div class="post-author" onclick="location.href='Profile.html?uid=${post.uid}'">
-          ${post.nombre || 'Usuario'}
+          ${String(post.nombre)}
         </div>
         <div class="post-time">
           <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
@@ -254,7 +254,7 @@ function buildPostCard(post) {
     </div>
 
     ${post.texto
-      ? `<div class="post-text${hasLarge ? ' large' : ''}">${post.texto}</div>`
+      ? `<div class="post-text${hasLarge ? ' large' : ''}">${String(post.texto)}</div>`
       : ''}
     ${post.imagen_url
       ? `<div style="overflow:hidden"><img class="post-image" src="${post.imagen_url}" alt="Imagen" loading="lazy"></div>`
@@ -319,6 +319,11 @@ function buildPostCard(post) {
 async function handleLike(postId) {
   if (!currentUser) return;
   try {
+    // rate limit inline
+    if (!window._likeTs) window._likeTs = [];
+    window._likeTs = window._likeTs.filter(t => Date.now()-t < 60000);
+    if (window._likeTs.length >= 30) return toast('Demasiados likes, espera un momento.');
+    window._likeTs.push(Date.now());
     const btn      = document.getElementById(`likeBtn-${postId}`);
     const countEl  = document.getElementById(`likes-${postId}`);
     const wasLiked = btn.classList.contains('liked');
@@ -444,7 +449,7 @@ function renderComments(comments) {
       <div class="comment-item-body">
         <div class="comment-item-bubble">
           <div class="comment-item-author">${c.nombre || 'Usuario'}</div>
-          <div class="comment-item-text">${c.texto}</div>
+          <div class="comment-item-text">${String(c.texto)}</div>
         </div>
         <div class="comment-meta">
           <span class="comment-meta-time">${timeAgo(c.timestamp)}</span>

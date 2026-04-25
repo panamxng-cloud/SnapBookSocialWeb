@@ -101,7 +101,7 @@ function buildShortItem(short) {
 
   item.innerHTML = `
     <!-- VIDEO -->
-    <video class="sh-video" src="${short.video_url}" loop muted playsinline preload="metadata"></video>
+    <video class="sh-video" src="${short.video_url}" loop playsinline preload="metadata"></video>
 
     <!-- OVERLAYS -->
     <div class="sh-overlay-top"></div>
@@ -257,10 +257,12 @@ function initIntersectionObserver() {
       const video = entry.target.querySelector('.sh-video');
       if (!video) return;
       if (entry.isIntersecting) {
+        video.muted = true;        // autoplay requiere muted en móvil
         video.play().catch(() => {});
       } else {
         video.pause();
         video.currentTime = 0;
+        video.muted = true;        // resetear al salir de pantalla
       }
     });
   }, { threshold: 0.6 });

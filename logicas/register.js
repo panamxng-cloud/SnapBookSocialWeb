@@ -392,6 +392,10 @@ registerBtn.onclick = async () => {
         return;
     }
 
+    // Verificar Turnstile
+    const tsToken = window.turnstile?.getResponse(document.getElementById('turnstile-register')) || '';
+    if (!tsToken) { showError('Completa la verificación de seguridad.'); return; }
+
     const name     = document.getElementById('fullname').value.trim();
     const email    = document.getElementById('email').value.trim().toLowerCase();
     const password = document.getElementById('password').value;

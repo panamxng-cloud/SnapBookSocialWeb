@@ -293,6 +293,14 @@ function getErrorMsg(code) {
     return map[code] || 'Error al iniciar sesión. Intenta de nuevo.';
 }
 
+// ── TURNSTILE ──────────────────────────────────────────────
+function getTurnstileToken() {
+    return window.turnstile?.getResponse(document.getElementById('turnstile-login')) || '';
+}
+function resetTurnstile() {
+    try { window.turnstile?.reset(document.getElementById('turnstile-login')); } catch {}
+}
+
 // ── LOGIN EMAIL ────────────────────────────────────────────
 const loginBtn = document.getElementById('login-btn');
 loginBtn.onclick = async () => {
@@ -300,6 +308,9 @@ loginBtn.onclick = async () => {
 
     const blocked = checkBlocked();
     if (blocked) { showError(blocked); return; }
+
+    const tsToken = getTurnstileToken();
+    if (!tsToken) { showError('Completa la verificación de seguridad.'); return; }
 
     const email    = document.getElementById('email').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
@@ -321,6 +332,7 @@ loginBtn.onclick = async () => {
         await redirectSeguro(cred.user);
     } catch (err) {
         registerFail();
+        resetTurnstile();
         loginBtn.classList.remove('loading');
         loginBtn.disabled = false;
         const left = attemptsLeft();
