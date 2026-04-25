@@ -328,6 +328,13 @@ loginBtn.onclick = async () => {
 
     try {
         const cred = await signInWithEmailAndPassword(auth, email, password);
+        if (!cred.user.emailVerified) {
+            await signOut(auth);
+            loginBtn.classList.remove('loading');
+            loginBtn.disabled = false;
+            showError('Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.');
+            return;
+        }
         resetAttempts();
         await redirectSeguro(cred.user);
     } catch (err) {

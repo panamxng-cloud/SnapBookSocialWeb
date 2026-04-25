@@ -431,8 +431,13 @@ registerBtn.onclick = async () => {
         await updateProfile(cred.user, { displayName: name, photoURL });
         await saveUserToDB(cred.user, name, photoURL);
         logNuevoUsuario(cred.user.uid, name, email);
-        showSuccess('¡Cuenta creada! Redirigiendo...');
-        setTimeout(() => location.replace('Home.html'), 1200);
+        await cred.user.sendEmailVerification();
+        await signOut(auth);
+        showSuccess('¡Cuenta creada! Revisa tu correo para verificarla antes de iniciar sesión.');
+        registerBtn.classList.remove('loading');
+        registerBtn.disabled = false;
+        registrando = false;
+        return;
     } catch (err) {
         registrando = false;
         registerBtn.classList.remove('loading');
